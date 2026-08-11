@@ -3,443 +3,418 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Showroom/Subasta Inventory</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23a3241c'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23fff2f1' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23fff2f1'/%3E%3Ccircle cx='32' cy='28' r='6.5' fill='%23a3241c'/%3E%3Cpath d='M27 34 Q32 46 37 34 Z' fill='%23a3241c'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23a3241c'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23fff2f1' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23fff2f1'/%3E%3Ccircle cx='32' cy='28' r='6.5' fill='%23a3241c'/%3E%3Cpath d='M27 34 Q32 46 37 34 Z' fill='%23a3241c'/%3E%3C/svg%3E">
+<title>M Lhuillier — Showroom/Subasta Inventory Report</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
 <style>
-  :root{
-    --bg:#ffffff;
-    --bg-deep:#fff2f1;
-    --panel:#ffffff;
-    --panel-2:#fff0ef;
-    --line:#f0cfcd;
-    --brass:#a3241c;
-    --brass-soft:#7d1a14;
-    --parchment:#241412;
-    --parchment-dim:#8a6b69;
-    --ink:#ffffff;
-    --match:#2f7a4d;
-    --match-bg:#e9f6ee;
-    --mismatch:#c62828;
-    --mismatch-bg:#fdeceb;
-    --pending:#a3241c;
-    --pending-bg:#fff0ef;
-    --radius:10px;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(ellipse at top left, #fff7f6 0%, var(--bg) 45%, var(--bg-deep) 100%);
-    color:var(--parchment);
-    font-family:'Inter',sans-serif;
-    min-height:100vh;
-    padding-bottom:60px;
-  }
-  ::selection{background:var(--brass);color:var(--ink);}
+  :root {
+    --primary: #cc0000;
+    --primary-dark: #990000;
+    --bg-red: #bc0000;
+    --bg-gradient: linear-gradient(135deg, #d30000 0%, #900000 100%);
+    --gold: #d4af37;
+    
+    --panel-bg: #ffffff;
+    --panel-2: #fffdfd;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --border-subtle: #f1f5f9;
 
-  header.cover{
-    padding:38px 24px 28px;
-    text-align:center;
-    border-bottom:1px solid var(--line);
-    position:relative;
-    overflow:hidden;
-  }
-  header.cover::before{
-    content:"";
-    position:absolute;inset:0;
-    background:repeating-linear-gradient(90deg, transparent, transparent 78px, rgba(163,36,28,0.05) 79px, transparent 80px);
-    pointer-events:none;
-  }
-  .eyebrow{
-    font-family:'IBM Plex Mono',monospace;
-    letter-spacing:.24em;
-    text-transform:uppercase;
-    font-size:11.5px;
-    color:var(--brass);
-    margin-bottom:10px;
-  }
-  h1{
-    font-family:'Fraunces',serif;
-    font-weight:700;
-    font-size:clamp(28px,5vw,44px);
-    margin:0 0 8px;
-    letter-spacing:-0.01em;
-  }
-  header.cover p{
-    font-family:'IBM Plex Mono',monospace;
-    color:var(--parchment-dim);
-    font-size:13.5px;
-    max-width:520px;
-    margin:0 auto;
-    line-height:1.6;
+    --match: #16a34a;
+    --match-bg: #f0fdf4;
+    --mismatch: #dc2626;
+    --mismatch-bg: #fef2f2;
+    --pending: #ea580c;
+    --pending-bg: #fff7ed;
+
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+
+    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
   }
 
-  .wrap{max-width:1180px;margin:0 auto;padding:0 20px;}
-  .back-link{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;
-    color:var(--brass);text-decoration:none;margin:22px 0 0;}
-  .back-link:hover{text-decoration:underline;}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Upload zone */
-  .upload{
-    margin-top:28px;
-    border:1.5px dashed var(--line);
-    border-radius:var(--radius);
-    background:var(--panel);
-    padding:34px 20px;
-    text-align:center;
-    transition:border-color .2s, background .2s;
-    position:relative;
-  }
-  .upload.drag{border-color:var(--brass);background:var(--panel-2);}
-  .upload h2{
-    font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin:0 0 6px;
-  }
-  .upload p{color:var(--parchment-dim);font-size:13.5px;margin:0 0 18px;}
-  .btn{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12.5px;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    background:var(--brass);
-    color:var(--ink);
-    border:none;
-    padding:11px 22px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:600;
-    transition:transform .12s, background .15s;
-  }
-  .btn:hover{background:#ddb536;transform:translateY(-1px);}
-  .btn:active{transform:translateY(0);}
-  .btn.ghost{
-    background:transparent;color:var(--parchment);border:1px solid var(--line);
-  }
-  .btn.ghost:hover{border-color:var(--brass);color:var(--brass);}
-  .btn.small{padding:7px 13px;font-size:11px;}
-  input[type=file]{display:none;}
-  #status-line{
-    margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--parchment-dim);
-    min-height:16px;
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    min-height: 100vh;
+    padding-bottom: 60px;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Category uploads */
-  .cat-uploads{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;}
-  .cat-upload-card{
-    flex:1;min-width:220px;
-    border:1.5px dashed var(--line);border-radius:var(--radius);
-    background:var(--panel);padding:22px 18px;text-align:center;
-  }
-  .cat-upload-card.done{border-style:solid;border-color:var(--brass);background:var(--panel-2);}
-  .cat-upload-card h3{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0 0 4px;}
-  .cat-upload-card .cat-sub{font-size:12px;color:var(--parchment-dim);margin:0 0 14px;}
-  .cat-upload-card .cat-status{
-    margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--parchment-dim);
-  }
-  .cat-upload-card.done .cat-status{color:var(--brass);font-weight:600;}
+  ::selection { background: var(--primary); color: #ffffff; }
 
-  .tabs{display:none;margin-top:20px;gap:10px;flex-wrap:wrap;
-    position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.96);backdrop-filter:blur(4px);
-    padding:10px 0;border-bottom:1px solid var(--line);
-  }
-  .tabs.show{display:flex;}
-  .tab{
-    flex:1;min-width:150px;
-    background:var(--panel);border:1.5px solid var(--line);border-radius:var(--radius);
-    padding:12px 16px;cursor:pointer;transition:border-color .15s, background .15s;opacity:.5;
-  }
-  .tab.enabled{cursor:pointer;opacity:1;}
-  .tab.disabled{cursor:not-allowed;}
-  .tab:hover.enabled{border-color:var(--brass-soft);}
-  .tab.active{border-color:var(--brass);background:var(--panel-2);}
-  .tab .t-name{font-family:'Fraunces',serif;font-size:16px;font-weight:700;}
-  .tab .t-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--parchment-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
-
-  /* Section picker */
-  .section-picker{display:none;margin-top:22px;gap:10px;flex-wrap:wrap;}
-  .section-picker.show{display:flex;}
-  .sect-card{
-    flex:1;min-width:160px;
-    background:var(--panel);border:1.5px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px;cursor:pointer;transition:border-color .15s, background .15s;
-  }
-  .sect-card:hover{border-color:var(--brass-soft);}
-  .sect-card.active{border-color:var(--brass);background:var(--panel-2);}
-  .sect-card .n{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--brass);}
-  .sect-card .l{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--parchment-dim);text-transform:uppercase;letter-spacing:.05em;}
-
-  /* Dashboard */
-  #dashboard{display:none;margin-top:28px;}
-  #dashboard.show{display:block;}
-
-  .stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
-  .stat-chip{
-    flex:1;min-width:130px;
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px;
-  }
-  .stat-chip .num{font-family:'Fraunces',serif;font-size:26px;font-weight:700;}
-  .stat-chip .lab{font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--parchment-dim);margin-top:2px;}
-  .stat-chip.match .num{color:var(--match);}
-  .stat-chip.mismatch .num{color:var(--mismatch);}
-  .stat-chip.pending .num{color:var(--pending);}
-
-  .cat-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;}
-  .cat-card{
-    flex:1;min-width:170px;
-    background:var(--panel-2);border-left:3px solid var(--brass);border-radius:0 var(--radius) var(--radius) 0;
-    padding:12px 16px;
-  }
-  .cat-card .name{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--brass);}
-  .cat-card .figures{font-family:'Fraunces',serif;font-size:18px;margin-top:4px;}
-  .cat-card .figures small{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--parchment-dim);}
-
-  .toolbar{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
-    position:sticky;top:var(--tabs-h,64px);z-index:45;
-    background:rgba(255,255,255,0.97);backdrop-filter:blur(4px);
-    padding:10px 0;border-bottom:1px solid var(--line);
-  }
-  #search{
-    flex:1;min-width:200px;
-    background:var(--panel);border:1px solid var(--line);border-radius:6px;
-    color:var(--parchment);padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;
-  }
-  #search:focus{outline:none;border-color:var(--brass);}
-  select{
-    background:var(--panel);border:1px solid var(--line);color:var(--parchment);
-    padding:9px 10px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;
+  /* Header Bar */
+  header {
+    background: #ffffff;
+    color: var(--text-main);
+    padding: 16px 32px;
+    border-bottom: 3px solid var(--gold);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
   }
 
-  /* Table */
-  .ledger{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-  }
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  .ledger thead tr:first-child th:first-child{border-top-left-radius:var(--radius);}
-  .ledger thead tr:first-child th:last-child{border-top-right-radius:var(--radius);}
-  .ledger tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius);}
-  .ledger tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius);}
-  thead th{
-    position:sticky;top:var(--thead-top,110px);background:var(--bg-deep);
-    font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
-    color:var(--brass);text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);
-    white-space:nowrap;
-  }
-  tbody td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:rgba(163,36,28,0.045);}
-  .ptn{font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:700;color:var(--parchment);}
-  .ptn .flag{color:var(--brass);}
-  .date{font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap;}
-  .desc-list{font-size:12.5px;line-height:1.5;}
-  .desc-list .code{
-    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;
-    background:var(--panel-2);color:var(--brass);border-radius:3px;padding:0 5px;margin-right:5px;
-  }
-  .desc-item{margin-bottom:2px;}
-  .desc-text[contenteditable="true"]{outline:none;border-bottom:1px dashed transparent;}
-  .desc-text[contenteditable="true"]:hover{border-bottom-color:var(--line);}
-  .desc-text[contenteditable="true"]:focus{border-bottom-color:var(--brass);}
-  .desc-list .meta{color:var(--parchment-dim);font-size:11px;font-family:'IBM Plex Mono',monospace;}
-  .num{font-family:'IBM Plex Mono',monospace;text-align:right;}
-  .expected{font-family:'IBM Plex Mono',monospace;font-size:14px;text-align:center;color:var(--parchment-dim);}
-  .actual-input{
-    width:56px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:14px;
-    background:var(--bg-deep);border:1px solid var(--line);border-radius:5px;color:var(--parchment);padding:6px 4px;
-  }
-  .actual-input:focus{outline:none;border-color:var(--brass);}
-  .status-badge{
-    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
-    letter-spacing:.06em;padding:4px 9px;border-radius:20px;font-weight:600;white-space:nowrap;
-  }
-  .status-badge.match{background:var(--match-bg);color:var(--match);border:1px solid var(--match);}
-  .status-badge.mismatch{background:var(--mismatch-bg);color:var(--mismatch);border:1px solid var(--mismatch);}
-  .status-badge.pending{background:var(--pending-bg);color:var(--pending);border:1px solid rgba(163,36,28,0.4);}
-  .stamp{
-    display:inline-block;font-family:'Fraunces',serif;font-weight:700;font-size:9px;
-    color:var(--match);border:1.5px solid var(--match);border-radius:4px;padding:1px 5px;
-    transform:rotate(-6deg);letter-spacing:.05em;margin-left:6px;
-  }
-  .del-btn{
-    background:none;border:none;color:var(--parchment-dim);cursor:pointer;font-size:15px;padding:2px 6px;
-    border-radius:4px;transition:color .15s;
-  }
-  .del-btn:hover{color:var(--mismatch);}
-  .loan{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--parchment-dim);white-space:nowrap;}
-
-  .footer-tools{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
-
-  .empty-note{
-    text-align:center;color:var(--parchment-dim);font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:40px 20px;
+  .header-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
-  .debug-toggle{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--parchment-dim);
-    cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-top:10px;display:inline-block;
+  .header-title-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
-  #debug-panel{
-    display:none;margin-top:10px;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;
-    padding:12px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--parchment-dim);
-    max-height:180px;overflow:auto;white-space:pre-wrap;
-  }
-  #debug-panel.show{display:block;}
 
-  .found-check{
-    width:20px;height:20px;cursor:pointer;accent-color:var(--match);
+  .header-logo-img { height: 48px; width: auto; object-fit: contain; }
+
+  .logo-badge {
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 18px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    letter-spacing: -0.5px;
+    box-shadow: var(--shadow-sm);
   }
-  .actions-cell{white-space:nowrap;text-align:right;}
-  .missing-note{
-    display:none;text-align:center;padding:10px;font-family:'IBM Plex Mono',monospace;
-    font-size:11.5px;color:var(--parchment-dim);
+
+  h1 { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; }
+  .header-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
+
+  .wrap { max-width: 1280px; margin: 28px auto; padding: 0 24px; }
+
+  /* Buttons */
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 700;
+    background: #ffffff;
+    color: var(--primary);
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
-  @media print{
-    header.cover, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap{display:none !important;}
-    body{background:#fff;color:#000;}
-    .ledger{border-color:#999;}
-    thead th{background:#eee;color:#000;position:static;}
-    tbody td{color:#000;border-color:#ccc;}
-    .status-badge, .stamp{display:none !important;}
-    body.print-missing-mode tbody tr[data-status="match"]{display:none !important;}
-    body.print-missing-mode .missing-note{display:block !important;}
-    body.print-missing-mode #dashboard::before{
-      content:"NAWALA / KULANG NGA LISTAHAN";
-      display:block;font-family:'Fraunces',serif;font-weight:700;font-size:20px;margin-bottom:10px;
-    }
+
+  .btn:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+  .btn:active { transform: translateY(0); }
+
+  .btn.ghost {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: none;
   }
-  @media (max-width:720px){
-    thead{display:none;}
-    table, tbody, tr, td{display:block;width:100%;}
-    tbody tr{border-bottom:1px solid var(--line);padding:12px 4px;}
-    tbody td{border:none;padding:4px 6px;}
-    .num, .expected{text-align:left;}
+  .btn.ghost:hover { background: #ffffff; color: var(--primary); border-color: #ffffff; }
+
+  .btn.small { padding: 7px 13px; font-size: 12px; }
+  .btn-dashboard { background: #1e293b; color: #ffffff; }
+  .btn-dashboard:hover { background: #0f172a; color: #ffffff; }
+
+  input[type=file] { display: none; }
+
+  /* Branch Box & Search Box Cards */
+  .branch-box {
+    background: var(--panel-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 22px 26px;
+    margin-bottom: 20px;
   }
-  #lock-overlay{
-    display:none;position:fixed;inset:0;z-index:999;
-    background:rgba(36,20,18,0.92);
-    align-items:center;justify-content:center;
-    padding:20px;
+  .branch-box h3 { font-size: 17px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+  .branch-box p { font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .input-control {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color 0.2s;
   }
-  .lock-box{
-    background:var(--panel);border-radius:var(--radius);padding:30px 26px;
-    max-width:340px;width:100%;text-align:center;
+  .input-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
+
+  /* Category Uploads */
+  .cat-uploads { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
+  .cat-upload-card {
+    flex: 1; min-width: 240px;
+    background: var(--panel-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 24px 20px;
+    text-align: center;
+    border: 2px dashed var(--border);
+    transition: all 0.2s;
   }
-  .lock-box h2{font-family:'Fraunces',serif;font-size:20px;margin:0 0 10px;}
-  .lock-box p{font-size:13px;color:var(--parchment-dim);margin:0 0 16px;}
-  #lock-input{
-    width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--line);
-    font-family:'IBM Plex Mono',monospace;font-size:14px;margin-bottom:10px;
+  .cat-upload-card.done { border-style: solid; border-color: var(--match); background: #f0fdf4; }
+  .cat-upload-card h3 { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+  .cat-upload-card .cat-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .cat-upload-card .cat-status { margin-top: 12px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .cat-upload-card.done .cat-status { color: var(--match); font-weight: 800; }
+
+  #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+  /* Tabs */
+  .tabs {
+    display: none; margin-top: 24px; gap: 10px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+    padding: 8px; border-radius: var(--radius-md);
   }
-  #lock-error{color:var(--mismatch);font-size:12px;min-height:16px;margin-bottom:6px;}
-  .set-pw-row{margin-top:16px;text-align:center;}
-  .set-pw-row .btn.ghost{font-size:11px;}
-  .branch-box{
-    margin-top:26px;border:1.5px solid var(--brass);border-radius:var(--radius);
-    background:var(--panel-2);padding:18px 20px;
+  .tabs.show { display: flex; }
+  .tab {
+    flex: 1; min-width: 150px;
+    background: rgba(255,255,255,0.85); border: none; border-radius: var(--radius-sm);
+    padding: 12px 16px; cursor: pointer; transition: all 0.2s; opacity: 0.6;
   }
-  .branch-box h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 4px;}
-  .branch-box p{font-size:12.5px;color:var(--parchment-dim);margin:0 0 12px;}
-  .cat-uploads.locked{opacity:.4;pointer-events:none;}
+  .tab.enabled { cursor: pointer; opacity: 1; }
+  .tab.disabled { cursor: not-allowed; }
+  .tab.active { background: #ffffff; opacity: 1; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .tab .t-name { font-size: 15px; font-weight: 800; color: var(--primary); }
+  .tab .t-count { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+
+  /* Dashboard Stats */
+  #dashboard { display: none; margin-top: 24px; }
+  #dashboard.show { display: block; }
+
+  .stats-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat-chip {
+    flex: 1; min-width: 140px;
+    background: var(--panel-bg); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card); padding: 16px 20px;
+  }
+  .stat-chip .num { font-size: 26px; font-weight: 800; font-family: var(--font-mono); color: var(--primary); }
+  .stat-chip .lab { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 800; margin-top: 2px; }
+  .stat-chip.match .num { color: var(--match); }
+  .stat-chip.mismatch .num { color: var(--mismatch); }
+  .stat-chip.pending .num { color: var(--pending); }
+
+  .cat-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+  .cat-card {
+    flex: 1; min-width: 180px;
+    background: var(--panel-bg); border-left: 4px solid var(--primary);
+    border-radius: var(--radius-md); padding: 14px 18px; box-shadow: var(--shadow-card);
+  }
+  .cat-card .name { font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--primary); letter-spacing: 0.5px; }
+  .cat-card .figures { font-size: 18px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; color: var(--text-main); }
+  .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
+    background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-card);
+  }
+  #search {
+    flex: 1; min-width: 200px; padding: 10px 14px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--font-sans); font-size: 13px; outline: none;
+  }
+  #search:focus { border-color: var(--primary); }
+  select {
+    padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
+  }
+
+  /* Ledger Table */
+  .ledger {
+    background: var(--panel-bg); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card); overflow: hidden; padding: 8px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    background: #ffffff; font-size: 11px; text-transform: uppercase; font-weight: 800;
+    color: var(--primary); text-align: left; padding: 16px 14px; border-bottom: 2px solid var(--border);
+    white-space: nowrap; position: sticky; top: 0; z-index: 10;
+  }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid #f8fafc; vertical-align: top; }
+  tbody tr:hover { background: #fffdfd; }
+  .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); white-space: nowrap; }
+  .ptn .flag { color: var(--primary); }
+  .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
+  .desc-list { font-size: 13px; line-height: 1.5; }
+  .desc-list .code {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    background: #f1f5f9; color: var(--primary); border-radius: 4px; padding: 1px 6px; margin-right: 6px;
+  }
+  .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
+  .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
+  .desc-list .meta { color: var(--text-muted); font-size: 11.5px; font-weight: 600; }
+  
+  .expected { font-family: var(--font-mono); font-size: 14px; text-align: center; color: var(--text-muted); font-weight: 700; }
+  .actual-input {
+    width: 60px; text-align: center; font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+    background: #f8fafc; border: 1.5px solid var(--border); border-radius: 6px; color: var(--text-main); padding: 5px 4px;
+  }
+  .actual-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
+
+  .status-badge {
+    display: inline-block; font-size: 11px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px; font-weight: 700; white-space: nowrap;
+  }
+  .status-badge.match { background: var(--match-bg); color: var(--match); border: 1px solid var(--match); }
+  .status-badge.mismatch { background: var(--mismatch-bg); color: var(--mismatch); border: 1px solid var(--mismatch); }
+  .status-badge.pending { background: var(--pending-bg); color: var(--pending); border: 1px solid var(--pending); }
+  .stamp {
+    display: inline-block; font-weight: 800; font-size: 10px; color: var(--match);
+    border: 1.5px solid var(--match); border-radius: 4px; padding: 1px 6px; transform: rotate(-4deg); margin-left: 6px;
+  }
+
+  .del-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; }
+  .del-btn:hover { color: var(--mismatch); }
+  .loan { font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+
+  .footer-tools { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+  .empty-note { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 20px; }
+
+  .found-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--match); }
+  .actions-cell { white-space: nowrap; text-align: right; }
+
+  .cloud-tag {
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 800;
+  }
+
+  @media print {
+    header, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap, .btn-dashboard, .branch-box { display: none !important; }
+    body { background: #fff; color: #000; }
+    .ledger { border: none; box-shadow: none; }
+    thead th { background: #eee; color: #000; position: static; }
+    tbody td { color: #000; border-color: #ccc; }
+    .status-badge, .stamp { display: none !important; }
+  }
 </style>
 </head>
 <body>
 
-<div id="lock-overlay">
-  <div class="lock-box">
-    <h2>🔒 Locked</h2>
-    <p>Enter the password given to you by whoever shared this to access the ledger.</p>
-    <input type="password" id="lock-input" placeholder="Password">
-    <div id="lock-error"></div>
-    <button class="btn" id="lock-submit" style="width:100%;">Enter</button>
+<div id="scan-overlay" style="display:none; position:fixed; inset:0; z-index:998; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
+    <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 6px;">📷 Scan Item Code</h2>
+    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 16px;">Point your camera at the item tag's QR code or barcode.</p>
+    <div id="qr-reader" style="width:100%; border-radius:12px; overflow:hidden;"></div>
+    <div id="scan-result" style="margin-top:14px; font-family:var(--font-mono); font-size:13px; color:var(--primary); font-weight:700; min-height:18px;"></div>
+    <button class="btn ghost" id="scan-close-btn" style="margin-top:16px; background:#f1f5f9; color:#334155; border:none;">Close Scanner</button>
   </div>
 </div>
 
-<div id="scan-overlay" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(36,20,18,0.92);align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--panel);border-radius:var(--radius);padding:22px 20px;max-width:420px;width:100%;text-align:center;">
-    <h2 style="font-family:'Fraunces',serif;font-size:19px;margin:0 0 6px;">📷 Scan Item Code</h2>
-    <p style="font-size:12.5px;color:var(--parchment-dim);margin:0 0 14px;">Point your camera (laptop webcam or phone) at the item's QR code or barcode.</p>
-    <div id="qr-reader" style="width:100%;border-radius:8px;overflow:hidden;"></div>
-    <div id="scan-result" style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--brass);min-height:16px;"></div>
-    <button class="btn ghost" id="scan-close-btn" style="margin-top:14px;">Close Scanner</button>
+<!-- HEADER BAR WITH LOGO -->
+<header>
+  <div class="header-content">
+    <div class="header-title-box">
+      <img src="logo.png" class="header-logo-img" alt="M Lhuillier Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="logo-badge" style="display:none;">ML</div>
+      <div>
+        <h1>Showroom / Subasta Physical Inventory Check</h1>
+        <div class="header-sub">Automated Item Verification & Audit Engine</div>
+      </div>
+    </div>
+    <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
   </div>
-</div>
-
-<header class="cover">
-  <div class="eyebrow">Showroom / Subasta Inventory</div>
-  <h1>Physical Inventory Check</h1>
-  <p>Upload your Inventory Reports (Excel/CSV) — Showroom and Subasta. Each item is parsed automatically; just check off what's found (or scan its code), and it will automatically flag matches vs. shortages.</p>
-  <div class="set-pw-row"><button class="btn ghost small" id="set-password-btn">🔒 Set/Change Share Password</button></div>
 </header>
 
 <div class="wrap">
-  <a class="back-link" href="Audit_Tools.html">← Audit Tool (IAD) Dashboard</a>
 
+  <!-- TOP ACTION BAR WITH BACK TO DASHBOARD -->
+  <div style="display:flex; justify-content:flex-start; align-items:center; margin-bottom:20px;">
+    <button class="btn btn-dashboard" onclick="window.location.href='index.html'" title="Return to Main Dashboard">
+      <span>⬅️</span> Back to Dashboard
+    </button>
+  </div>
+
+  <!-- BRANCH SELECTOR CARD -->
   <div class="branch-box" id="branch-box">
     <h3>🏢 Which branch is this?</h3>
-    <p>Each branch keeps its own separate data on this same link — enter your branch name so your counts never mix with or overwrite another branch's.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <input type="text" id="branch-input" placeholder="e.g. Colon, Carbon, Mandaue..." style="flex:1;min-width:200px;padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
-      <input type="date" id="audit-date-input" style="padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
-      <button class="btn" id="branch-confirm-btn">Start / Switch Branch</button>
+    <p>Each branch keeps its own separate inventory data. Select or enter your branch name to prevent data mixing.</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <input type="text" id="branch-input" class="input-control" placeholder="e.g. ML Catarman, ML Liloan 3..." style="flex:1; min-width:200px;">
+      <input type="date" id="audit-date-input" class="input-control">
+      <button class="btn" id="branch-confirm-btn" style="background:var(--primary); color:#ffffff;">Start / Switch Branch</button>
     </div>
-    <div id="branch-current" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--brass);"></div>
+    <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
-  <div class="branch-box" id="global-search-box" style="border-color:var(--line);">
-    <h3>🔎 Search Item Code (all categories)</h3>
-    <p>Looks up an item code or description across Showroom and Subasta at once — no need to switch tabs first.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <input type="text" id="global-search-input" placeholder="Type full or partial item code / description..." style="flex:1;min-width:200px;padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
-      <button class="btn" id="global-search-btn">Search</button>
-      <button class="btn ghost" id="global-scan-btn">📷 Scan QR/Barcode</button>
+  <!-- GLOBAL SEARCH BOX -->
+  <div class="branch-box" id="global-search-box">
+    <h3>🔎 Search Item Code (All Categories)</h3>
+    <p>Look up an item code or description across Showroom and Subasta simultaneously.</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <input type="text" id="global-search-input" class="input-control" placeholder="Type full or partial item code / description..." style="flex:1; min-width:200px;">
+      <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search</button>
+      <button class="btn ghost" id="global-scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Scan QR/Barcode</button>
     </div>
-    <div id="global-search-results" style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;"></div>
+    <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
   </div>
 
-  <div class="cat-uploads locked" id="cat-uploads">
+  <!-- CATEGORY UPLOADS -->
+  <div class="cat-uploads" id="cat-uploads">
     <div class="cat-upload-card" data-cat="showroom">
       <h3>Showroom</h3>
       <p class="cat-sub">Showroom inventory report</p>
-      <button class="btn small cat-upload-btn" data-cat="showroom">Choose Excel File</button>
+      <button class="btn small cat-upload-btn" data-cat="showroom" style="background:var(--primary); color:#fff;">Choose Excel File</button>
       <input type="file" class="cat-file-input" data-cat="showroom" accept=".xlsx,.xls,.csv">
       <div class="cat-status" data-cat-status="showroom">Not uploaded yet</div>
     </div>
     <div class="cat-upload-card" data-cat="subasta">
       <h3>Subasta</h3>
       <p class="cat-sub">Subasta inventory report</p>
-      <button class="btn small cat-upload-btn" data-cat="subasta">Choose Excel File</button>
+      <button class="btn small cat-upload-btn" data-cat="subasta" style="background:var(--primary); color:#fff;">Choose Excel File</button>
       <input type="file" class="cat-file-input" data-cat="subasta" accept=".xlsx,.xls,.csv">
       <div class="cat-status" data-cat-status="subasta">Not uploaded yet</div>
     </div>
   </div>
+
   <div id="status-line"></div>
-  <div style="text-align:center;margin-top:8px;">
-    <button class="btn ghost small" id="backup-json-btn">💾 Backup to File (save to Google Drive)</button>
+
+  <!-- UTILITY BUTTONS -->
+  <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+    <button class="btn ghost small" id="backup-json-btn">💾 Backup to File</button>
     <button class="btn ghost small" id="restore-json-btn">📂 Restore from File</button>
     <input type="file" id="restore-json-input" accept=".json" style="display:none;">
-    <button class="btn ghost small" id="new-day-btn">🔄 New Day (clear this branch's data)</button>
-  </div>
-  <div id="debug-toggle-wrap" style="display:none;">
-    <span class="debug-toggle" id="debug-toggle">View lines that couldn't be parsed (debug)</span>
-    <div id="debug-panel"></div>
+    <button class="btn ghost small" id="new-day-btn" style="background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4);">🔄 New Day (Clear Branch Data)</button>
   </div>
 
+  <div id="debug-toggle-wrap" style="display:none; text-align:center; margin-top:10px;">
+    <span class="debug-toggle" id="debug-toggle" style="color:#fff; cursor:pointer; font-size:12px; text-decoration:underline;">View lines that couldn't be parsed (debug)</span>
+    <div id="debug-panel" style="display:none; background:#fff; padding:12px; border-radius:8px; margin-top:8px; text-align:left; font-size:11px; max-height:150px; overflow:auto;"></div>
+  </div>
+
+  <!-- CATEGORY TABS -->
   <div class="tabs" id="category-tabs"></div>
 
+  <!-- DASHBOARD -->
   <div id="dashboard">
-    <div class="missing-note">List of items not yet found/checked in the physical count.</div>
     <div class="stats-row" id="stats-row"></div>
     <div class="cat-row" id="cat-row"></div>
 
     <div class="toolbar">
       <input type="text" id="search" placeholder="Search: item code, or description...">
-      <button class="btn ghost small" id="scan-btn">📷 Scan QR/Barcode</button>
+      <button class="btn ghost small" id="scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Scan QR/Barcode</button>
       <select id="filter-status">
-        <option value="all">All</option>
+        <option value="all">All Status</option>
         <option value="pending">Pending</option>
         <option value="match">Match</option>
         <option value="mismatch">Mismatch</option>
@@ -455,974 +430,811 @@
             <th>Date</th>
             <th>Items</th>
             <th>System Pcs</th>
-            <th>Found?</th>
+            <th style="text-align:center;">Found?</th>
             <th>Actual Count</th>
             <th>Status</th>
             <th>Price</th>
-            <th></th>
+            <th style="text-align:right;">Action</th>
           </tr>
         </thead>
         <tbody id="ledger-body"></tbody>
       </table>
-      <div class="empty-note" id="empty-note" style="display:none;">No matching results.</div>
+      <div class="empty-note" id="empty-note" style="display:none;">No matching results found.</div>
     </div>
 
     <div class="footer-tools">
-      <button class="btn ghost" id="reset-counts-btn">Clear Actual Counts</button>
-      <button class="btn ghost" id="export-btn">Export Discrepancy (CSV)</button>
-      <button class="btn ghost" id="print-missing-btn">Print Missing/Shortage</button>
-      <button class="btn" id="print-btn">Print (All)</button>
+      <button class="btn ghost" id="reset-counts-btn" style="color:var(--text-main); background:#fff;">Clear Actual Counts</button>
+      <button class="btn ghost" id="export-btn" style="color:var(--text-main); background:#fff;">Export Discrepancy (CSV)</button>
+      <button class="btn ghost" id="print-missing-btn" style="color:var(--text-main); background:#fff;">Print Missing/Shortage</button>
+      <button class="btn" id="print-btn" style="background:var(--primary); color:#fff;">Print (All)</button>
     </div>
   </div>
 
 </div>
 
-<script>
-// ---------- Storage fallback ----------
-// window.storage only exists when this page is opened inside a Claude
-// artifact (claude.ai). When the file is downloaded and opened directly
-// in a browser (double-clicked), window.storage is missing, so every
-// save silently failed. This shim makes it fall back to the browser's
-// localStorage in that case, so data still persists on THIS computer
-// between refreshes (it just won't be shared to other computers/people —
-// that sharing only works when hosted as a Claude artifact link).
-if(!window.storage){
-  const LS_PREFIX = 'srinventory_local:';
-  window.storage = {
-    async get(key, shared){
-      const raw = localStorage.getItem(LS_PREFIX + key);
-      if(raw === null) throw new Error('Key not found: ' + key);
-      return {key, value: raw, shared: !!shared};
-    },
-    async set(key, value, shared){
-      localStorage.setItem(LS_PREFIX + key, value);
-      return {key, value, shared: !!shared};
-    },
-    async delete(key, shared){
-      localStorage.removeItem(LS_PREFIX + key);
-      return {key, deleted: true, shared: !!shared};
-    },
-    async list(prefix, shared){
-      const keys = [];
-      const full = LS_PREFIX + (prefix || '');
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k && k.startsWith(full)) keys.push(k.slice(LS_PREFIX.length));
-      }
-      return {keys, prefix, shared: !!shared};
-    }
+<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvkLtHz_fAUiEIhFjABhtovTemFFhAFR4",
+    authDomain: "sftools-139a1.firebaseapp.com",
+    databaseURL: "https://sftools-139a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "sftools-139a1",
+    storageBucket: "sftools-139a1.firebasestorage.app",
+    messagingSenderId: "504177778177",
+    appId: "1:504177778177:web:5c9c522efa2130516dea00"
   };
-  console.info('Showroom/Subasta Inventory: running standalone — saving to this browser only (localStorage fallback).');
-}
 
-function categoryOf(code){ return code ? ('Cat ' + code) : 'Others'; }
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-const CATEGORIES = [
-  {key:'showroom', label:'Showroom'},
-  {key:'subasta', label:'Subasta'}
-];
-let categoryData = {};   // key -> {tickets, fileName}
-let activeCategory = null;
-let tickets = [];        // alias to categoryData[activeCategory].tickets
-let unparsedLines = [];
-let reportKey = '';
-let currentBranch = '';
-let currentAuditDate = '';
+  function categoryOf(code){ return code ? ('Cat ' + code) : 'Others'; }
 
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const CATEGORIES = [
+    {key:'showroom', label:'Showroom'},
+    {key:'subasta', label:'Subasta'}
+  ];
+  let categoryData = {};
+  let activeCategory = null;
+  let tickets = [];
+  let unparsedLines = [];
+  let reportKey = '';
+  let currentBranch = '';
+  let currentAuditDate = '';
 
-function slugBranch(name){
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
-}
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-function lockCatUploads(){ $('#cat-uploads').classList.add('locked'); }
-function unlockCatUploads(){ $('#cat-uploads').classList.remove('locked'); }
-
-$('#audit-date-input').addEventListener('change', e=>{
-  currentAuditDate = e.target.value;
-  rememberAuditDate(currentAuditDate);
-  if(currentBranch){
-    $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
+  function slugBranch(name){
+    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
-  renderStats();
-});
 
-$('#branch-confirm-btn').addEventListener('click', ()=>{
-  const val = $('#branch-input').value.trim();
-  if(!val){ alert('Please type your branch name first.'); return; }
-  const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
-  if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"? Anything uploaded on this device for the previous branch will stop showing (its saved counts are safe under its own name).`)) return;
+  // 🔥 Realtime Firebase Cloud Listener for Subasta/SR
+  function listenFirebaseSubastaStore() {
+    if (!currentBranch) return;
+    const branchSlug = slugBranch(currentBranch);
+    
+    onValue(ref(db, `subastaStore/${branchSlug}`), (snapshot) => {
+      const val = snapshot.val();
+      if (val) {
+        let changed = false;
+        Object.keys(val).forEach(catKey => {
+          if (val[catKey] && val[catKey].tickets) {
+            categoryData[catKey] = {
+              tickets: val[catKey].tickets,
+              fileName: val[catKey].fileName || '(cloud-synced)'
+            };
+            changed = true;
 
-  currentBranch = val;
-  currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
-  $('#audit-date-input').value = currentAuditDate;
-  $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
-  unlockCatUploads();
-  rememberBranch(currentBranch);
-  rememberAuditDate(currentAuditDate);
+            const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+            if(card){
+              card.classList.add('done');
+              const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+              if(statusEl) statusEl.textContent = `✓ ${val[catKey].tickets.length} tickets — synced`;
+            }
+          }
+        });
 
-  // reset the in-memory view, then try to pull back whatever was
-  // already saved for this branch (so a refresh/switch doesn't lose data)
-  categoryData = {};
-  tickets = [];
-  activeCategory = null;
-  $$('.cat-upload-card').forEach(card=>{
-    card.classList.remove('done');
-    const key = card.dataset.cat;
-    document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-    card.querySelector('.cat-file-input').value = '';
+        if (changed && activeCategory && categoryData[activeCategory]) {
+          tickets = categoryData[activeCategory].tickets;
+          renderCategoryTabs();
+          renderTable();
+          renderStats();
+        }
+      }
+    });
+  }
+
+  function syncSubastaCategoryToFirebase(catKey) {
+    if (!currentBranch || !categoryData[catKey]) return;
+    const branchSlug = slugBranch(currentBranch);
+    set(ref(db, `subastaStore/${branchSlug}/${catKey}`), {
+      tickets: categoryData[catKey].tickets,
+      fileName: categoryData[catKey].fileName,
+      lastUpdated: new Date().toISOString()
+    }).catch(e => console.warn("Firebase sync fallback local:", e));
+  }
+
+  $('#audit-date-input').addEventListener('change', e=>{
+    currentAuditDate = e.target.value;
+    rememberAuditDate(currentAuditDate);
+    if(currentBranch){
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+    }
+    renderStats();
   });
-  $('#category-tabs').innerHTML = '';
-  $('#category-tabs').classList.remove('show');
-  $('#dashboard').classList.remove('show');
-  $('#global-search-input').value = '';
-  $('#global-search-results').innerHTML = '';
 
-  autoRestoreBranch();
-});
+  $('#branch-confirm-btn').addEventListener('click', ()=>{
+    const val = $('#branch-input').value.trim();
+    if(!val){ alert('Please enter branch name.'); return; }
+    const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
+    if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"?`)) return;
 
-// On page load, if this browser already confirmed a branch before,
-// auto-fill it and restore its saved data — this is what makes data
-// survive a refresh instead of starting from zero every time.
-(async ()=>{
-  $('#audit-date-input').value = new Date().toISOString().slice(0,10);
-  const remembered = await recallBranch();
-  const rememberedDate = await recallAuditDate();
-  if(rememberedDate) $('#audit-date-input').value = rememberedDate;
-  if(remembered){
-    $('#branch-input').value = remembered;
-    currentBranch = remembered;
-    currentAuditDate = $('#audit-date-input').value;
-    $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
-    unlockCatUploads();
+    currentBranch = val;
+    currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
+    $('#audit-date-input').value = currentAuditDate;
+    $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+    rememberBranch(currentBranch);
+    rememberAuditDate(currentAuditDate);
+
+    categoryData = {};
+    tickets = [];
+    activeCategory = null;
+    $$('.cat-upload-card').forEach(card=>{
+      card.classList.remove('done');
+      const key = card.dataset.cat;
+      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
+      card.querySelector('.cat-file-input').value = '';
+    });
+    $('#category-tabs').innerHTML = '';
+    $('#category-tabs').classList.remove('show');
+    $('#dashboard').classList.remove('show');
+    $('#global-search-input').value = '';
+    $('#global-search-results').innerHTML = '';
+
+    listenFirebaseSubastaStore();
     autoRestoreBranch();
-  }
-})();
-
-lockCatUploads();
-
-// ---------- Upload handling (per category) ----------
-$$('.cat-upload-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelector(`.cat-file-input[data-cat="${btn.dataset.cat}"]`).click();
   });
-});
-$$('.cat-file-input').forEach(inp=>{
-  inp.addEventListener('change', e=>{
-    if(e.target.files[0]) handleFile(e.target.files[0], e.target.dataset.cat);
+
+  (async ()=>{
+    let activeB = localStorage.getItem('ml_activeBranch');
+    $('#audit-date-input').value = new Date().toISOString().slice(0,10);
+    const remembered = activeB || await recallBranch();
+    const rememberedDate = await recallAuditDate();
+    if(rememberedDate) $('#audit-date-input').value = rememberedDate;
+    if(remembered){
+      $('#branch-input').value = remembered;
+      currentBranch = remembered;
+      currentAuditDate = $('#audit-date-input').value;
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+      listenFirebaseSubastaStore();
+      autoRestoreBranch();
+    }
+  })();
+
+  $$('.cat-upload-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelector(`.cat-file-input[data-cat="${btn.dataset.cat}"]`).click();
+    });
   });
-});
+  $$('.cat-file-input').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      if(e.target.files[0]) handleFile(e.target.files[0], e.target.dataset.cat);
+    });
+  });
 
-function setStatus(msg){ $('#status-line').textContent = msg; }
+  function setStatus(msg){ $('#status-line').textContent = msg; }
 
-async function handleFile(file, catKey){
-  setStatus('Reading the Excel file...');
-  try{
-    const parsed = await parseExcelFile(file);
-    unparsedLines = parsed.unparsed;
-    if(!parsed.tickets.length){
-      setStatus('No item rows found in the uploaded file. Check that it has "Item Code" and "Description" column headers.');
-      return;
+  async function handleFile(file, catKey){
+    setStatus('Reading Excel file...');
+    try{
+      const parsed = await parseExcelFile(file);
+      unparsedLines = parsed.unparsed;
+      if(!parsed.tickets.length){
+        setStatus('No item rows found. Check file headers.');
+        return;
+      }
+      const catTickets = parsed.tickets.map((t,i)=>({
+        id: catKey+'_'+i,
+        ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
+        expected: t.items.reduce((a,it)=>a+it.pcs,0),
+        actual: null
+      }));
+
+      categoryData[catKey] = {tickets: catTickets, fileName: file.name};
+
+      saveFullCategoryState(catKey);
+      syncSubastaCategoryToFirebase(catKey);
+
+      const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+      card.classList.add('done');
+      document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
+
+      setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed.`);
+      if(unparsedLines.length){
+        $('#debug-toggle-wrap').style.display='block';
+        $('#debug-panel').textContent = unparsedLines.join('\n');
+      }
+
+      activeCategory = catKey;
+      loadCategory(catKey);
+      renderCategoryTabs();
+    }catch(err){
+      console.error(err);
+      setStatus('Error reading file: ' + err.message);
     }
-    const catTickets = parsed.tickets.map((t,i)=>({
-      id: catKey+'_'+i,
-      ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
-      expected: t.items.reduce((a,it)=>a+it.pcs,0),
-      actual: null
-    }));
-
-    categoryData[catKey] = {tickets: catTickets, fileName: file.name};
-
-    const rk = computeReportKey(catKey);
-    await loadSavedCounts(rk, catTickets);
-    saveFullCategoryState(catKey);
-
-    const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
-    card.classList.add('done');
-    document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
-
-    setStatus(`Read ${file.name}: ${catTickets.length} tickets. ${unparsedLines.length} row(s)/line(s) could not be parsed.`);
-    if(unparsedLines.length){
-      $('#debug-toggle-wrap').style.display='inline-block';
-      $('#debug-panel').textContent = unparsedLines.join('\n');
-    }
-
-    activeCategory = catKey;
-    loadCategory(catKey);
-    renderCategoryTabs();
-  }catch(err){
-    console.error(err);
-    setStatus('Error reading the file: ' + err.message);
   }
-}
 
-// ---------- Excel / CSV parsing ----------
-function formatExcelDate(val){
-  if(val === null || val === undefined || val === '') return '';
-  if(val instanceof Date && !isNaN(val)){
-    const mm = String(val.getUTCMonth()+1).padStart(2,'0');
-    const dd = String(val.getUTCDate()).padStart(2,'0');
-    const yyyy = val.getUTCFullYear();
-    return `${mm}/${dd}/${yyyy}`;
-  }
-  if(typeof val === 'number'){
-    // Excel serial date: round to the nearest WHOLE DAY first. Excel/exports
-    // often store dates as e.g. 46171.999999 instead of an exact integer due
-    // to floating-point drift, which — if not rounded — converts to 23:59 of
-    // the previous day and shows a date that's one day early.
-    const days = Math.round(val);
-    const d = new Date((days - 25569) * 86400 * 1000);
-    if(!isNaN(d)){
-      const mm = String(d.getUTCMonth()+1).padStart(2,'0');
-      const dd = String(d.getUTCDate()).padStart(2,'0');
-      const yyyy = d.getUTCFullYear();
+  function formatExcelDate(val){
+    if(val === null || val === undefined || val === '') return '';
+    if(val instanceof Date && !isNaN(val)){
+      const mm = String(val.getUTCMonth()+1).padStart(2,'0');
+      const dd = String(val.getUTCDate()).padStart(2,'0');
+      const yyyy = val.getUTCFullYear();
       return `${mm}/${dd}/${yyyy}`;
     }
-  }
-  return String(val).trim();
-}
-
-function findHeaderCol(headerRow, candidates){
-  for(let i=0;i<headerRow.length;i++){
-    const cell = String(headerRow[i]||'').toLowerCase().trim();
-    if(candidates.some(c=>cell.includes(c))) return i;
-  }
-  return -1;
-}
-
-async function parseExcelFile(file){
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, {type:'array'});
-  const sheetName = wb.SheetNames[0];
-  const sheet = wb.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
-
-  // Find the header row (contains both "Item Code" and "Description")
-  let headerIdx = -1, cols = {};
-  for(let i=0;i<rows.length;i++){
-    const row = rows[i].map(c=>String(c||'').toLowerCase());
-    const hasCode = row.some(c=>c.includes('item code'));
-    const hasDesc = row.some(c=>c.includes('description'));
-    if(hasCode && hasDesc){ headerIdx = i; break; }
-  }
-  if(headerIdx === -1) return {tickets:[], unparsed: rows.map(r=>r.join(' | '))};
-
-  const header = rows[headerIdx];
-  cols.date  = findHeaderCol(header, ['receiving date','date']);
-  cols.qty   = findHeaderCol(header, ['qty']);
-  cols.catcode = findHeaderCol(header, ['item category code']);
-  cols.code  = findHeaderCol(header, ['item code']);
-  cols.desc  = findHeaderCol(header, ['description']);
-  cols.wt    = findHeaderCol(header, ['weight']);
-  cols.karat = findHeaderCol(header, ['karat']);
-  cols.price = findHeaderCol(header, ['price']);
-
-  const tickets = [];
-  const unparsed = [];
-
-  for(let i=headerIdx+1;i<rows.length;i++){
-    const row = rows[i];
-    if(!row || row.every(c=>String(c||'').trim()==='')) continue;
-
-    const rawCode = cols.code>=0 ? String(row[cols.code]||'').trim() : '';
-    const desc = cols.desc>=0 ? String(row[cols.desc]||'').trim() : '';
-    const catCode = cols.catcode>=0 ? String(row[cols.catcode]||'').trim() : '';
-
-    if(/^total\b/i.test(rawCode) || /^total\b/i.test(desc)) continue;
-
-    const qty = cols.qty>=0 ? (Number(row[cols.qty]) || (desc?1:0)) : (desc?1:0);
-    const wt = cols.wt>=0 ? (Number(row[cols.wt]) || 0) : 0;
-    const karat = cols.karat>=0 ? (Number(row[cols.karat]) || 0) : 0;
-    const price = cols.price>=0 ? (Number(row[cols.price]) || 0) : 0;
-
-    if(rawCode && desc){
-      const date = formatExcelDate(cols.date>=0 ? row[cols.date] : '');
-      tickets.push({ ptn: rawCode, date, items:[{code:catCode, desc, pcs:qty, wt, karat}], loan: price });
-    } else if(desc || rawCode){
-      unparsed.push(row.join(' | '));
-    }
-  }
-
-  return {tickets, unparsed};
-}
-
-// ---------- Category tabs ----------
-function renderCategoryTabs(){
-  const wrap = $('#category-tabs');
-  wrap.innerHTML = '';
-  CATEGORIES.forEach(c=>{
-    const data = categoryData[c.key];
-    const div = document.createElement('div');
-    const enabled = !!data;
-    div.className = 'tab' + (enabled?' enabled':' disabled') + (c.key===activeCategory?' active':'');
-    div.innerHTML = `<div class="t-name">${c.label}</div><div class="t-count">${data ? data.tickets.length+' tickets' : 'not uploaded yet'}</div>`;
-    if(enabled) div.addEventListener('click', ()=>{ loadCategory(c.key); renderCategoryTabs(); });
-    wrap.appendChild(div);
-  });
-  wrap.classList.add('show');
-  updateStickyOffsets();
-}
-
-// Keeps the frozen tabs bar, the search/filter toolbar, and the table's
-// column headers stacked correctly (instead of overlapping each other)
-// while the ledger scrolls up/down.
-function updateStickyOffsets(){
-  requestAnimationFrame(()=>{
-    const tabsEl = $('#category-tabs');
-    const toolbarEl = document.querySelector('.toolbar');
-    const tabsH = (tabsEl && tabsEl.classList.contains('show')) ? tabsEl.offsetHeight : 0;
-    document.documentElement.style.setProperty('--tabs-h', tabsH + 'px');
-    const toolbarH = toolbarEl ? toolbarEl.offsetHeight : 0;
-    document.documentElement.style.setProperty('--thead-top', (tabsH + toolbarH) + 'px');
-  });
-}
-window.addEventListener('resize', updateStickyOffsets);
-
-function computeReportKey(catKey){
-  return 'srinventory:' + slugBranch(currentBranch) + ':' + catKey;
-}
-function computeDataKey(catKey){
-  return computeReportKey(catKey) + ':full';
-}
-
-// Saves the FULL ticket list (not just the typed counts) so a refresh
-// does not require re-uploading the PDF/Excel for this category.
-async function saveFullCategoryState(catKey, attempt){
-  attempt = attempt || 1;
-  if(!catKey || !categoryData[catKey]) return;
-  const payload = JSON.stringify({
-    tickets: categoryData[catKey].tickets,
-    fileName: categoryData[catKey].fileName
-  });
-  try{
-    await window.storage.set(computeDataKey(catKey), payload, true);
-    hideSaveError();
-  }catch(e){
-    console.warn('full-state save failed (attempt '+attempt+')', e);
-    if(attempt < 3){
-      setTimeout(()=> saveFullCategoryState(catKey, attempt+1), 800*attempt);
-    } else {
-      showSaveError();
-    }
-  }
-}
-
-// Tries to rebuild a category (tickets + counts) from storage without
-// needing the PDF re-uploaded. Returns true if something was restored.
-async function restoreCategoryFromStorage(catKey){
-  try{
-    const res = await window.storage.get(computeDataKey(catKey), true);
-    if(!res || !res.value) return false;
-    const saved = JSON.parse(res.value);
-    if(!saved.tickets || !saved.tickets.length) return false;
-    categoryData[catKey] = {tickets: saved.tickets, fileName: saved.fileName || '(restored)'};
-
-    const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
-    if(card){
-      card.classList.add('done');
-      const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
-      if(statusEl) statusEl.textContent = `✓ ${saved.tickets.length} tickets — ${saved.fileName || 'restored from last session'}`;
-    }
-    return true;
-  }catch(e){
-    return false;
-  }
-}
-
-// Runs after the branch is confirmed: pulls back every category this
-// branch already had saved, so nothing is lost on refresh.
-async function autoRestoreBranch(){
-  let firstRestored = null;
-  for(const c of CATEGORIES){
-    const ok = await restoreCategoryFromStorage(c.key);
-    if(ok && !firstRestored) firstRestored = c.key;
-  }
-  if(firstRestored){
-    activeCategory = firstRestored;
-    loadCategory(firstRestored);
-    renderCategoryTabs();
-    renderStats();
-    setStatus(`Welcome back — restored saved data for branch "${currentBranch}".`);
-  }
-}
-
-const REMEMBERED_BRANCH_KEY = 'srinventory:remembered-branch';
-async function rememberBranch(name){
-  try{ await window.storage.set(REMEMBERED_BRANCH_KEY, name, false); }catch(e){}
-}
-async function recallBranch(){
-  try{
-    const res = await window.storage.get(REMEMBERED_BRANCH_KEY, false);
-    return (res && res.value) ? res.value : '';
-  }catch(e){ return ''; }
-}
-
-const REMEMBERED_AUDIT_DATE_KEY = 'srinventory:remembered-audit-date';
-async function rememberAuditDate(dateStr){
-  try{ await window.storage.set(REMEMBERED_AUDIT_DATE_KEY, dateStr, false); }catch(e){}
-}
-async function recallAuditDate(){
-  try{
-    const res = await window.storage.get(REMEMBERED_AUDIT_DATE_KEY, false);
-    return (res && res.value) ? res.value : '';
-  }catch(e){ return ''; }
-}
-
-// ---------- Working state ----------
-function loadCategory(catKey){
-  activeCategory = catKey;
-  tickets = categoryData[catKey].tickets;
-  reportKey = computeReportKey(catKey);
-  $('#dashboard').classList.add('show');
-  renderTable();
-}
-
-async function loadSavedCounts(rk, tix){
-  try{
-    const res = await window.storage.get(rk, true);
-    if(res && res.value){
-      const saved = JSON.parse(res.value);
-      tix.forEach(t=>{ if(saved[t.ptn] !== undefined) t.actual = saved[t.ptn]; });
-    }
-  }catch(e){ /* no saved data yet */ }
-}
-
-let saveTimer = null;
-function persistCounts(){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=> saveCategoryCounts(activeCategory), 400);
-}
-
-async function saveCategoryCounts(catKey, attempt){
-  attempt = attempt || 1;
-  if(!catKey || !categoryData[catKey]) return;
-  const tix = categoryData[catKey].tickets;
-  const map = {};
-  tix.forEach(t=>{ if(t.actual !== null && t.actual !== undefined) map[t.ptn] = t.actual; });
-  try{
-    await window.storage.set(computeReportKey(catKey), JSON.stringify(map), true);
-    hideSaveError();
-  }catch(e){
-    console.warn('save failed (attempt '+attempt+')', e);
-    if(attempt < 3){
-      setTimeout(()=> saveCategoryCounts(catKey, attempt+1), 800*attempt);
-    } else {
-      showSaveError();
-    }
-  }
-  // Also persist the full ticket list (not just the counts) so a
-  // refresh can restore everything without re-uploading the PDF.
-  saveFullCategoryState(catKey);
-}
-
-function showSaveError(){
-  let el = document.getElementById('save-error-banner');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'save-error-banner';
-    el.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--mismatch);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:500;max-width:92%;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.3);';
-    document.body.appendChild(el);
-  }
-  el.textContent = '⚠️ Could not save your last count — check your connection, then re-check/re-type it to retry.';
-}
-function hideSaveError(){
-  const el = document.getElementById('save-error-banner');
-  if(el) el.remove();
-}
-
-function statusOf(t){
-  if(t.actual === null || t.actual === undefined || t.actual === '') return 'pending';
-  return Number(t.actual) === t.expected ? 'match' : 'mismatch';
-}
-
-// ---------- Rendering ----------
-function renderTable(){
-  const q = $('#search').value.trim().toLowerCase();
-  const filterStatus = $('#filter-status').value;
-  const body = $('#ledger-body');
-  body.innerHTML = '';
-  let shown = 0;
-
-  tickets.forEach((t, idx)=>{
-    const st = statusOf(t);
-    if(filterStatus !== 'all' && st !== filterStatus) return;
-    if(q){
-      const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
-      if(!hay.includes(q)) return;
-    }
-    shown++;
-    const tr = document.createElement('tr');
-
-    const flagged = /\*/.test(t.ptn);
-    tr.dataset.status = st;
-    const isFound = st === 'match';
-    tr.innerHTML = `
-      <td class="num">${idx+1}</td>
-      <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
-      <td class="date">${t.date||'—'}</td>
-      <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
-      <td class="expected">${t.expected}</td>
-      <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
-      <td><input type="number" min="0" class="actual-input" data-idx="${idx}" value="${t.actual===null||t.actual===undefined?'':t.actual}" placeholder="—"></td>
-      <td>${statusBadge(st)}</td>
-      <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
-      <td class="actions-cell">
-        <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
-      </td>
-    `;
-    body.appendChild(tr);
-  });
-
-  $('#empty-note').style.display = shown ? 'none' : 'block';
-
-  $$('.actual-input').forEach(inp=>{
-    inp.addEventListener('input', e=>{
-      const i = +e.target.dataset.idx;
-      tickets[i].actual = e.target.value === '' ? null : Number(e.target.value);
-      persistCounts();
-      renderStats();
-      const tr = e.target.closest('tr');
-      const st = statusOf(tickets[i]);
-      tr.dataset.status = st;
-      tr.querySelector('.found-check').checked = (st === 'match');
-      tr.querySelector('td:nth-child(8)').innerHTML = statusBadge(st);
-    });
-  });
-  $$('.found-check').forEach(chk=>{
-    chk.addEventListener('change', e=>{
-      const i = +e.target.dataset.idx;
-      tickets[i].actual = e.target.checked ? tickets[i].expected : null;
-      persistCounts();
-      renderStats();
-      const tr = e.target.closest('tr');
-      const st = statusOf(tickets[i]);
-      tr.dataset.status = st;
-      tr.querySelector('.actual-input').value = tickets[i].actual === null ? '' : tickets[i].actual;
-      tr.querySelector('td:nth-child(8)').innerHTML = statusBadge(st);
-    });
-  });
-  $$('.desc-text').forEach(el=>{
-    el.addEventListener('blur', e=>{
-      const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
-      tickets[ti].items[ii].desc = e.target.textContent.trim();
-      saveFullCategoryState(activeCategory);
-    });
-  });
-  $$('[data-del]').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const i = +e.target.dataset.del;
-      if(confirm('Delete this ticket from the list?')){
-        tickets.splice(i,1);
-        saveFullCategoryState(activeCategory);
-        renderTable(); renderStats();
+    if(typeof val === 'number'){
+      const days = Math.round(val);
+      const d = new Date((days - 25569) * 86400 * 1000);
+      if(!isNaN(d)){
+        const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+        const dd = String(d.getUTCDate()).padStart(2,'0');
+        const yyyy = d.getUTCFullYear();
+        return `${mm}/${dd}/${yyyy}`;
       }
-    });
-  });
-
-  renderStats();
-}
-
-function statusBadge(st){
-  if(st==='match') return `<span class="status-badge match">Match</span><span class="stamp">✓ OK</span>`;
-  if(st==='mismatch') return `<span class="status-badge mismatch">Mismatch</span>`;
-  return `<span class="status-badge pending">Pending</span>`;
-}
-
-function renderStats(){
-  const total = tickets.length;
-  const matched = tickets.filter(t=>statusOf(t)==='match').length;
-  const mismatched = tickets.filter(t=>statusOf(t)==='mismatch').length;
-  const pending = total - matched - mismatched;
-
-  $('#stats-row').innerHTML = `
-    <div class="stat-chip"><div class="num">${total}</div><div class="lab">Total Tickets</div></div>
-    <div class="stat-chip match"><div class="num">${matched}</div><div class="lab">Match</div></div>
-    <div class="stat-chip mismatch"><div class="num">${mismatched}</div><div class="lab">Mismatch</div></div>
-    <div class="stat-chip pending"><div class="num">${pending}</div><div class="lab">Pending</div></div>
-    <div class="stat-chip"><div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div><div class="lab">Audit Date</div></div>
-  `;
-
-  const cats = {};
-  tickets.forEach(t=>{
-    t.items.forEach(it=>{
-      const cat = categoryOf(it.code);
-      if(!cats[cat]) cats[cat] = {expected:0, counted:0};
-      cats[cat].expected += it.pcs;
-    });
-    if(t.actual !== null && t.actual !== undefined){
-      const primaryCat = categoryOf(t.items[0].code);
-      cats[primaryCat].counted += Number(t.actual);
     }
-  });
-  $('#cat-row').innerHTML = Object.entries(cats).map(([name,v])=>`
-    <div class="cat-card">
-      <div class="name">${name}</div>
-      <div class="figures">${v.counted} <small>/ ${v.expected} pcs</small></div>
-    </div>
-  `).join('');
-}
+    return String(val).trim();
+  }
 
-$('#search').addEventListener('input', renderTable);
+  function findHeaderCol(headerRow, candidates){
+    for(let i=0;i<headerRow.length;i++){
+      const cell = String(headerRow[i]||'').toLowerCase().trim();
+      if(candidates.some(c=>cell.includes(c))) return i;
+    }
+    return -1;
+  }
 
-// A plugged-in USB/Bluetooth barcode scanner acts like a keyboard: it types
-// the code into whichever field is focused, then sends an "Enter" keystroke.
-// This listens for that Enter and auto-marks an exact code match as counted,
-// the same way the camera scanner does.
-$('#search').addEventListener('keydown', e=>{
-  if(e.key !== 'Enter') return;
-  const scanned = $('#search').value.trim();
-  if(!scanned) return;
-  const hit = tickets.find(t=> t.ptn === scanned || t.ptn.includes(scanned));
-  if(hit){
-    hit.actual = hit.expected;
-    persistCounts();
-    renderStats();
+  async function parseExcelFile(file){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const sheetName = wb.SheetNames[0];
+    const sheet = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
+
+    let headerIdx = -1, cols = {};
+    for(let i=0;i<rows.length;i++){
+      const row = rows[i].map(c=>String(c||'').toLowerCase());
+      const hasCode = row.some(c=>c.includes('item code'));
+      const hasDesc = row.some(c=>c.includes('description'));
+      if(hasCode && hasDesc){ headerIdx = i; break; }
+    }
+    if(headerIdx === -1) return {tickets:[], unparsed: rows.map(r=>r.join(' | '))};
+
+    const header = rows[headerIdx];
+    cols.date   = findHeaderCol(header, ['receiving date','date']);
+    cols.qty    = findHeaderCol(header, ['qty']);
+    cols.catcode = findHeaderCol(header, ['item category code']);
+    cols.code   = findHeaderCol(header, ['item code']);
+    cols.desc   = findHeaderCol(header, ['description']);
+    cols.wt     = findHeaderCol(header, ['weight']);
+    cols.karat  = findHeaderCol(header, ['karat']);
+    cols.price  = findHeaderCol(header, ['price']);
+
+    const tickets = [];
+    const unparsed = [];
+
+    for(let i=headerIdx+1;i<rows.length;i++){
+      const row = rows[i];
+      if(!row || row.every(c=>String(c||'').trim()==='')) continue;
+
+      const rawCode = cols.code>=0 ? String(row[cols.code]||'').trim() : '';
+      const desc = cols.desc>=0 ? String(row[cols.desc]||'').trim() : '';
+      const catCode = cols.catcode>=0 ? String(row[cols.catcode]||'').trim() : '';
+
+      if(/^total\b/i.test(rawCode) || /^total\b/i.test(desc)) continue;
+
+      const qty = cols.qty>=0 ? (Number(row[cols.qty]) || (desc?1:0)) : (desc?1:0);
+      const wt = cols.wt>=0 ? (Number(row[cols.wt]) || 0) : 0;
+      const karat = cols.karat>=0 ? (Number(row[cols.karat]) || 0) : 0;
+      const price = cols.price>=0 ? (Number(row[cols.price]) || 0) : 0;
+
+      if(rawCode && desc){
+        const date = formatExcelDate(cols.date>=0 ? row[cols.date] : '');
+        tickets.push({ ptn: rawCode, date, items:[{code:catCode, desc, pcs:qty, wt, karat}], loan: price });
+      } else if(desc || rawCode){
+        unparsed.push(row.join(' | '));
+      }
+    }
+
+    return {tickets, unparsed};
+  }
+
+  function renderCategoryTabs(){
+    const wrap = $('#category-tabs');
+    wrap.innerHTML = '';
+    CATEGORIES.forEach(c=>{
+      const data = categoryData[c.key];
+      const div = document.createElement('div');
+      const enabled = !!data;
+      div.className = 'tab' + (enabled?' enabled':' disabled') + (c.key===activeCategory?' active':'');
+      div.innerHTML = `<div class="t-name">${c.label}</div><div class="t-count">${data ? data.tickets.length+' tickets' : 'not uploaded yet'}</div>`;
+      if(enabled) div.addEventListener('click', ()=>{ loadCategory(c.key); renderCategoryTabs(); });
+      wrap.appendChild(div);
+    });
+    wrap.classList.add('show');
+  }
+
+  function computeReportKey(catKey){
+    return 'srinventory:' + slugBranch(currentBranch) + ':' + catKey;
+  }
+  function computeDataKey(catKey){
+    return computeReportKey(catKey) + ':full';
+  }
+
+  async function saveFullCategoryState(catKey){
+    if(!catKey || !categoryData[catKey]) return;
+    const payload = JSON.stringify({
+      tickets: categoryData[catKey].tickets,
+      fileName: categoryData[catKey].fileName
+    });
+    localStorage.setItem(computeDataKey(catKey), payload);
+    syncSubastaCategoryToFirebase(catKey);
+  }
+
+  async function restoreCategoryFromStorage(catKey){
+    try{
+      const raw = localStorage.getItem(computeDataKey(catKey));
+      if(!raw) return false;
+      const saved = JSON.parse(raw);
+      if(!saved.tickets || !saved.tickets.length) return false;
+      categoryData[catKey] = {tickets: saved.tickets, fileName: saved.fileName || '(restored)'};
+
+      const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+      if(card){
+        card.classList.add('done');
+        const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+        if(statusEl) statusEl.textContent = `✓ ${saved.tickets.length} tickets — restored`;
+      }
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  async function autoRestoreBranch(){
+    let firstRestored = null;
+    for(const c of CATEGORIES){
+      const ok = await restoreCategoryFromStorage(c.key);
+      if(ok && !firstRestored) firstRestored = c.key;
+    }
+    if(firstRestored){
+      activeCategory = firstRestored;
+      loadCategory(firstRestored);
+      renderCategoryTabs();
+      renderStats();
+      setStatus(`Restored saved data for branch "${currentBranch}".`);
+    }
+  }
+
+  const REMEMBERED_BRANCH_KEY = 'srinventory:remembered-branch';
+  async function rememberBranch(name){
+    try{ localStorage.setItem(REMEMBERED_BRANCH_KEY, name); }catch(e){}
+  }
+  async function recallBranch(){
+    try{ return localStorage.getItem(REMEMBERED_BRANCH_KEY) || ''; }catch(e){ return ''; }
+  }
+
+  const REMEMBERED_AUDIT_DATE_KEY = 'srinventory:remembered-audit-date';
+  async function rememberAuditDate(dateStr){
+    try{ localStorage.setItem(REMEMBERED_AUDIT_DATE_KEY, dateStr); }catch(e){}
+  }
+  async function recallAuditDate(){
+    try{ return localStorage.getItem(REMEMBERED_AUDIT_DATE_KEY) || ''; }catch(e){ return ''; }
+  }
+
+  function loadCategory(catKey){
+    activeCategory = catKey;
+    tickets = categoryData[catKey].tickets;
+    reportKey = computeReportKey(catKey);
+    $('#dashboard').classList.add('show');
     renderTable();
-    setStatus(`Scanned: ${hit.ptn} — marked as counted.`);
-  } else {
-    setStatus(`Scanned "${scanned}" — not found in the current tab.`);
   }
-  // Auto-highlight the box so the next scan (which types like a keyboard)
-  // overwrites this text instead of appending to it.
-  $('#search').select();
-});
-$('#filter-status').addEventListener('change', renderTable);
 
-// ---------- Global item-code search (all categories, independent of active tab) ----------
-function runGlobalSearch(){
-  const q = $('#global-search-input').value.trim().toLowerCase();
-  const box = $('#global-search-results');
-  if(!q){ box.innerHTML = ''; return; }
+  function persistCounts(){
+    saveFullCategoryState(activeCategory);
+  }
 
-  const hits = [];
-  CATEGORIES.forEach(c=>{
-    const data = categoryData[c.key];
-    if(!data) return;
-    data.tickets.forEach(t=>{
-      const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
-      if(hay.includes(q)){
-        hits.push({label: c.label, ptn: t.ptn, date: t.date, desc: t.items.map(i=>i.desc).join(', '), loan: t.loan, actual: t.actual});
+  function statusOf(t){
+    if(t.actual === null || t.actual === undefined || t.actual === '') return 'pending';
+    return Number(t.actual) === t.expected ? 'match' : 'mismatch';
+  }
+
+  function renderTable(){
+    const q = $('#search').value.trim().toLowerCase();
+    const filterStatus = $('#filter-status').value;
+    const body = $('#ledger-body');
+    body.innerHTML = '';
+    let shown = 0;
+
+    tickets.forEach((t, idx)=>{
+      const st = statusOf(t);
+      if(filterStatus !== 'all' && st !== filterStatus) return;
+      if(q){
+        const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
+        if(!hay.includes(q)) return;
       }
+      shown++;
+      const tr = document.createElement('tr');
+
+      const flagged = /\*/.test(t.ptn);
+      tr.dataset.status = st;
+      const isFound = st === 'match';
+      tr.innerHTML = `
+        <td class="num">${idx+1}</td>
+        <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
+        <td class="date">${t.date||'—'}</td>
+        <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
+        <td class="expected">${t.expected}</td>
+        <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
+        <td><input type="number" min="0" class="actual-input" data-idx="${idx}" value="${t.actual===null||t.actual===undefined?'':t.actual}" placeholder="—"></td>
+        <td>${statusBadge(st)}</td>
+        <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
+        <td class="actions-cell">
+          <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
+        </td>
+      `;
+      body.appendChild(tr);
     });
-  });
 
-  if(!hits.length){
-    box.innerHTML = `<span style="color:var(--parchment-dim);">No matches in any uploaded category.</span>`;
-    return;
-  }
-  box.innerHTML = hits.map(h=>`
-    <div style="padding:6px 0;border-bottom:1px solid var(--line);">
-      <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})<br>
-      <span style="color:var(--parchment-dim);">${h.desc}</span><br>
-      Price ₱${Number(h.loan).toLocaleString()}
-      · ${h.actual===null||h.actual===undefined ? 'Pending' : 'Counted: '+h.actual}
-    </div>
-  `).join('');
-}
+    $('#empty-note').style.display = shown ? 'none' : 'block';
 
-$('#global-search-btn').addEventListener('click', runGlobalSearch);
-$('#global-search-input').addEventListener('keydown', e=>{
-  if(e.key !== 'Enter') return;
-  runGlobalSearch();
-  // Plugged-in scanner support: if the scanned code is an exact match to
-  // exactly one ticket (in any uploaded category), auto-mark it counted.
-  const scanned = $('#global-search-input').value.trim();
-  if(!scanned) return;
-  const exactHits = [];
-  CATEGORIES.forEach(c=>{
-    const data = categoryData[c.key];
-    if(!data) return;
-    data.tickets.forEach(t=>{
-      if(t.ptn === scanned) exactHits.push({cat: c.key, ticket: t});
-    });
-  });
-  if(exactHits.length === 1){
-    const {cat, ticket} = exactHits[0];
-    ticket.actual = ticket.expected;
-    saveFullCategoryState(cat);
-    if(cat === activeCategory){ renderStats(); renderTable(); }
-    runGlobalSearch();
-    setStatus(`Scanned: ${ticket.ptn} — marked as counted.`);
-  }
-  // Auto-highlight the box so the next scan (which types like a keyboard)
-  // overwrites this text instead of appending to it.
-  $('#global-search-input').select();
-});
-
-// ---------- Camera QR/Barcode scanner ----------
-// Uses the device's camera (laptop webcam or a phone's camera) to read a
-// QR code or barcode printed on the item's tag, then looks up that code
-// in the loaded inventory instead of the person having to type it in.
-let html5QrInstance = null;
-let scanMode = null; // 'toolbar' (active category only) or 'global' (all categories)
-
-function openScanner(mode){
-  if(typeof Html5Qrcode === 'undefined'){
-    alert('The camera scanner library did not load (check your internet connection), so scanning is unavailable right now.');
-    return;
-  }
-  scanMode = mode;
-  $('#scan-result').textContent = '';
-  $('#scan-overlay').style.display = 'flex';
-  html5QrInstance = new Html5Qrcode('qr-reader');
-  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  html5QrInstance.start(
-    { facingMode: 'environment' },
-    config,
-    onScanDecoded,
-    ()=>{ /* per-frame "not found yet" — ignore */ }
-  ).catch(err=>{
-    // Laptops often have no "environment" camera — fall back to whatever
-    // default camera is available.
-    html5QrInstance.start({ facingMode: 'user' }, config, onScanDecoded, ()=>{})
-      .catch(err2=>{
-        console.error(err2);
-        $('#scan-result').textContent = 'Could not access a camera on this device.';
+    $$('.actual-input').forEach(inp=>{
+      inp.addEventListener('input', e=>{
+        const i = +e.target.dataset.idx;
+        tickets[i].actual = e.target.value === '' ? null : Number(e.target.value);
+        persistCounts();
+        renderStats();
+        const tr = e.target.closest('tr');
+        const st = statusOf(tickets[i]);
+        tr.dataset.status = st;
+        tr.querySelector('.found-check').checked = (st === 'match');
+        tr.querySelector('td:nth-child(8)').innerHTML = statusBadge(st);
       });
-  });
-}
+    });
+    $$('.found-check').forEach(chk=>{
+      chk.addEventListener('change', e=>{
+        const i = +e.target.dataset.idx;
+        tickets[i].actual = e.target.checked ? tickets[i].expected : null;
+        persistCounts();
+        renderStats();
+        const tr = e.target.closest('tr');
+        const st = statusOf(tickets[i]);
+        tr.dataset.status = st;
+        tr.querySelector('.actual-input').value = tickets[i].actual === null ? '' : tickets[i].actual;
+        tr.querySelector('td:nth-child(8)').innerHTML = statusBadge(st);
+      });
+    });
+    $$('.desc-text').forEach(el=>{
+      el.addEventListener('blur', e=>{
+        const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
+        tickets[ti].items[ii].desc = e.target.textContent.trim();
+        saveFullCategoryState(activeCategory);
+      });
+    });
+    $$('[data-del]').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        const i = +e.target.dataset.del;
+        if(confirm('Delete this ticket from the list?')){
+          tickets.splice(i,1);
+          saveFullCategoryState(activeCategory);
+          renderTable(); renderStats();
+        }
+      });
+    });
 
-async function closeScanner(){
-  if(html5QrInstance){
-    try{ await html5QrInstance.stop(); }catch(e){}
-    try{ html5QrInstance.clear(); }catch(e){}
-    html5QrInstance = null;
+    renderStats();
   }
-  $('#scan-overlay').style.display = 'none';
-}
 
-function onScanDecoded(decodedText){
-  $('#scan-result').textContent = 'Scanned: ' + decodedText;
-  if(scanMode === 'toolbar'){
-    $('#search').value = decodedText;
-    renderTable();
-    const hit = tickets.find(t=> t.ptn === decodedText || t.ptn.includes(decodedText));
+  function statusBadge(st){
+    if(st==='match') return `<span class="status-badge match">Match</span><span class="stamp">✓ OK</span>`;
+    if(st==='mismatch') return `<span class="status-badge mismatch">Mismatch</span>`;
+    return `<span class="status-badge pending">Pending</span>`;
+  }
+
+  function renderStats(){
+    const total = tickets.length;
+    const matched = tickets.filter(t=>statusOf(t)==='match').length;
+    const mismatched = tickets.filter(t=>statusOf(t)==='mismatch').length;
+    const pending = total - matched - mismatched;
+
+    $('#stats-row').innerHTML = `
+      <div class="stat-chip"><div class="num">${total}</div><div class="lab">Total Tickets</div></div>
+      <div class="stat-chip match"><div class="num">${matched}</div><div class="lab">Match</div></div>
+      <div class="stat-chip mismatch"><div class="num">${mismatched}</div><div class="lab">Mismatch</div></div>
+      <div class="stat-chip pending"><div class="num">${pending}</div><div class="lab">Pending</div></div>
+      <div class="stat-chip"><div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div><div class="lab">Audit Date</div></div>
+    `;
+
+    const cats = {};
+    tickets.forEach(t=>{
+      t.items.forEach(it=>{
+        const cat = categoryOf(it.code);
+        if(!cats[cat]) cats[cat] = {expected:0, counted:0};
+        cats[cat].expected += it.pcs;
+      });
+      if(t.actual !== null && t.actual !== undefined){
+        const primaryCat = categoryOf(t.items[0].code);
+        cats[primaryCat].counted += Number(t.actual);
+      }
+    });
+    $('#cat-row').innerHTML = Object.entries(cats).map(([name,v])=>`
+      <div class="cat-card">
+        <div class="name">${name}</div>
+        <div class="figures">${v.counted} <small>/ ${v.expected} pcs</small></div>
+      </div>
+    `).join('');
+  }
+
+  $('#search').addEventListener('input', renderTable);
+
+  $('#search').addEventListener('keydown', e=>{
+    if(e.key !== 'Enter') return;
+    const scanned = $('#search').value.trim();
+    if(!scanned) return;
+    const hit = tickets.find(t=> t.ptn === scanned || t.ptn.includes(scanned));
     if(hit){
-      $('#scan-result').textContent = `Found: ${hit.ptn} — marked as counted.`;
       hit.actual = hit.expected;
       persistCounts();
       renderStats();
+      renderTable();
+      setStatus(`Scanned: ${hit.ptn} — marked as counted.`);
     } else {
-      $('#scan-result').textContent = `Scanned "${decodedText}" — not in the current tab. Showing search results below.`;
+      setStatus(`Scanned "${scanned}" — not found in the current tab.`);
     }
-  } else {
-    $('#global-search-input').value = decodedText;
+    $('#search').select();
+  });
+  $('#filter-status').addEventListener('change', renderTable);
+
+  function runGlobalSearch(){
+    const q = $('#global-search-input').value.trim().toLowerCase();
+    const box = $('#global-search-results');
+    if(!q){ box.innerHTML = ''; return; }
+
+    const hits = [];
+    CATEGORIES.forEach(c=>{
+      const data = categoryData[c.key];
+      if(!data) return;
+      data.tickets.forEach(t=>{
+        const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
+        if(hay.includes(q)){
+          hits.push({label: c.label, ptn: t.ptn, date: t.date, desc: t.items.map(i=>i.desc).join(', '), loan: t.loan, actual: t.actual});
+        }
+      });
+    });
+
+    if(!hits.length){
+      box.innerHTML = `<span style="color:var(--text-muted);">No matches in any uploaded category.</span>`;
+      return;
+    }
+    box.innerHTML = hits.map(h=>`
+      <div style="padding:8px 0; border-bottom:1px solid var(--border);">
+        <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})<br>
+        <span style="color:var(--text-muted);">${h.desc}</span><br>
+        Price ₱${Number(h.loan).toLocaleString()}
+        · ${h.actual===null||h.actual===undefined ? 'Pending' : 'Counted: '+h.actual}
+      </div>
+    `).join('');
+  }
+
+  $('#global-search-btn').addEventListener('click', runGlobalSearch);
+  $('#global-search-input').addEventListener('keydown', e=>{
+    if(e.key !== 'Enter') return;
     runGlobalSearch();
-  }
-  closeScanner();
-}
-
-$('#scan-btn').addEventListener('click', ()=> openScanner('toolbar'));
-$('#global-scan-btn').addEventListener('click', ()=> openScanner('global'));
-$('#scan-close-btn').addEventListener('click', closeScanner);
-
-$('#reset-counts-btn').addEventListener('click', async ()=>{
-  if(!confirm('Clear all the typed-in actual counts?')) return;
-  tickets.forEach(t=> t.actual = null);
-  try{ await window.storage.set(reportKey, JSON.stringify({}), true); }catch(e){}
-  saveFullCategoryState(activeCategory);
-  renderTable();
-});
-
-$('#export-btn').addEventListener('click', ()=>{
-  const rows = [['Item Code','Date','Description','System Pcs','Actual Count','Status','Amount']];
-  tickets.forEach(t=>{
-    const st = statusOf(t);
-    if(st === 'match') return;
-    rows.push([t.ptn, t.date, t.items.map(i=>i.desc).join(' | '), t.expected, t.actual ?? '', st, t.loan ?? '']);
+    const scanned = $('#global-search-input').value.trim();
+    if(!scanned) return;
+    const exactHits = [];
+    CATEGORIES.forEach(c=>{
+      const data = categoryData[c.key];
+      if(!data) return;
+      data.tickets.forEach(t=>{
+        if(t.ptn === scanned) exactHits.push({cat: c.key, ticket: t});
+      });
+    });
+    if(exactHits.length === 1){
+      const {cat, ticket} = exactHits[0];
+      ticket.actual = ticket.expected;
+      saveFullCategoryState(cat);
+      if(cat === activeCategory){ renderStats(); renderTable(); }
+      runGlobalSearch();
+      setStatus(`Scanned: ${ticket.ptn} — marked as counted.`);
+    }
+    $('#global-search-input').select();
   });
-  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'discrepancy-report.csv';
-  a.click();
-});
 
-$('#print-btn').addEventListener('click', ()=> window.print());
+  // Camera QR/Barcode scanner
+  let html5QrInstance = null;
+  let scanMode = null;
 
-$('#print-missing-btn').addEventListener('click', ()=>{
-  const missingCount = tickets.filter(t=>statusOf(t)!=='match').length;
-  if(missingCount === 0){ alert('Nothing missing — everything has been checked!'); return; }
-  document.body.classList.add('print-missing-mode');
-  window.print();
-  setTimeout(()=> document.body.classList.remove('print-missing-mode'), 500);
-});
-
-$('#debug-toggle').addEventListener('click', ()=>{
-  $('#debug-panel').classList.toggle('show');
-});
-
-// ---------- Share password lock ----------
-const PASS_KEY = 'srinventory:access-password';
-
-async function checkLock(){
-  try{
-    const res = await window.storage.get(PASS_KEY, true);
-    if(res && res.value){
-      $('#lock-overlay').style.display = 'flex';
-    } else {
-      try{ await window.storage.set(PASS_KEY, 'Strikeforce', true); }catch(e2){}
+  function openScanner(mode){
+    if(typeof Html5Qrcode === 'undefined'){
+      alert('Camera scanner library unavailable.');
+      return;
     }
-  }catch(e){
-    try{ await window.storage.set(PASS_KEY, 'Strikeforce', true); }catch(e2){}
+    scanMode = mode;
+    $('#scan-result').textContent = '';
+    $('#scan-overlay').style.display = 'flex';
+    html5QrInstance = new Html5Qrcode('qr-reader');
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    html5QrInstance.start(
+      { facingMode: 'environment' },
+      config,
+      onScanDecoded,
+      ()=>{}
+    ).catch(err=>{
+      html5QrInstance.start({ facingMode: 'user' }, config, onScanDecoded, ()=>{})
+        .catch(err2=>{
+          console.error(err2);
+          $('#scan-result').textContent = 'Could not access camera.';
+        });
+    });
   }
-}
 
-$('#lock-submit').addEventListener('click', async ()=>{
-  const entered = $('#lock-input').value;
-  let stored = '';
-  try{
-    const res = await window.storage.get(PASS_KEY, true);
-    stored = res ? res.value : '';
-  }catch(e){ stored = ''; }
-  if(entered && entered === stored){
-    $('#lock-overlay').style.display = 'none';
-  } else {
-    $('#lock-error').textContent = 'Wrong password. Please try again.';
+  async function closeScanner(){
+    if(html5QrInstance){
+      try{ await html5QrInstance.stop(); }catch(e){}
+      try{ html5QrInstance.clear(); }catch(e){}
+      html5QrInstance = null;
+    }
+    $('#scan-overlay').style.display = 'none';
   }
-});
-$('#lock-input').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') $('#lock-submit').click();
-});
 
-$('#set-password-btn').addEventListener('click', async ()=>{
-  const pw = prompt('Set the password to share with your colleagues (leave blank to remove the lock):');
-  if(pw === null) return;
-  try{
-    if(pw.trim() === ''){
-      await window.storage.set(PASS_KEY, '', true);
-      alert('Password removed — the ledger is now open to anyone with the link.');
-    } else {
-      await window.storage.set(PASS_KEY, pw.trim(), true);
-      alert('Password set. Send it to your colleagues so they can get in.');
-    }
-  }catch(e){
-    alert('Something went wrong setting the password.');
-  }
-});
-
-checkLock();
-
-// ---------- Backup / Restore to a JSON file (for saving to Google Drive manually) ----------
-$('#backup-json-btn').addEventListener('click', ()=>{
-  if(!currentBranch){ alert('Please set your branch name first.'); return; }
-  const backup = {
-    app: 'Showroom/Subasta Inventory',
-    exportedAt: new Date().toISOString(),
-    branch: currentBranch,
-    auditDate: currentAuditDate,
-    categories: {}
-  };
-  CATEGORIES.forEach(c=>{
-    if(categoryData[c.key]){
-      backup.categories[c.key] = {
-        tickets: categoryData[c.key].tickets,
-        fileName: categoryData[c.key].fileName
-      };
-    }
-  });
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const dateStr = new Date().toISOString().slice(0,10);
-  a.href = url;
-  a.download = `sr-inventory-backup-${slugBranch(currentBranch)}-${dateStr}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  setStatus('Backup downloaded — upload this file to your Google Drive to keep it safe.');
-});
-
-$('#restore-json-btn').addEventListener('click', ()=>{
-  $('#restore-json-input').click();
-});
-
-$('#restore-json-input').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const backup = JSON.parse(text);
-    if(!backup || !backup.categories){ alert('This does not look like a Showroom/Subasta Inventory backup file.'); return; }
-
-    if(backup.branch){
-      currentBranch = backup.branch;
-      $('#branch-input').value = currentBranch;
-      unlockCatUploads();
-      rememberBranch(currentBranch);
-    }
-    if(backup.auditDate){
-      currentAuditDate = backup.auditDate;
-      $('#audit-date-input').value = currentAuditDate;
-      rememberAuditDate(currentAuditDate);
-    }
-    $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate || '—'}`;
-    if(!currentBranch){ alert('Please set your branch name first, then restore.'); return; }
-
-    let firstCat = null;
-    for(const key of Object.keys(backup.categories)){
-      const catInfo = backup.categories[key];
-      if(!catInfo || !catInfo.tickets) continue;
-      categoryData[key] = {tickets: catInfo.tickets, fileName: catInfo.fileName || '(restored from backup)'};
-      saveFullCategoryState(key); // also push it into storage for this device
-      const card = document.querySelector(`.cat-upload-card[data-cat="${key}"]`);
-      if(card){
-        card.classList.add('done');
-        const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
-        if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored from backup file`;
+  function onScanDecoded(decodedText){
+    $('#scan-result').textContent = 'Scanned: ' + decodedText;
+    if(scanMode === 'toolbar'){
+      $('#search').value = decodedText;
+      renderTable();
+      const hit = tickets.find(t=> t.ptn === decodedText || t.ptn.includes(decodedText));
+      if(hit){
+        $('#scan-result').textContent = `Found: ${hit.ptn} — marked as counted.`;
+        hit.actual = hit.expected;
+        persistCounts();
+        renderStats();
+      } else {
+        $('#scan-result').textContent = `Scanned "${decodedText}" — not in current tab.`;
       }
-      if(!firstCat) firstCat = key;
-    }
-    if(firstCat){
-      activeCategory = firstCat;
-      loadCategory(firstCat);
-      renderCategoryTabs();
-      renderStats();
-      setStatus('Restored from backup file.');
     } else {
-      alert('The backup file had no category data to restore.');
+      $('#global-search-input').value = decodedText;
+      runGlobalSearch();
     }
-  }catch(err){
-    console.error(err);
-    alert('Could not read that file — make sure it is a Showroom/Subasta Inventory backup JSON.');
-  } finally {
-    e.target.value = '';
+    closeScanner();
   }
-});
 
-$('#new-day-btn').addEventListener('click', async ()=>{
-  if(!currentBranch){ alert('Please set your branch name first.'); return; }
-  if(!confirm(`Are you sure? This clears all uploaded PDFs and typed counts for "${currentBranch}" only (other branches are untouched). This will not affect the password.`)) return;
-  try{
-    for(const c of CATEGORIES){
-      await window.storage.set(computeReportKey(c.key), JSON.stringify({}), true);
-      await window.storage.set(computeDataKey(c.key), JSON.stringify({tickets:[]}), true);
-    }
-  }catch(e){ console.warn('clear failed', e); }
+  $('#scan-btn').addEventListener('click', ()=> openScanner('toolbar'));
+  $('#global-scan-btn').addEventListener('click', ()=> openScanner('global'));
+  $('#scan-close-btn').addEventListener('click', closeScanner);
 
-  categoryData = {};
-  tickets = [];
-  activeCategory = null;
-  unparsedLines = [];
-
-  $$('.cat-upload-card').forEach(card=>{
-    card.classList.remove('done');
-    const key = card.dataset.cat;
-    document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-    card.querySelector('.cat-file-input').value = '';
+  $('#reset-counts-btn').addEventListener('click', async ()=>{
+    if(!confirm('Clear all actual counts?')) return;
+    tickets.forEach(t=> t.actual = null);
+    saveFullCategoryState(activeCategory);
+    renderTable();
   });
-  $('#category-tabs').innerHTML = '';
-  $('#category-tabs').classList.remove('show');
-  $('#dashboard').classList.remove('show');
-  $('#debug-panel').textContent = '';
-  $('#debug-toggle-wrap').style.display = 'none';
-  $('#global-search-input').value = '';
-  $('#global-search-results').innerHTML = '';
-  setStatus(`Cleared for branch "${currentBranch}". Upload the new PDFs when ready.`);
-});
+
+  $('#export-btn').addEventListener('click', ()=>{
+    const rows = [['Item Code','Date','Description','System Pcs','Actual Count','Status','Amount']];
+    tickets.forEach(t=>{
+      const st = statusOf(t);
+      if(st === 'match') return;
+      rows.push([t.ptn, t.date, t.items.map(i=>i.desc).join(' | '), t.expected, t.actual ?? '', st, t.loan ?? '']);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'discrepancy-report.csv';
+    a.click();
+  });
+
+  $('#print-btn').addEventListener('click', ()=> window.print());
+
+  $('#print-missing-btn').addEventListener('click', ()=>{
+    const missingCount = tickets.filter(t=>statusOf(t)!=='match').length;
+    if(missingCount === 0){ alert('Everything has been checked!'); return; }
+    document.body.classList.add('print-missing-mode');
+    window.print();
+    setTimeout(()=> document.body.classList.remove('print-missing-mode'), 500);
+  });
+
+  $('#debug-toggle').addEventListener('click', ()=>{
+    const panel = $('#debug-panel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  $('#backup-json-btn').addEventListener('click', ()=>{
+    if(!currentBranch){ alert('Please set your branch name first.'); return; }
+    const backup = {
+      app: 'Showroom/Subasta Inventory',
+      exportedAt: new Date().toISOString(),
+      branch: currentBranch,
+      auditDate: currentAuditDate,
+      categories: {}
+    };
+    CATEGORIES.forEach(c=>{
+      if(categoryData[c.key]){
+        backup.categories[c.key] = {
+          tickets: categoryData[c.key].tickets,
+          fileName: categoryData[c.key].fileName
+        };
+      }
+    });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `sr-inventory-backup-${slugBranch(currentBranch)}-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  $('#restore-json-btn').addEventListener('click', ()=>{
+    $('#restore-json-input').click();
+  });
+
+  $('#restore-json-input').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const backup = JSON.parse(text);
+      if(!backup || !backup.categories){ alert('Invalid backup file.'); return; }
+
+      if(backup.branch){
+        currentBranch = backup.branch;
+        $('#branch-input').value = currentBranch;
+        rememberBranch(currentBranch);
+      }
+      if(backup.auditDate){
+        currentAuditDate = backup.auditDate;
+        $('#audit-date-input').value = currentAuditDate;
+        rememberAuditDate(currentAuditDate);
+      }
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate || '—'}`;
+
+      let firstCat = null;
+      for(const key of Object.keys(backup.categories)){
+        const catInfo = backup.categories[key];
+        if(!catInfo || !catInfo.tickets) continue;
+        categoryData[key] = {tickets: catInfo.tickets, fileName: catInfo.fileName || '(restored)'};
+        saveFullCategoryState(key);
+        const card = document.querySelector(`.cat-upload-card[data-cat="${key}"]`);
+        if(card){
+          card.classList.add('done');
+          const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
+          if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored`;
+        }
+        if(!firstCat) firstCat = key;
+      }
+      if(firstCat){
+        activeCategory = firstCat;
+        loadCategory(firstCat);
+        renderCategoryTabs();
+        renderStats();
+        setStatus('Restored from backup file successfully.');
+      }
+    }catch(err){
+      console.error(err);
+      alert('Could not read file.');
+    } finally {
+      e.target.value = '';
+    }
+  });
+
+  $('#new-day-btn').addEventListener('click', async ()=>{
+    if(!currentBranch){ alert('Please set your branch name first.'); return; }
+    if(!confirm(`Clear all data for "${currentBranch}"?`)) return;
+    categoryData = {};
+    tickets = [];
+    activeCategory = null;
+    unparsedLines = [];
+
+    $$('.cat-upload-card').forEach(card=>{
+      card.classList.remove('done');
+      const key = card.dataset.cat;
+      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
+      card.querySelector('.cat-file-input').value = '';
+    });
+    $('#category-tabs').innerHTML = '';
+    $('#category-tabs').classList.remove('show');
+    $('#dashboard').classList.remove('show');
+    $('#global-search-input').value = '';
+    $('#global-search-results').innerHTML = '';
+    setStatus(`Cleared data for branch "${currentBranch}".`);
+  });
 
 </script>
 </body>
