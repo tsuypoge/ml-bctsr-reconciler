@@ -607,7 +607,7 @@
   </div>
 </div>
 
-<!-- 💜 ENROLL NEW USER MODAL -->
+<!-- 💜 ENROLL NEW USER MODAL (WITH AUTO-USERNAME GENERATOR) -->
 <div class="modal-overlay" id="enroll-modal">
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
@@ -618,13 +618,13 @@
     </div>
 
     <div class="form-group">
-      <label>USERNAME</label>
-      <input type="text" id="enroll-username" class="form-input bg-soft" value="admin" placeholder="Enter Username">
+      <label>FULL NAME</label>
+      <input type="text" id="enroll-fullname" class="form-input" placeholder="e.g. Rey John Duero" oninput="autoGenerateUsername(this.value)">
     </div>
 
     <div class="form-group">
-      <label>FULL NAME</label>
-      <input type="text" id="enroll-fullname" class="form-input" placeholder="e.g. Jane Doe">
+      <label>USERNAME (AUTO-GENERATED)</label>
+      <input type="text" id="enroll-username" class="form-input bg-soft" value="r.duero" placeholder="Auto-generated Username">
     </div>
 
     <div class="form-group">
@@ -706,7 +706,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyAvkLtHz_fAUiEIhFjABhtovTemFFhAFR4",
     authDomain: "sftools-139a1.firebaseapp.com",
@@ -717,7 +716,6 @@
     appId: "1:504177778177:web:5c9c522efa2130516dea00"
   };
 
-  // Initialize Firebase & Realtime Database
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
@@ -729,8 +727,9 @@
   ];
 
   let enrolledUsers = [
-    { username: "ADMIN-MASTER", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz" },
-    { username: "AUDITOR-516", name: "Lead Auditor", position: "Senior Auditor", department: "Internal Audit", email: "auditor516@mlhuillier.biz" }
+    { username: "r.duero", name: "Rey John Duero", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "r.duero@sfcaliquidation.biz" },
+    { username: "j.doe", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" },
+    { username: "ADMIN-MASTER", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz" }
   ];
 
   let systemAuditLogs = [];
@@ -790,6 +789,25 @@
     localStorage.setItem('ml_enrolled_users', JSON.stringify(enrolledUsers));
     syncToFirebase('enrolledUsers', enrolledUsers);
   }
+
+  /* ⚡ AUTO-GENERATE USERNAME FROM FULL NAME */
+  window.autoGenerateUsername = function(fullName) {
+    let clean = fullName.trim().toLowerCase().replace(/[^a-z0-9\s]/g, '');
+    if (!clean) {
+      document.getElementById('enroll-username').value = '';
+      return;
+    }
+    let parts = clean.split(/\s+/);
+    let username = parts[0];
+    
+    if (parts.length > 1) {
+      let firstInitial = parts[0].charAt(0);
+      let lastName = parts[parts.length - 1];
+      username = `${firstInitial}.${lastName}`;
+    }
+    
+    document.getElementById('enroll-username').value = username;
+  };
 
   function renderEnrolledUsersTable() {
     const tbody = document.getElementById('enrolled-users-tbody');
@@ -851,7 +869,12 @@
   }
 
   // Attach functions to window scope for HTML inline handlers
-  window.openEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'flex'; };
+  window.openEnrollModal = function() { 
+    document.getElementById('enroll-modal').style.display = 'flex'; 
+    document.getElementById('enroll-fullname').value = '';
+    document.getElementById('enroll-username').value = '';
+  };
+  
   window.closeEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'none'; };
 
   window.submitEnrollUser = function() {
@@ -862,7 +885,7 @@
     let email = document.getElementById('enroll-email').value.trim();
 
     if (!uname || !fname) {
-      alert("Please enter Username and Full Name.");
+      alert("Please enter Full Name.");
       return;
     }
 
@@ -871,7 +894,7 @@
       name: fname,
       position: pos || "Audit Specialist",
       department: dept || "StrikeForce/Fraud Audit-IAD",
-      email: email || `${uname}@mlhuillier.biz`
+      email: email || `${uname}@sfcaliquidation.biz`
     });
 
     saveEnrolledUsers();
@@ -911,7 +934,6 @@
     let pos = document.getElementById('profile-position').value.trim();
     let dept = document.getElementById('profile-department').value.trim();
     let email = document.getElementById('profile-email').value.trim();
-    let newPass = document.getElementById('profile-password').value.trim();
 
     if (!fname) {
       alert("Full Name cannot be empty.");
