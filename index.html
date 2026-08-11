@@ -140,48 +140,6 @@
   }
   .btn-toolbar:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 
-  /* Dropdown for Inventory Toolbar */
-  .dropdown {
-    position: relative;
-    display: inline-block;
-  }
-
-  .dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    margin-top: 6px;
-    background-color: #ffffff;
-    min-width: 170px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-    border-radius: var(--radius-sm);
-    z-index: 1000;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-
-  .dropdown-content a {
-    color: var(--text-main);
-    padding: 11px 16px;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    transition: background 0.15s, color 0.15s;
-  }
-
-  .dropdown-content a:hover {
-    background-color: #fffdfd;
-    color: var(--primary);
-  }
-
-  .dropdown:hover .dropdown-content {
-    display: block;
-  }
-
   .dash-table-container {
     background: #ffffff;
     border-radius: var(--radius-lg);
@@ -238,7 +196,7 @@
   }
   .btn-tbl-status:hover { opacity: 0.9; transform: translateY(-1px); }
 
-  /* Inventory Action Buttons inside Table */
+  /* Inventory Buttons inside Table */
   .btn-inv {
     border: 1px solid var(--border);
     background: #f8fafc;
@@ -309,15 +267,6 @@
 
   <div class="dash-toolbar">
     <button class="btn-toolbar" onclick="createNewRecon()"><span>➕</span> New Entry</button>
-
-    <!-- INVENTORY DROPDOWN BUTTON -->
-    <div class="dropdown">
-      <button class="btn-toolbar"><span>📦</span> Inventory ▾</button>
-      <div class="dropdown-content">
-        <a href="#" onclick="launchInventory('subasta_sr')"><span>🏷️</span> Subasta / SR</a>
-        <a href="#" onclick="launchInventory('qcl')"><span>💎</span> QCL</a>
-      </div>
-    </div>
   </div>
 
   <div class="dash-table-container">
@@ -400,18 +349,14 @@ function createNewRecon() {
   window.location.href = 'reconciler.html';
 }
 
-function launchInventory(type) {
+function launchBranchInventory(branchName, type) {
+  let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
+  localStorage.setItem('ml_activeBranch', activeB);
   if (type === 'subasta_sr') {
     window.location.href = 'subasta_sr.html';
   } else if (type === 'qcl') {
     window.location.href = 'qcl.html';
   }
-}
-
-function launchBranchInventory(branchName, type) {
-  let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
-  localStorage.setItem('ml_activeBranch', activeB);
-  launchInventory(type);
 }
 
 function deleteEntry(index) {
