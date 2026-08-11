@@ -488,11 +488,8 @@
 
   .remark-tag-display {
     font-size: 10.5px;
-    color: #475569;
-    background: #f1f5f9;
     padding: 2px 6px;
     border-radius: 4px;
-    border: 1px solid #cbd5e1;
     display: inline-block;
     font-style: italic;
     word-break: break-word;
@@ -774,7 +771,7 @@ function sumIntlSendoutCharges(sheetData, targetCurr = "PHP") {
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
     let row = sheetData[i];
     if (isValidDataRow(row) && row.length > ctcCol) {
-      let rowCurr = (currCol !== -1 && row.length > currCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
       if (!rowCurr) rowCurr = targetC;
       if (rowCurr === 'PESO') rowCurr = 'PHP';
 
@@ -2289,9 +2286,7 @@ function handleManualAdjRemarksInput(evt, descKey) {
   let bData = getActiveBranchData();
   let val = evt.target.value.trim();
   bData.manualAdjRemarksStore[activeCurrencyTab][descKey] = val;
-  if (!val) {
-    bData.openManualAdjRemarksStore[activeCurrencyTab][descKey] = false;
-  }
+  bData.openManualAdjRemarksStore[activeCurrencyTab][descKey] = false;
   saveStateToStorage();
   renderActiveCurrencyData();
 }
@@ -2326,7 +2321,7 @@ function renderManualAdjustmentPivot(groupedData) {
   keys.forEach((desc, idx) => {
     let data = groupedData[desc];
     let currentRemark = bData.manualAdjRemarksStore[activeCurrencyTab][desc] || '';
-    let isBoxOpen = bData.openManualAdjRemarksStore[activeCurrencyTab][desc] || currentRemark !== '';
+    let isBoxOpen = !!bData.openManualAdjRemarksStore[activeCurrencyTab][desc];
 
     let remarkHtml = '';
     if (!isArchived) {
@@ -2341,7 +2336,12 @@ function renderManualAdjustmentPivot(groupedData) {
       }
     }
 
-    let remarkTagDisplay = currentRemark ? `<span class="remark-tag-display">Note: ${currentRemark}</span>` : '';
+    let isNoteVerified = currentRemark.trim().toLowerCase().includes('verified');
+    let noteStyle = isNoteVerified 
+      ? 'color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; font-weight:600;' 
+      : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
+
+    let remarkTagDisplay = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
 
     let trSum = document.createElement('tr');
     trSum.className = "hoverable";
@@ -2517,9 +2517,7 @@ function handleRemarksInput(evt, itemKey) {
   let bData = getActiveBranchData();
   let val = evt.target.value.trim();
   bData.manualRemarksStore[activeCurrencyTab][itemKey] = val;
-  if (!val) {
-    bData.openRemarksInputStore[activeCurrencyTab][itemKey] = false;
-  }
+  bData.openRemarksInputStore[activeCurrencyTab][itemKey] = false;
   saveStateToStorage();
   renderActiveCurrencyData();
 }
@@ -2601,7 +2599,7 @@ function renderReconciliationTable(data) {
     }
 
     let currentRemark = manualRemarks[itemKey] || '';
-    let isBoxOpen = openRemarksInput[itemKey] || currentRemark !== '';
+    let isBoxOpen = !!openRemarksInput[itemKey];
     let remarkHtml = '';
 
     if (!isArchived) {
@@ -2648,7 +2646,12 @@ function renderReconciliationTable(data) {
       `;
     }
 
-    let remarkVarianceTag = currentRemark ? `<span class="remark-tag-display">Note: ${currentRemark}</span>` : '';
+    let isNoteVerified = currentRemark.trim().toLowerCase().includes('verified');
+    let noteStyle = isNoteVerified 
+      ? 'color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; font-weight:600;' 
+      : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
+
+    let remarkVarianceTag = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
     const tr = document.createElement('tr');
     tr.className = "hoverable";
     tr.innerHTML = `
