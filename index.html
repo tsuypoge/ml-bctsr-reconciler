@@ -102,7 +102,7 @@
 
   /* Dashboard View */
   #dashboard-view {
-    max-width: 1250px;
+    max-width: 1300px;
     margin: 40px auto;
     padding: 0 20px;
   }
@@ -245,12 +245,30 @@
   }
 
   .dash-table td {
-    padding: 16px 16px;
+    padding: 14px 16px;
     border-bottom: 1px solid #f8fafc;
     color: #334155;
     vertical-align: middle;
   }
   .dash-table tr:hover { background: #fffdfd; }
+
+  /* Assign Select Dropdown Styling */
+  .assign-select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f8fafc;
+    cursor: pointer;
+    outline: none;
+    max-width: 180px;
+  }
+  .assign-select:focus {
+    border-color: var(--primary);
+    background: #ffffff;
+  }
 
   .btn-tbl-status {
     border: none;
@@ -323,7 +341,6 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* MODAL DESIGN */
   .enroll-modal-card {
     width: 440px;
     border-radius: 20px;
@@ -467,7 +484,7 @@
     
     <div class="form-group">
       <label>User ID / Employee Code</label>
-      <input type="text" id="login-user" class="form-input" value="ADMIN-MASTER" placeholder="Enter User ID">
+      <input type="text" id="login-user" class="form-input" value="ADMIN-MASTER" placeholder="Enter User ID (e.g. r.duero)">
     </div>
 
     <div class="form-group">
@@ -573,6 +590,7 @@
         <tr>
           <th>Branchname</th>
           <th>Cut-off Date</th>
+          <th style="text-align:center;">Assign</th>
           <th style="text-align:center;">Inventory</th>
           <th style="text-align:center;">Status</th>
           <th style="text-align:center;">Action</th>
@@ -720,10 +738,10 @@
   const db = getDatabase(app);
 
   let strikeForceEntries = [
-    { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", status: "In Progress" },
-    { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", status: "Pending" },
-    { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", status: "Pending" },
-    { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", status: "In Progress" }
+    { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companion: "r.duero", createdBy: "ADMIN-MASTER", status: "In Progress" },
+    { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companion: "j.doe", createdBy: "ADMIN-MASTER", status: "Pending" },
+    { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companion: "Unassigned", createdBy: "r.duero", status: "Pending" },
+    { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companion: "r.duero", createdBy: "ADMIN-MASTER", status: "In Progress" }
   ];
 
   let enrolledUsers = [
@@ -750,6 +768,7 @@
       enrolledUsers = val;
       localStorage.setItem('ml_enrolled_users', JSON.stringify(enrolledUsers));
       renderEnrolledUsersTable();
+      renderDashboardTable();
     }
   });
 
@@ -829,22 +848,74 @@
     });
   }
 
+  /* 🎯 UPDATE COMPANION AUDITOR FROM ASSIGN DROPDOWN */
+  window.updateRowCompanion = function(entryIndex, newCompanion) {
+    if (strikeForceEntries[entryIndex]) {
+      strikeForceEntries[entryIndex].companion = newCompanion;
+      saveEntries();
+      addAuditLog(`Assigned Companion for ${strikeForceEntries[entryIndex].branch}: ${newCompanion}`);
+      renderDashboardTable();
+    }
+  };
+
+  /* 🔐 ROW-LEVEL USER FILTERED DASHBOARD RENDER WITH ASSIGN DROPDOWN */
   function renderDashboardTable() {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    strikeForceEntries.forEach((row, index) => {
+    let currentUser = (localStorage.getItem('ml_activeUser') || '').toUpperCase().trim();
+    let currentRole = localStorage.getItem('ml_user_role') || 'user';
+
+    // Non-admin enrolled users for Assign dropdown
+    let nonAdminEnrolled = enrolledUsers.filter(u => !u.username.toUpperCase().includes('ADMIN'));
+
+    // Filter logic
+    let visibleEntries = strikeForceEntries.filter((row) => {
+      if (currentRole === 'admin' || currentUser.includes('ADMIN')) return true;
+
+      let creator = (row.createdBy || '').toUpperCase().trim();
+      let companion = (row.companion || '').toUpperCase().trim();
+
+      return (creator && (currentUser === creator || currentUser.includes(creator))) ||
+             (companion && (currentUser === companion || currentUser.includes(companion)));
+    });
+
+    if (visibleEntries.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">Walay nakita nga Branch Entry para sa imong account (${currentUser}).</td></tr>`;
+      return;
+    }
+
+    visibleEntries.forEach((row) => {
+      let originalIndex = strikeForceEntries.indexOf(row);
       let statusBg = "#16a34a";
       if (row.status === "In Progress") statusBg = "#ea580c";
       else if (row.status === "Pending") statusBg = "#64748b";
       else if (row.status === "Archived") statusBg = "#475569";
+
+      // Build Assign Dropdown HTML
+      let assignOptions = `<option value="Unassigned">-- Select Companion --</option>`;
+      nonAdminEnrolled.forEach(u => {
+        let isSelected = (row.companion === u.username || row.companion === `${u.username} (${u.name})`) ? 'selected' : '';
+        assignOptions += `<option value="${u.username}" ${isSelected}>${u.name} (${u.username})</option>`;
+      });
+
+      let assignCellHTML = `
+        <select class="assign-select" onchange="window.updateRowCompanion(${originalIndex}, this.value)">
+          ${assignOptions}
+        </select>
+      `;
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
         <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
         
+        <!-- 🎯 ASSIGN COLUMN (DROPDOWN EXCLUDING ADMIN) -->
+        <td style="text-align:center;">
+          ${assignCellHTML}
+        </td>
+
         <!-- INVENTORY COLUMN -->
         <td style="text-align:center;">
           <button class="btn-inv" title="Subasta / SR" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subasta_sr')">🏷️ Subasta/SR</button>
@@ -860,15 +931,15 @@
 
         <!-- ACTION COLUMN -->
         <td style="text-align:center;">
-          <button class="btn-action btn-archive" title="Archive" onclick="window.archiveEntry(${index})">📁 Archive</button>
-          <button class="btn-action btn-delete" title="Delete" onclick="window.deleteEntry(${index})">🗑️ Delete</button>
+          <button class="btn-action btn-archive" title="Archive" onclick="window.archiveEntry(${originalIndex})">📁 Archive</button>
+          <button class="btn-action btn-delete" title="Delete" onclick="window.deleteEntry(${originalIndex})">🗑️ Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // Attach functions to window scope for HTML inline handlers
+  // Attach functions to window scope
   window.openEnrollModal = function() { 
     document.getElementById('enroll-modal').style.display = 'flex'; 
     document.getElementById('enroll-fullname').value = '';
@@ -899,6 +970,7 @@
 
     saveEnrolledUsers();
     renderEnrolledUsersTable();
+    renderDashboardTable();
     addAuditLog(`Enrolled User: ${uname} (${fname})`);
     window.closeEnrollModal();
   };
@@ -969,16 +1041,21 @@
       enrolledUsers.splice(index, 1);
       saveEnrolledUsers();
       renderEnrolledUsersTable();
+      renderDashboardTable();
       addAuditLog(`Removed Enrolled User: ${u.username}`);
     }
   };
 
-  window.openNewModal = function() { document.getElementById('new-modal').style.display = 'flex'; };
+  window.openNewModal = function() { 
+    document.getElementById('new-modal').style.display = 'flex'; 
+  };
+  
   window.closeNewModal = function() { document.getElementById('new-modal').style.display = 'none'; };
 
   window.saveNewEntry = function() {
     let bName = document.getElementById('new-branch').value.trim();
     let cDate = document.getElementById('new-cutoff-date').value.trim();
+    let currentUser = localStorage.getItem('ml_activeUser') || 'ANONYMOUS';
 
     if (!bName) { alert("Please enter Branch Name"); return; }
 
@@ -987,11 +1064,13 @@
     strikeForceEntries.push({
       branch: formattedBranch,
       cutoffDate: cDate || "Pending Upload",
+      companion: "Unassigned",
+      createdBy: currentUser,
       status: "Pending"
     });
 
     saveEntries();
-    addAuditLog(`Created Branch Entry: ${formattedBranch}`);
+    addAuditLog(`Created Branch Entry: ${formattedBranch} by ${currentUser}`);
     window.closeNewModal();
 
     localStorage.setItem('ml_activeBranch', formattedBranch);
@@ -1130,25 +1209,27 @@
   }
 
   window.doLogin = function() {
-    let userInput = document.getElementById('login-user').value.trim().toUpperCase() || 'ADMIN-MASTER';
+    let userInput = document.getElementById('login-user').value.trim().toLowerCase() || 'admin-master';
     
-    let foundUser = enrolledUsers.find(u => u.username.toUpperCase() === userInput);
+    let foundUser = enrolledUsers.find(u => u.username.toLowerCase() === userInput);
     let role = 'user';
 
-    if (foundUser && foundUser.username.toUpperCase().includes('ADMIN')) {
+    if (foundUser && foundUser.username.toLowerCase().includes('admin')) {
       role = 'admin';
-    } else if (userInput.includes('ADMIN')) {
+    } else if (userInput.includes('admin')) {
       role = 'admin';
     }
 
+    let activeUserFormatted = foundUser ? foundUser.username : userInput;
+
     sessionStorage.setItem('ml_logged_in', 'true');
-    localStorage.setItem('ml_activeUser', userInput);
+    localStorage.setItem('ml_activeUser', activeUserFormatted);
     localStorage.setItem('ml_user_role', role);
 
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'block';
     
-    addAuditLog(`User Logged In: ${userInput} [Role: ${role}]`);
+    addAuditLog(`User Logged In: ${activeUserFormatted} [Role: ${role}]`);
     updateUserInfoDisplay();
     renderEnrolledUsersTable();
     renderDashboardTable();
