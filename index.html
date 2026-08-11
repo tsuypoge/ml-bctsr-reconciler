@@ -27,7 +27,6 @@
   header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); color: #fff; padding: 18px 32px; border-bottom: 4px solid var(--gold); }
   .header-content { max-width: 1550px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
   .header-title-box { display: flex; align-items: center; gap: 16px; }
-  .header-logo-img { height: 40px; width: auto; }
   .logo-badge { background: #fff; color: var(--primary); font-weight: 800; font-size: 20px; padding: 8px 14px; border-radius: 8px; }
   h1 { font-size: 20px; font-weight: 700; }
   .header-sub { font-size: 13px; color: rgba(255,255,255,0.8); }
@@ -134,7 +133,6 @@
   
   <!-- COMPACT ACTION BUTTONS BAR + AUTOMATIC BRANCH SELECTOR -->
   <div class="upload-action-bar hide-print">
-    <!-- Branch Selector Dropdown (Auto-populated upon BCTSR upload) -->
     <div class="branch-select-wrapper">
       <label for="branch-select">🏢 Branch:</label>
       <select id="branch-select" class="branch-select" onchange="onBranchDropdownChange(this.value)">
@@ -142,13 +140,11 @@
       </select>
     </div>
 
-    <!-- ALWAYS VISIBLE MASTER BCTSR UPLOAD BUTTON -->
     <button class="btn-action btn-export" id="btn-upload-master" onclick="document.getElementById('file-upload').click()">
       <span>📄</span> Upload Master BCTSR File(s)
     </button>
     <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleFileUpload(event)">
     
-    <!-- SAVE / ARCHIVE TOGGLE BUTTON -->
     <button class="btn-action btn-archive" id="btn-toggle-archive" onclick="toggleArchiveState()">
       <span>🔒</span> Save / Archive
     </button>
@@ -241,10 +237,8 @@
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// MULTI-BRANCH STATE MANAGEMENT
 let activeBranch = "Select Branch";
 let activeCurrencyTab = 'PHP';
-
 let branchesStore = {}; 
 
 function createEmptyBranchStore() {
@@ -302,6 +296,126 @@ function getCurrencySymbol(curr) {
     case 'GBP': return '£';
     case 'PHP': default: return '₱';
   }
+}
+
+// SMART DYNAMIC CALCULATORS FOR INTL MONEY TRANSFER SENDOUT & CHARGES
+function sumIntlSendoutPrincipal(sheetData, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let principalCol = -1, currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toUpperCase();
+      if (['PRINCIPAL', 'AMOUNT', 'SENDOUT AMOUNT'].includes(c_str)) {
+        principalCol = c_i;
+        headerIdx = i;
+      } else if (['CURRENCY', 'CURR'].includes(c_str)) {
+        currCol = c_i;
+      }
+    }
+    if (principalCol !== -1) break;
+  }
+
+  if (principalCol === -1) principalCol = 9;
+  if (currCol === -1) currCol = 8;
+
+  let total = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > principalCol) {
+      let rowCurr = (currCol !== -1 && row.length > currCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      if (!rowCurr) rowCurr = targetC;
+      if (rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === targetC) {
+        let valStr = String(row[principalCol] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function sumIntlSendoutCharges(sheetData, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let ctcCol = -1, currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toUpperCase();
+      if (['CTC', 'CHARGE', 'CHARGES', 'FEE', 'FEES'].includes(c_str)) {
+        ctcCol = c_i;
+        headerIdx = i;
+      } else if (['CURRENCY', 'CURR'].includes(c_str)) {
+        currCol = c_i;
+      }
+    }
+    if (ctcCol !== -1) break;
+  }
+
+  if (ctcCol === -1) ctcCol = 10;
+  if (currCol === -1) currCol = 8;
+
+  let total = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > ctcCol) {
+      let rowCurr = (currCol !== -1 && row.length > currCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      if (!rowCurr) rowCurr = targetC;
+      if (rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === targetC) {
+        let valStr = String(row[ctcCol] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countIntlSendout(sheetData, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toUpperCase();
+      if (['CONTROL NO', 'REFERENCE NO', 'SENDER NAME', 'PARTNER'].includes(c_str)) {
+        headerIdx = i;
+      } else if (['CURRENCY', 'CURR'].includes(c_str)) {
+        currCol = c_i;
+      }
+    }
+    if (headerIdx !== -1) break;
+  }
+
+  if (currCol === -1) currCol = 8;
+  let count = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row)) {
+      let rowCurr = (currCol !== -1 && row.length > currCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      if (!rowCurr) rowCurr = targetC;
+      if (rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === targetC) count++;
+    }
+  }
+  return count;
 }
 
 // SMART DYNAMIC COLUMN CALCULATORS FOR JEWELRY SALES (SUBASTA)
@@ -837,6 +951,11 @@ const REPORT_RULES = {
   },
 
   "International Money Transfer Payout": { sheet: "PAYOUT", getSum: (data, br, items, curr) => sumPayoutCSV(data, curr), getQty: (data, br, items, curr) => countPayoutCSV(data, curr) },
+  
+  // INTL MONEY TRANSFER SENDOUT & CHARGES MAPPER
+  "International Money Transfer Sendout": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutPrincipal(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
+  "International Money Transfer Charges": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutCharges(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
+
   "Payment Solutions": { sheet: "MLG PO", getSum: (data) => sumMLGPO(data), getQty: (data) => countMLGPO(data) },
   
   "POS Jewelry Sales": { sheet: "SUBASTA", altSheet: "JEWELRY", getSum: (data) => sumJewelryNetSales(data), getQty: (data) => countJewelrySales(data) },
@@ -862,7 +981,7 @@ function isValidDataRow(row) {
   if (!row || !Array.isArray(row) || row.length === 0) return false;
   let col0 = String(row[0] || '').trim();
   if (!col0) return false;
-  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|#|no|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date)/i.test(col0)) return false;
+  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp)/i.test(col0)) return false;
   return true;
 }
 
@@ -1060,7 +1179,6 @@ function sumTSRInterest(sheetData, bctsrItems) {
   return tsrTotal - d73_raProcess + e17_interestCashOut;
 }
 
-// --- ACCURATE BRANCH MATCHING FUNCTION ---
 function isBranchMatch(rowBranch, headerBranch) {
   if (!rowBranch || !headerBranch) return false;
   let rb = String(rowBranch).toLowerCase().replace(/ml\-/, 'ml ').trim();
@@ -1161,7 +1279,6 @@ function formatMoney(val, symbol = '') {
   return symbol ? `${symbol}${formatted}` : formatted;
 }
 
-// MULTI-BRANCH STORAGE & PERSISTENCE
 function saveStateToStorage() {
   try {
     localStorage.setItem('ml_activeBranch', activeBranch);
@@ -1240,7 +1357,6 @@ function resetAllData() {
   }
 }
 
-// SWITCH CURRENCY TAB FUNCTION
 function switchCurrencyTab(curr) {
   activeCurrencyTab = curr;
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1397,7 +1513,6 @@ function exportToPDF() {
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
 
-// DIRECT BATCH FILE UPLOAD HANDLER FOR MASTER BCTSR (AUTOMATICALLY ADDS AND SELECTS BRANCH)
 async function handleFileUpload(evt) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
@@ -1450,7 +1565,6 @@ async function handleFileUpload(evt) {
   evt.target.value = '';
 }
 
-// PROMISE WRAPPERS FOR ASYNC BATCH PARSING
 function parseExcelFilePromise(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -1521,7 +1635,6 @@ function parsePdfFilePromise(file) {
   });
 }
 
-// PROMISE WRAPPERS FOR ASYNC SUB-REPORT PARSING (EXCEL + PDF SUPPORT)
 function parseExcelRowsPromise(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -1585,7 +1698,6 @@ function parsePdfRowsPromise(file) {
   });
 }
 
-// --- SUB-REPORT UPLOAD (MULTIPLE FILE APPEND SUPPORT) ---
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
@@ -1635,7 +1747,6 @@ function removeSubReport(itemKey) {
   }
 }
 
-// --- MANUAL ADJUSTMENT UPLOAD WITH AUTO-CURRENCY GROUPING ---
 function handleManualAdjUpload(evt) {
   const file = evt.target.files[0];
   if (!file) return;
