@@ -3,457 +3,416 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QCL Inventory Report</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23a3241c'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23fff2f1' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23fff2f1'/%3E%3Ccircle cx='32' cy='28' r='6.5' fill='%23a3241c'/%3E%3Cpath d='M27 34 Q32 46 37 34 Z' fill='%23a3241c'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23a3241c'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23fff2f1' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23fff2f1'/%3E%3Ccircle cx='32' cy='28' r='6.5' fill='%23a3241c'/%3E%3Cpath d='M27 34 Q32 46 37 34 Z' fill='%23a3241c'/%3E%3C/svg%3E">
+<title>M Lhuillier — QCL Inventory Report</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <style>
-  :root{
-    --bg:#ffffff;
-    --bg-deep:#fff2f1;
-    --panel:#ffffff;
-    --panel-2:#fff0ef;
-    --line:#f0cfcd;
-    --brass:#a3241c;
-    --brass-soft:#7d1a14;
-    --parchment:#241412;
-    --parchment-dim:#8a6b69;
-    --ink:#ffffff;
-    --match:#2f7a4d;
-    --match-bg:#e9f6ee;
-    --mismatch:#c62828;
-    --mismatch-bg:#fdeceb;
-    --pending:#a3241c;
-    --pending-bg:#fff0ef;
-    --radius:10px;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(ellipse at top left, #fff7f6 0%, var(--bg) 45%, var(--bg-deep) 100%);
-    color:var(--parchment);
-    font-family:'Calibri',sans-serif;
-    min-height:100vh;
-    padding-bottom:60px;
-  }
-  ::selection{background:var(--brass);color:var(--ink);}
+  :root {
+    --primary: #cc0000;
+    --primary-dark: #990000;
+    --bg-red: #bc0000;
+    --bg-gradient: linear-gradient(135deg, #d30000 0%, #900000 100%);
+    --gold: #d4af37;
+    
+    --panel-bg: #ffffff;
+    --panel-2: #fffdfd;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --border-subtle: #f1f5f9;
 
-  header.cover{
-    padding:38px 24px 28px;
-    text-align:center;
-    border-bottom:1px solid var(--line);
-    position:relative;
-    overflow:hidden;
-  }
-  header.cover::before{
-    content:"";
-    position:absolute;inset:0;
-    background:repeating-linear-gradient(90deg, transparent, transparent 78px, rgba(163,36,28,0.05) 79px, transparent 80px);
-    pointer-events:none;
-  }
-  .eyebrow{
-    font-family:'Calibri',sans-serif;
-    letter-spacing:.24em;
-    text-transform:uppercase;
-    font-size:11.5px;
-    color:var(--brass);
-    margin-bottom:10px;
-  }
-  h1{
-    font-family:'Calibri',sans-serif;
-    font-weight:700;
-    font-size:clamp(28px,5vw,44px);
-    margin:0 0 8px;
-    letter-spacing:-0.01em;
-  }
-  header.cover p{
-    font-family:'Calibri',sans-serif;
-    color:var(--parchment-dim);
-    font-size:13.5px;
-    max-width:520px;
-    margin:0 auto;
-    line-height:1.6;
+    --match: #16a34a;
+    --match-bg: #f0fdf4;
+    --mismatch: #dc2626;
+    --mismatch-bg: #fef2f2;
+    --pending: #ea580c;
+    --pending-bg: #fff7ed;
+
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+
+    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
   }
 
-  .wrap{max-width:1180px;margin:0 auto;padding:0 20px;}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Upload zone */
-  .upload{
-    margin-top:28px;
-    border:1.5px dashed var(--line);
-    border-radius:var(--radius);
-    background:var(--panel);
-    padding:34px 20px;
-    text-align:center;
-    transition:border-color .2s, background .2s;
-    position:relative;
-  }
-  .upload.drag{border-color:var(--brass);background:var(--panel-2);}
-  .upload h2{
-    font-family:'Calibri',sans-serif;font-size:20px;font-weight:600;margin:0 0 6px;
-  }
-  .upload p{color:var(--parchment-dim);font-size:13.5px;margin:0 0 18px;}
-  .btn{
-    font-family:'Calibri',sans-serif;
-    font-size:12.5px;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    background:var(--brass);
-    color:var(--ink);
-    border:none;
-    padding:11px 22px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:600;
-    transition:transform .12s, background .15s;
-  }
-  .btn:hover{background:#ddb536;transform:translateY(-1px);}
-  .btn:active{transform:translateY(0);}
-  .btn.ghost{
-    background:transparent;color:var(--parchment);border:1px solid var(--line);
-  }
-  .btn.ghost:hover{border-color:var(--brass);color:var(--brass);}
-  .btn.small{padding:7px 13px;font-size:11px;}
-  input[type=file]{display:none;}
-  #status-line{
-    margin-top:14px;font-family:'Calibri',sans-serif;font-size:12px;color:var(--parchment-dim);
-    min-height:16px;
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    min-height: 100vh;
+    padding-bottom: 60px;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Category uploads */
-  .cat-uploads{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;}
-  .cat-upload-card{
-    flex:1;min-width:220px;
-    border:1.5px dashed var(--line);border-radius:var(--radius);
-    background:var(--panel);padding:22px 18px;text-align:center;
-  }
-  .cat-upload-card.done{border-style:solid;border-color:var(--brass);background:var(--panel-2);}
-  .cat-upload-card h3{font-family:'Calibri',sans-serif;font-size:17px;font-weight:600;margin:0 0 4px;}
-  .cat-upload-card .cat-sub{font-size:12px;color:var(--parchment-dim);margin:0 0 14px;}
-  .cat-upload-card .cat-status{
-    margin-top:10px;font-family:'Calibri',sans-serif;font-size:11.5px;color:var(--parchment-dim);
-  }
-  .cat-upload-card.done .cat-status{color:var(--brass);font-weight:600;}
+  ::selection { background: var(--primary); color: #ffffff; }
 
-  .tabs{display:none;margin-top:20px;gap:10px;flex-wrap:wrap;
-    position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.96);backdrop-filter:blur(4px);
-    padding:10px 0;border-bottom:1px solid var(--line);
-  }
-  .tabs.show{display:flex;}
-  .tab{
-    flex:1;min-width:150px;
-    background:var(--panel);border:1.5px solid var(--line);border-radius:var(--radius);
-    padding:12px 16px;cursor:pointer;transition:border-color .15s, background .15s;opacity:.5;
-  }
-  .tab.enabled{cursor:pointer;opacity:1;}
-  .tab.disabled{cursor:not-allowed;}
-  .tab:hover.enabled{border-color:var(--brass-soft);}
-  .tab.active{border-color:var(--brass);background:var(--panel-2);}
-  .tab .t-name{font-family:'Calibri',sans-serif;font-size:16px;font-weight:700;}
-  .tab .t-count{font-family:'Calibri',sans-serif;font-size:11px;color:var(--parchment-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
-
-  /* Section picker */
-  .section-picker{display:none;margin-top:22px;gap:10px;flex-wrap:wrap;}
-  .section-picker.show{display:flex;}
-  .sect-card{
-    flex:1;min-width:160px;
-    background:var(--panel);border:1.5px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px;cursor:pointer;transition:border-color .15s, background .15s;
-  }
-  .sect-card:hover{border-color:var(--brass-soft);}
-  .sect-card.active{border-color:var(--brass);background:var(--panel-2);}
-  .sect-card .n{font-family:'Calibri',sans-serif;font-size:22px;font-weight:700;color:var(--brass);}
-  .sect-card .l{font-family:'Calibri',sans-serif;font-size:11px;color:var(--parchment-dim);text-transform:uppercase;letter-spacing:.05em;}
-
-  /* Dashboard */
-  #dashboard{display:none;margin-top:28px;}
-  #dashboard.show{display:block;}
-
-  .stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
-  .stat-chip{
-    flex:1;min-width:130px;
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px;
-  }
-  .stat-chip .num{font-family:'Calibri',sans-serif;font-size:26px;font-weight:700;}
-  .stat-chip .lab{font-family:'Calibri',sans-serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--parchment-dim);margin-top:2px;}
-  .stat-chip.match .num{color:var(--match);}
-  .stat-chip.mismatch .num{color:var(--mismatch);}
-  .stat-chip.pending .num{color:var(--pending);}
-
-  .cat-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;}
-  .cat-card{
-    flex:1;min-width:170px;
-    background:var(--panel-2);border-left:3px solid var(--brass);border-radius:0 var(--radius) var(--radius) 0;
-    padding:12px 16px;
-  }
-  .cat-card .name{font-family:'Calibri',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--brass);}
-  .cat-card .figures{font-family:'Calibri',sans-serif;font-size:18px;margin-top:4px;}
-  .cat-card .figures small{font-family:'Calibri',sans-serif;font-size:11px;color:var(--parchment-dim);}
-
-  .toolbar{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
-    position:sticky;top:var(--tabs-h,64px);z-index:45;
-    background:rgba(255,255,255,0.97);backdrop-filter:blur(4px);
-    padding:10px 0;border-bottom:1px solid var(--line);
-  }
-  #search{
-    flex:1;min-width:200px;
-    background:var(--panel);border:1px solid var(--line);border-radius:6px;
-    color:var(--parchment);padding:10px 14px;font-family:'Calibri',sans-serif;font-size:13px;
-  }
-  #search:focus{outline:none;border-color:var(--brass);}
-  select{
-    background:var(--panel);border:1px solid var(--line);color:var(--parchment);
-    padding:9px 10px;border-radius:6px;font-family:'Calibri',sans-serif;font-size:12px;
+  /* Header Bar */
+  header {
+    background: #ffffff;
+    color: var(--text-main);
+    padding: 16px 32px;
+    border-bottom: 3px solid var(--gold);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
   }
 
-  /* Table */
-  .ledger{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-  }
-  table{width:100%;border-collapse:collapse;font-size:15px;}
-  .ledger thead tr:first-child th:first-child{border-top-left-radius:var(--radius);}
-  .ledger thead tr:first-child th:last-child{border-top-right-radius:var(--radius);}
-  .ledger tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius);}
-  .ledger tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius);}
-  thead th{
-    position:sticky;top:var(--thead-top,110px);background:var(--bg-deep);
-    font-family:'Calibri',sans-serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
-    color:var(--brass);text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);
-    white-space:nowrap;
-  }
-  tbody td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:rgba(163,36,28,0.045);}
-  .ptn{font-family:'Calibri',sans-serif;font-size:15.5px;font-weight:700;color:var(--parchment);white-space:nowrap;}
-  .ptn .flag{color:var(--brass);}
-  .date{font-family:'Calibri',sans-serif;font-size:13px;white-space:nowrap;}
-  .desc-list{font-size:14px;line-height:1.6;}
-  .desc-list .code{
-    display:inline-block;font-family:'Calibri',sans-serif;font-size:11px;font-weight:700;
-    background:var(--panel-2);color:var(--brass);border-radius:3px;padding:0 5px;margin-right:5px;
-  }
-  .desc-item{margin-bottom:2px;}
-  .desc-text[contenteditable="true"]{outline:none;border-bottom:1px dashed transparent;}
-  .desc-text[contenteditable="true"]:hover{border-bottom-color:var(--line);}
-  .desc-text[contenteditable="true"]:focus{border-bottom-color:var(--brass);}
-  .desc-list .meta{color:var(--parchment-dim);font-size:11px;font-family:'Calibri',sans-serif;font-weight:700;}
-  .pcs-input{
-    width:50px;text-align:center;font-family:'Calibri',sans-serif;font-size:13px;font-weight:700;
-    background:var(--bg-deep);border:1px solid var(--line);border-radius:4px;color:var(--parchment);
-    padding:3px 2px;margin-left:6px;
-  }
-  .pcs-input:focus{outline:none;border-color:var(--brass);}
-  .pcs-label{font-family:'Calibri',sans-serif;font-size:10px;color:var(--parchment-dim);margin-left:4px;}
-  .findings-list{min-width:110px;max-width:130px;}
-  .findings-toggle{
-    width:auto;height:auto;padding:4px 8px;
-    border:1.5px solid var(--brass);border-radius:5px;background:var(--panel-2);
-    cursor:pointer;display:flex;align-items:center;gap:4px;margin:0 auto;
-    font-family:'Calibri',sans-serif;font-size:10.5px;font-weight:700;
-    color:var(--brass);letter-spacing:.02em;
-  }
-  .findings-toggle::before{content:"🔍";font-size:11px;}
-  .findings-toggle:hover{background:var(--brass);color:var(--ink);}
-  .findings-toggle.has-findings{background:var(--brass);color:var(--ink);border-color:var(--brass-soft);}
-  .findings-toggle.has-findings::after{content:" ⚑";}
-  .findings-body{display:none;margin-top:6px;}
-  .findings-body.show{display:block;}
-  .finding-item{margin-bottom:6px;display:flex;flex-direction:column;align-items:stretch;gap:3px;}
-  .finding-item:last-child{margin-bottom:0;}
-  .finding-select, .correct-select{
-    width:100%;font-family:'Calibri',sans-serif;font-size:10px;padding:3px 4px;
-    border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--parchment);
-  }
-  .finding-select:focus, .correct-select:focus{outline:none;border-color:var(--brass);}
-  .correct-select:disabled{opacity:.5;cursor:not-allowed;}
-  .num{font-family:'Calibri',sans-serif;text-align:right;}
-  .status-badge{
-    display:inline-block;font-family:'Calibri',sans-serif;font-size:10px;text-transform:uppercase;
-    letter-spacing:.06em;padding:4px 9px;border-radius:20px;font-weight:600;white-space:nowrap;
-  }
-  .status-badge.match{background:var(--match-bg);color:var(--match);border:1px solid var(--match);}
-  .status-badge.mismatch{background:var(--mismatch-bg);color:var(--mismatch);border:1px solid var(--mismatch);}
-  .status-badge.pending{background:var(--pending-bg);color:var(--pending);border:1px solid rgba(163,36,28,0.4);}
-  .stamp{
-    display:inline-block;font-family:'Calibri',sans-serif;font-weight:700;font-size:9px;
-    color:var(--match);border:1.5px solid var(--match);border-radius:4px;padding:1px 5px;
-    transform:rotate(-6deg);letter-spacing:.05em;margin-left:6px;
-  }
-  .del-btn{
-    background:none;border:none;color:var(--parchment-dim);cursor:pointer;font-size:15px;padding:2px 6px;
-    border-radius:4px;transition:color .15s;
-  }
-  .del-btn:hover{color:var(--mismatch);}
-  .loan{font-family:'Calibri',sans-serif;font-size:13px;font-weight:700;color:var(--parchment);white-space:nowrap;}
-
-  .footer-tools{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
-
-  .empty-note{
-    text-align:center;color:var(--parchment-dim);font-family:'Calibri',sans-serif;font-size:12.5px;padding:40px 20px;
+  .header-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
-  .debug-toggle{
-    font-family:'Calibri',sans-serif;font-size:11px;color:var(--parchment-dim);
-    cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-top:10px;display:inline-block;
+  .header-title-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
-  #debug-panel{
-    display:none;margin-top:10px;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;
-    padding:12px 14px;font-family:'Calibri',sans-serif;font-size:11px;color:var(--parchment-dim);
-    max-height:180px;overflow:auto;white-space:pre-wrap;
-  }
-  #debug-panel.show{display:block;}
 
-  .found-check{
-    width:20px;height:20px;cursor:pointer;accent-color:var(--match);
+  .logo-badge {
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 18px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    letter-spacing: -0.5px;
+    box-shadow: var(--shadow-sm);
   }
-  .actions-cell{white-space:nowrap;text-align:right;}
-  .missing-note{
-    display:none;text-align:center;padding:10px;font-family:'Calibri',sans-serif;
-    font-size:11.5px;color:var(--parchment-dim);
+
+  h1 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.02em;
   }
-  @media print{
-    header.cover, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap{display:none !important;}
-    body{background:#fff;color:#000;}
-    .ledger{border-color:#999;}
-    thead th{background:#eee;color:#000;position:static;}
-    tbody td{color:#000;border-color:#ccc;}
-    .status-badge, .stamp{display:none !important;}
-    body.print-missing-mode tbody tr[data-status="match"]{display:none !important;}
-    body.print-missing-mode .missing-note{display:block !important;}
-    body.print-missing-mode #dashboard::before{
-      content:"NAWALA / KULANG NGA LISTAHAN";
-      display:block;font-family:'Calibri',sans-serif;font-weight:700;font-size:20px;margin-bottom:10px;
-    }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 1px;
   }
-  @media (max-width:720px){
-    thead{display:none;}
-    table, tbody, tr, td{display:block;width:100%;}
-    tbody tr{border-bottom:1px solid var(--line);padding:12px 4px;}
-    tbody td{border:none;padding:4px 6px;}
-    .num{text-align:left;}
+
+  .wrap { max-width: 1280px; margin: 28px auto; padding: 0 24px; }
+
+  /* Buttons */
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 700;
+    background: #ffffff;
+    color: var(--primary);
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
-  #lock-overlay{
-    display:none;position:fixed;inset:0;z-index:999;
-    background:rgba(36,20,18,0.92);
-    align-items:center;justify-content:center;
-    padding:20px;
+
+  .btn:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+  .btn:active { transform: translateY(0); }
+
+  .btn.ghost {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: none;
   }
-  .lock-box{
-    background:var(--panel);border-radius:var(--radius);padding:30px 26px;
-    max-width:340px;width:100%;text-align:center;
+  .btn.ghost:hover { background: #ffffff; color: var(--primary); border-color: #ffffff; }
+
+  .btn.small { padding: 7px 13px; font-size: 12px; }
+  .btn-dashboard { background: #1e293b; color: #ffffff; }
+  .btn-dashboard:hover { background: #0f172a; color: #ffffff; }
+
+  input[type=file] { display: none; }
+
+  /* Branch Box & Search Box Cards */
+  .branch-box {
+    background: var(--panel-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 22px 26px;
+    margin-bottom: 20px;
   }
-  .lock-box h2{font-family:'Calibri',sans-serif;font-size:20px;margin:0 0 10px;}
-  .lock-box p{font-size:13px;color:var(--parchment-dim);margin:0 0 16px;}
-  #lock-input{
-    width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--line);
-    font-family:'Calibri',sans-serif;font-size:14px;margin-bottom:10px;
+  .branch-box h3 { font-size: 17px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+  .branch-box p { font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .input-control {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color 0.2s;
   }
-  #lock-error{color:var(--mismatch);font-size:12px;min-height:16px;margin-bottom:6px;}
-  .set-pw-row{margin-top:16px;text-align:center;}
-  .set-pw-row .btn.ghost{font-size:11px;}
-  .branch-box{
-    margin-top:26px;border:1.5px solid var(--brass);border-radius:var(--radius);
-    background:var(--panel-2);padding:18px 20px;
+  .input-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
+
+  /* Category Uploads */
+  .cat-uploads { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
+  .cat-upload-card {
+    flex: 1; min-width: 240px;
+    background: var(--panel-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 24px 20px;
+    text-align: center;
+    border: 2px dashed var(--border);
+    transition: all 0.2s;
   }
-  .branch-box h3{font-family:'Calibri',sans-serif;font-size:17px;margin:0 0 4px;}
-  .branch-box p{font-size:12.5px;color:var(--parchment-dim);margin:0 0 12px;}
-  .cat-uploads.locked{opacity:.4;pointer-events:none;}
+  .cat-upload-card.done { border-style: solid; border-color: var(--match); background: #f0fdf4; }
+  .cat-upload-card h3 { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+  .cat-upload-card .cat-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .cat-upload-card .cat-status { margin-top: 12px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .cat-upload-card.done .cat-status { color: var(--match); font-weight: 800; }
+
+  #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+  /* Tabs */
+  .tabs {
+    display: none; margin-top: 24px; gap: 10px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+    padding: 8px; border-radius: var(--radius-md);
+  }
+  .tabs.show { display: flex; }
+  .tab {
+    flex: 1; min-width: 150px;
+    background: rgba(255,255,255,0.85); border: none; border-radius: var(--radius-sm);
+    padding: 12px 16px; cursor: pointer; transition: all 0.2s; opacity: 0.6;
+  }
+  .tab.enabled { cursor: pointer; opacity: 1; }
+  .tab.disabled { cursor: not-allowed; }
+  .tab.active { background: #ffffff; opacity: 1; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .tab .t-name { font-size: 15px; font-weight: 800; color: var(--primary); }
+  .tab .t-count { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+
+  /* Dashboard Stats */
+  #dashboard { display: none; margin-top: 24px; }
+  #dashboard.show { display: block; }
+
+  .stats-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat-chip {
+    flex: 1; min-width: 140px;
+    background: var(--panel-bg); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card); padding: 16px 20px;
+  }
+  .stat-chip .num { font-size: 26px; font-weight: 800; font-family: var(--font-mono); color: var(--primary); }
+  .stat-chip .lab { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 800; margin-top: 2px; }
+  .stat-chip.match .num { color: var(--match); }
+  .stat-chip.pending .num { color: var(--pending); }
+
+  .cat-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+  .cat-card {
+    flex: 1; min-width: 180px;
+    background: var(--panel-bg); border-left: 4px solid var(--primary);
+    border-radius: var(--radius-md); padding: 14px 18px; box-shadow: var(--shadow-card);
+  }
+  .cat-card .name { font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--primary); letter-spacing: 0.5px; }
+  .cat-card .figures { font-size: 18px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; color: var(--text-main); }
+  .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
+    background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-card);
+  }
+  #search {
+    flex: 1; min-width: 200px; padding: 10px 14px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--font-sans); font-size: 13px; outline: none;
+  }
+  #search:focus { border-color: var(--primary); }
+  select {
+    padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
+  }
+
+  /* Ledger Table */
+  .ledger {
+    background: var(--panel-bg); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card); overflow: hidden; padding: 8px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    background: #ffffff; font-size: 11px; text-transform: uppercase; font-weight: 800;
+    color: var(--primary); text-align: left; padding: 16px 14px; border-bottom: 2px solid var(--border);
+    white-space: nowrap; position: sticky; top: 0; z-index: 10;
+  }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid #f8fafc; vertical-align: top; }
+  tbody tr:hover { background: #fffdfd; }
+  .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); white-space: nowrap; }
+  .ptn .flag { color: var(--primary); }
+  .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
+  .desc-list { font-size: 13px; line-height: 1.5; }
+  .desc-list .code {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    background: #f1f5f9; color: var(--primary); border-radius: 4px; padding: 1px 6px; margin-right: 6px;
+  }
+  .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
+  .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
+  .desc-list .meta { color: var(--text-muted); font-size: 11.5px; font-weight: 600; }
+  
+  .findings-list { min-width: 120px; }
+  .findings-toggle {
+    padding: 5px 10px; border: 1.5px solid var(--primary); border-radius: 6px; background: #ffffff;
+    cursor: pointer; font-size: 11px; font-weight: 700; color: var(--primary); font-family: var(--font-sans);
+  }
+  .findings-toggle:hover { background: var(--primary); color: #ffffff; }
+  .findings-toggle.has-findings { background: var(--primary); color: #ffffff; }
+  .findings-body { display: none; margin-top: 8px; }
+  .findings-body.show { display: block; }
+  .finding-item { margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .finding-select, .correct-select {
+    width: 100%; font-size: 11px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px;
+  }
+
+  .status-badge {
+    display: inline-block; font-size: 11px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px; font-weight: 700; white-space: nowrap;
+  }
+  .status-badge.match { background: var(--match-bg); color: var(--match); border: 1px solid var(--match); }
+  .status-badge.pending { background: var(--pending-bg); color: var(--pending); border: 1px solid var(--pending); }
+  .stamp {
+    display: inline-block; font-weight: 800; font-size: 10px; color: var(--match);
+    border: 1.5px solid var(--match); border-radius: 4px; padding: 1px 6px; transform: rotate(-4deg); margin-left: 6px;
+  }
+
+  .del-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; }
+  .del-btn:hover { color: var(--mismatch); }
+  .loan { font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+
+  .footer-tools { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+  .empty-note { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 20px; }
+
+  .found-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--match); }
+  .actions-cell { white-space: nowrap; text-align: right; }
+
+  @media print {
+    header, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap, .btn-dashboard, .branch-box { display: none !important; }
+    body { background: #fff; color: #000; }
+    .ledger { border: none; box-shadow: none; }
+    thead th { background: #eee; color: #000; position: static; }
+    tbody td { color: #000; border-color: #ccc; }
+    .status-badge, .stamp { display: none !important; }
+  }
 </style>
 </head>
 <body>
 
-<div id="lock-overlay">
-  <div class="lock-box">
-    <h2>🔒 Locked</h2>
-    <p>Enter the password given to you by whoever shared this to access the ledger.</p>
-    <input type="password" id="lock-input" placeholder="Password">
-    <div id="lock-error"></div>
-    <button class="btn" id="lock-submit" style="width:100%;">Enter</button>
+<!-- HEADER BAR -->
+<header>
+  <div class="header-content">
+    <div class="header-title-box">
+      <div class="logo-badge">ML</div>
+      <div>
+        <h1>QCL Physical Inventory Check</h1>
+        <div class="header-sub">Automated Pawn Ticket Verification & Audit Engine</div>
+      </div>
+    </div>
   </div>
-</div>
-
-<header class="cover">
-  <div class="eyebrow">QCL Inventory Report</div>
-  <h1>Physical Inventory Check</h1>
-  <p>Upload your 3 Inventory Reports (Excel/CSV, or text-based PDF) — Prenda, Terms Extended, and Re-appraisal. Each pawn ticket is parsed automatically; just check off what's found, and it will automatically flag matches vs. shortages.</p>
-  <div class="set-pw-row"><button class="btn ghost small" id="set-password-btn">🔒 Set/Change Share Password</button></div>
 </header>
 
 <div class="wrap">
 
+  <!-- TOP ACTION BAR WITH BACK TO DASHBOARD -->
+  <div style="display:flex; justify-content:flex-start; align-items:center; margin-bottom:20px;">
+    <button class="btn btn-dashboard" onclick="window.location.href='index.html'" title="Return to Main Dashboard">
+      <span>⬅️</span> Back to Dashboard
+    </button>
+  </div>
+
+  <!-- BRANCH SELECTOR CARD -->
   <div class="branch-box" id="branch-box">
     <h3>🏢 Which branch is this?</h3>
-    <p>Each branch keeps its own separate data on this same link — enter your branch name so your counts never mix with or overwrite another branch's.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <input type="text" id="branch-input" placeholder="e.g. Colon, Carbon, Mandaue..." style="flex:1;min-width:200px;padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'Calibri',sans-serif;font-size:14px;">
-      <input type="date" id="audit-date-input" style="padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'Calibri',sans-serif;font-size:14px;">
-      <button class="btn" id="branch-confirm-btn">Start / Switch Branch</button>
+    <p>Each branch keeps its own separate inventory data. Select or enter your branch name to prevent data mixing.</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <input type="text" id="branch-input" class="input-control" placeholder="e.g. ML Catarman, ML Liloan 3..." style="flex:1; min-width:200px;">
+      <input type="date" id="audit-date-input" class="input-control">
+      <button class="btn" id="branch-confirm-btn" style="background:var(--primary); color:#ffffff;">Start / Switch Branch</button>
     </div>
-    <div id="branch-current" style="margin-top:10px;font-family:'Calibri',sans-serif;font-size:12.5px;color:var(--brass);"></div>
+    <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
-  <div class="branch-box" id="global-search-box" style="border-color:var(--line);">
-    <h3>🔎 Search PTN (all categories)</h3>
-    <p>Looks up a pawn ticket number across Prenda, Terms Extended, and Re-appraisal at once — no need to switch tabs first.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <input type="text" id="global-search-input" placeholder="Type full or partial PTN..." style="flex:1;min-width:200px;padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'Calibri',sans-serif;font-size:14px;">
-      <button class="btn" id="global-search-btn">Search</button>
+  <!-- GLOBAL SEARCH BOX -->
+  <div class="branch-box" id="global-search-box">
+    <h3>🔎 Search PTN (All Categories)</h3>
+    <p>Look up a pawn ticket number across Prenda, Terms Extended, and Re-appraisal simultaneously.</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <input type="text" id="global-search-input" class="input-control" placeholder="Type full or partial PTN..." style="flex:1; min-width:200px;">
+      <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search PTN</button>
     </div>
-    <div id="global-search-results" style="margin-top:12px;font-family:'Calibri',sans-serif;font-size:12.5px;"></div>
+    <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
   </div>
 
-  <div class="cat-uploads locked" id="cat-uploads">
+  <!-- CATEGORY UPLOADS -->
+  <div class="cat-uploads" id="cat-uploads">
     <div class="cat-upload-card" data-cat="prenda">
       <h3>Prenda</h3>
       <p class="cat-sub">New prenda / loan report</p>
-      <button class="btn small cat-upload-btn" data-cat="prenda">Choose Excel File</button>
+      <button class="btn small cat-upload-btn" data-cat="prenda" style="background:var(--primary); color:#fff;">Choose Excel File</button>
       <input type="file" class="cat-file-input" data-cat="prenda" accept=".xlsx,.xls,.csv,application/pdf">
       <div class="cat-status" data-cat-status="prenda">Not uploaded yet</div>
     </div>
     <div class="cat-upload-card" data-cat="terms">
       <h3>Terms Extended</h3>
       <p class="cat-sub">Extended terms report</p>
-      <button class="btn small cat-upload-btn" data-cat="terms">Choose Excel File</button>
+      <button class="btn small cat-upload-btn" data-cat="terms" style="background:var(--primary); color:#fff;">Choose Excel File</button>
       <input type="file" class="cat-file-input" data-cat="terms" accept=".xlsx,.xls,.csv,application/pdf">
       <div class="cat-status" data-cat-status="terms">Not uploaded yet</div>
     </div>
     <div class="cat-upload-card" data-cat="reappraisal">
       <h3>Re-appraisal</h3>
       <p class="cat-sub">Re-appraised items report</p>
-      <button class="btn small cat-upload-btn" data-cat="reappraisal">Choose Excel File</button>
+      <button class="btn small cat-upload-btn" data-cat="reappraisal" style="background:var(--primary); color:#fff;">Choose Excel File</button>
       <input type="file" class="cat-file-input" data-cat="reappraisal" accept=".xlsx,.xls,.csv,application/pdf">
       <div class="cat-status" data-cat-status="reappraisal">Not uploaded yet</div>
     </div>
   </div>
+
   <div id="status-line"></div>
-  <div style="text-align:center;margin-top:8px;">
-    <button class="btn ghost small" id="backup-json-btn">💾 Backup to File (save to Google Drive)</button>
+
+  <!-- UTILITY BUTTONS -->
+  <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+    <button class="btn ghost small" id="backup-json-btn">💾 Backup to File</button>
     <button class="btn ghost small" id="restore-json-btn">📂 Restore from File</button>
     <input type="file" id="restore-json-input" accept=".json" style="display:none;">
-    <button class="btn ghost small" id="new-day-btn">🔄 New Day (clear this branch's data)</button>
-  </div>
-  <div id="debug-toggle-wrap" style="display:none;">
-    <span class="debug-toggle" id="debug-toggle">View lines that couldn't be parsed (debug)</span>
-    <div id="debug-panel"></div>
+    <button class="btn ghost small" id="new-day-btn" style="background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4);">🔄 New Day (Clear Branch Data)</button>
   </div>
 
+  <div id="debug-toggle-wrap" style="display:none; text-align:center; margin-top:10px;">
+    <span class="debug-toggle" id="debug-toggle" style="color:#fff; cursor:pointer; font-size:12px; text-decoration:underline;">View lines that couldn't be parsed (debug)</span>
+    <div id="debug-panel" style="display:none; background:#fff; padding:12px; border-radius:8px; margin-top:8px; text-align:left; font-size:11px; max-height:150px; overflow:auto;"></div>
+  </div>
+
+  <!-- CATEGORY TABS -->
   <div class="tabs" id="category-tabs"></div>
 
+  <!-- DASHBOARD -->
   <div id="dashboard">
-    <div class="missing-note">List of items not yet found/checked in the physical count.</div>
     <div class="stats-row" id="stats-row"></div>
     <div class="cat-row" id="cat-row"></div>
 
     <div class="toolbar">
-      <input type="text" id="search" placeholder="Search: last digits of PTN, or description...">
+      <input type="text" id="search" placeholder="Search: PTN digits, or description...">
       <select id="filter-status">
-        <option value="all">All</option>
+        <option value="all">All Status</option>
         <option value="pending">Pending</option>
         <option value="match">Found</option>
       </select>
@@ -468,36 +427,29 @@
             <th>Date</th>
             <th>Items</th>
             <th>Loan Value</th>
-            <th>Found?</th>
+            <th style="text-align:center;">Found?</th>
             <th>Status</th>
-            <th>Discrepancy / Findings &amp; Correct</th>
-            <th></th>
+            <th>Findings & Correct</th>
+            <th style="text-align:right;">Action</th>
           </tr>
         </thead>
         <tbody id="ledger-body"></tbody>
       </table>
-      <div class="empty-note" id="empty-note" style="display:none;">No matching results.</div>
+      <div class="empty-note" id="empty-note" style="display:none;">No matching results found.</div>
     </div>
 
     <div class="footer-tools">
-      <button class="btn ghost" id="reset-counts-btn">Clear Found Marks</button>
-      <button class="btn ghost" id="export-btn">Export Discrepancy (CSV)</button>
-      <button class="btn ghost" id="print-missing-btn">Print Missing/Shortage</button>
-      <button class="btn" id="print-btn">Print (All)</button>
+      <button class="btn ghost" id="reset-counts-btn" style="color:var(--text-main); background:#fff;">Clear Found Marks</button>
+      <button class="btn ghost" id="export-btn" style="color:var(--text-main); background:#fff;">Export Discrepancy (CSV)</button>
+      <button class="btn ghost" id="print-missing-btn" style="color:var(--text-main); background:#fff;">Print Missing/Shortage</button>
+      <button class="btn" id="print-btn" style="background:var(--primary); color:#fff;">Print (All)</button>
     </div>
   </div>
 
 </div>
 
 <script>
-// ---------- Storage fallback ----------
-// window.storage only exists when this page is opened inside a Claude
-// artifact (claude.ai). When the file is downloaded and opened directly
-// in a browser (double-clicked), window.storage is missing, so every
-// save silently failed. This shim makes it fall back to the browser's
-// localStorage in that case, so data still persists on THIS computer
-// between refreshes (it just won't be shared to other computers/people —
-// that sharing only works when hosted as a Claude artifact link).
+// LocalStorage Fallback
 if(!window.storage){
   const LS_PREFIX = 'vaultledger_local:';
   window.storage = {
@@ -524,7 +476,6 @@ if(!window.storage){
       return {keys, prefix, shared: !!shared};
     }
   };
-  console.info('QCL Inventory Report: running standalone — saving to this browser only (localStorage fallback).');
 }
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -540,9 +491,9 @@ const CATEGORIES = [
   {key:'terms', label:'Terms Extended'},
   {key:'reappraisal', label:'Re-appraisal'}
 ];
-let categoryData = {};   // key -> {tickets, fileName}
+let categoryData = {};
 let activeCategory = null;
-let tickets = [];        // alias to categoryData[activeCategory].tickets
+let tickets = [];
 let unparsedLines = [];
 let reportKey = '';
 let currentBranch = '';
@@ -555,34 +506,28 @@ function slugBranch(name){
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
 }
 
-function lockCatUploads(){ $('#cat-uploads').classList.add('locked'); }
-function unlockCatUploads(){ $('#cat-uploads').classList.remove('locked'); }
-
 $('#audit-date-input').addEventListener('change', e=>{
   currentAuditDate = e.target.value;
   rememberAuditDate(currentAuditDate);
   if(currentBranch){
-    $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
+    $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
   }
   renderStats();
 });
 
 $('#branch-confirm-btn').addEventListener('click', ()=>{
   const val = $('#branch-input').value.trim();
-  if(!val){ alert('Please type your branch name first.'); return; }
+  if(!val){ alert('Please enter branch name.'); return; }
   const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
-  if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"? Anything uploaded on this device for the previous branch will stop showing (its saved counts are safe under its own name).`)) return;
+  if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"?`)) return;
 
   currentBranch = val;
   currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
   $('#audit-date-input').value = currentAuditDate;
-  $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
-  unlockCatUploads();
+  $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
   rememberBranch(currentBranch);
   rememberAuditDate(currentAuditDate);
 
-  // reset the in-memory view, then try to pull back whatever was
-  // already saved for this branch (so a refresh/switch doesn't lose data)
   categoryData = {};
   tickets = [];
   activeCategory = null;
@@ -601,9 +546,6 @@ $('#branch-confirm-btn').addEventListener('click', ()=>{
   autoRestoreBranch();
 });
 
-// On page load, if this browser already confirmed a branch before,
-// auto-fill it and restore its saved data — this is what makes data
-// survive a refresh instead of starting from zero every time.
 (async ()=>{
   $('#audit-date-input').value = new Date().toISOString().slice(0,10);
   const remembered = await recallBranch();
@@ -613,15 +555,11 @@ $('#branch-confirm-btn').addEventListener('click', ()=>{
     $('#branch-input').value = remembered;
     currentBranch = remembered;
     currentAuditDate = $('#audit-date-input').value;
-    $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
-    unlockCatUploads();
+    $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
     autoRestoreBranch();
   }
 })();
 
-lockCatUploads();
-
-// ---------- Upload handling (per category) ----------
 $$('.cat-upload-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelector(`.cat-file-input[data-cat="${btn.dataset.cat}"]`).click();
@@ -637,14 +575,14 @@ function setStatus(msg){ $('#status-line').textContent = msg; }
 
 async function handleFile(file, catKey){
   const isExcelLike = /\.(xlsx|xls|csv)$/i.test(file.name);
-  setStatus(isExcelLike ? 'Reading the Excel file...' : 'Reading the PDF...');
+  setStatus(isExcelLike ? 'Reading Excel file...' : 'Reading PDF file...');
   try{
     let catTickets;
     if(isExcelLike){
       const parsed = await parseExcelFile(file);
       unparsedLines = parsed.unparsed;
       if(!parsed.tickets.length){
-        setStatus('No pawn ticket rows found in the uploaded file. Check that it has "Pawn Ticket Number" and "Transaction Date" column headers.');
+        setStatus('No pawn ticket rows found. Please check file headers.');
         return;
       }
       catTickets = parsed.tickets.map((t,i)=>({
@@ -659,7 +597,7 @@ async function handleFile(file, catKey){
       unparsedLines = result.unparsed;
       const secs = result.sections;
       if(!secs.length || secs.every(s=>s.tickets.length===0)){
-        setStatus('No pawn ticket table found in the uploaded PDF. If this PDF is a scan/photo (no selectable text), please upload the Excel/CSV export instead.');
+        setStatus('No pawn ticket table found in PDF.');
         return;
       }
       const best = secs.reduce((a,b)=> b.tickets.length > a.tickets.length ? b : a, secs[0]);
@@ -681,9 +619,9 @@ async function handleFile(file, catKey){
     card.classList.add('done');
     document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
 
-    setStatus(`Read ${file.name}: ${catTickets.length} tickets. ${unparsedLines.length} row(s)/line(s) could not be parsed.`);
+    setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed.`);
     if(unparsedLines.length){
-      $('#debug-toggle-wrap').style.display='inline-block';
+      $('#debug-toggle-wrap').style.display='block';
       $('#debug-panel').textContent = unparsedLines.join('\n');
     }
 
@@ -692,11 +630,10 @@ async function handleFile(file, catKey){
     renderCategoryTabs();
   }catch(err){
     console.error(err);
-    setStatus('Error reading the file: ' + err.message);
+    setStatus('Error reading file: ' + err.message);
   }
 }
 
-// ---------- Excel / CSV parsing ----------
 function formatExcelDate(val){
   if(val === null || val === undefined || val === '') return '';
   if(val instanceof Date && !isNaN(val)){
@@ -706,10 +643,6 @@ function formatExcelDate(val){
     return `${mm}/${dd}/${yyyy}`;
   }
   if(typeof val === 'number'){
-    // Excel serial date: round to the nearest WHOLE DAY first. Excel/exports
-    // often store dates as e.g. 46171.999999 instead of an exact integer due
-    // to floating-point drift, which — if not rounded — converts to 23:59 of
-    // the previous day and shows a date that's one day early.
     const days = Math.round(val);
     const d = new Date((days - 25569) * 86400 * 1000);
     if(!isNaN(d)){
@@ -737,7 +670,6 @@ async function parseExcelFile(file){
   const sheet = wb.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
 
-  // Find the header row (contains both "Pawn Ticket Number" and "Transaction Date")
   let headerIdx = -1, cols = {};
   for(let i=0;i<rows.length;i++){
     const row = rows[i].map(c=>String(c||'').toLowerCase());
@@ -777,7 +709,6 @@ async function parseExcelFile(file){
     const loan = cols.loan>=0 ? (Number(row[cols.loan]) || 0) : 0;
 
     if(rawPtn){
-      // Strip footnote markers like "***" or "*" pawnshops sometimes append
       const ptn = rawPtn.replace(/\*+$/,'').trim();
       const date = formatExcelDate(cols.date>=0 ? row[cols.date] : '');
       if(!desc){ unparsed.push(row.join(' | ')); continue; }
@@ -816,7 +747,6 @@ async function extractLines(file){
   return allLines;
 }
 
-// ---------- Parsing ----------
 function normalize(line){
   return line
     .replace(/([A-Za-z])(\d)/g,'$1 $2')
@@ -889,9 +819,6 @@ function parseLines(rawLines){
   return {sections, unparsed};
 }
 
-// Runs fn() without letting the page jump to the top — keeps the
-// scroll position the auditor was already at (e.g. after searching
-// a PTN) when switching category tabs or filters.
 function keepScroll(fn){
   const y = window.scrollY;
   fn();
@@ -899,7 +826,6 @@ function keepScroll(fn){
   setTimeout(()=>{ window.scrollTo(0, y); }, 50);
 }
 
-// ---------- Category tabs ----------
 function renderCategoryTabs(){
   const wrap = $('#category-tabs');
   wrap.innerHTML = '';
@@ -913,23 +839,7 @@ function renderCategoryTabs(){
     wrap.appendChild(div);
   });
   wrap.classList.add('show');
-  updateStickyOffsets();
 }
-
-// Keeps the frozen tabs bar, the search/filter toolbar, and the table's
-// column headers stacked correctly (instead of overlapping each other)
-// while the ledger scrolls up/down.
-function updateStickyOffsets(){
-  requestAnimationFrame(()=>{
-    const tabsEl = $('#category-tabs');
-    const toolbarEl = document.querySelector('.toolbar');
-    const tabsH = (tabsEl && tabsEl.classList.contains('show')) ? tabsEl.offsetHeight : 0;
-    document.documentElement.style.setProperty('--tabs-h', tabsH + 'px');
-    const toolbarH = toolbarEl ? toolbarEl.offsetHeight : 0;
-    document.documentElement.style.setProperty('--thead-top', (tabsH + toolbarH) + 'px');
-  });
-}
-window.addEventListener('resize', updateStickyOffsets);
 
 function computeReportKey(catKey){
   return 'vaultledger:' + slugBranch(currentBranch) + ':' + catKey;
@@ -938,8 +848,6 @@ function computeDataKey(catKey){
   return computeReportKey(catKey) + ':full';
 }
 
-// Saves the FULL ticket list (not just the typed counts) so a refresh
-// does not require re-uploading the PDF/Excel for this category.
 async function saveFullCategoryState(catKey, attempt){
   attempt = attempt || 1;
   if(!catKey || !categoryData[catKey]) return;
@@ -949,19 +857,13 @@ async function saveFullCategoryState(catKey, attempt){
   });
   try{
     await window.storage.set(computeDataKey(catKey), payload, true);
-    hideSaveError();
   }catch(e){
-    console.warn('full-state save failed (attempt '+attempt+')', e);
     if(attempt < 3){
       setTimeout(()=> saveFullCategoryState(catKey, attempt+1), 800*attempt);
-    } else {
-      showSaveError();
     }
   }
 }
 
-// Tries to rebuild a category (tickets + counts) from storage without
-// needing the PDF re-uploaded. Returns true if something was restored.
 async function restoreCategoryFromStorage(catKey){
   try{
     const res = await window.storage.get(computeDataKey(catKey), true);
@@ -974,7 +876,7 @@ async function restoreCategoryFromStorage(catKey){
     if(card){
       card.classList.add('done');
       const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
-      if(statusEl) statusEl.textContent = `✓ ${saved.tickets.length} tickets — ${saved.fileName || 'restored from last session'}`;
+      if(statusEl) statusEl.textContent = `✓ ${saved.tickets.length} tickets — restored`;
     }
     return true;
   }catch(e){
@@ -982,8 +884,6 @@ async function restoreCategoryFromStorage(catKey){
   }
 }
 
-// Runs after the branch is confirmed: pulls back every category this
-// branch already had saved, so nothing is lost on refresh.
 async function autoRestoreBranch(){
   let firstRestored = null;
   for(const c of CATEGORIES){
@@ -995,7 +895,7 @@ async function autoRestoreBranch(){
     loadCategory(firstRestored);
     renderCategoryTabs();
     renderStats();
-    setStatus(`Welcome back — restored saved data for branch "${currentBranch}".`);
+    setStatus(`Restored saved data for branch "${currentBranch}".`);
   }
 }
 
@@ -1021,7 +921,6 @@ async function recallAuditDate(){
   }catch(e){ return ''; }
 }
 
-// ---------- Working state ----------
 function loadCategory(catKey){
   activeCategory = catKey;
   tickets = categoryData[catKey].tickets;
@@ -1037,7 +936,7 @@ async function loadSavedCounts(rk, tix){
       const saved = JSON.parse(res.value);
       tix.forEach(t=>{ if(saved[t.ptn] !== undefined) t.actual = saved[t.ptn]; });
     }
-  }catch(e){ /* no saved data yet */ }
+  }catch(e){}
 }
 
 let saveTimer = null;
@@ -1054,40 +953,18 @@ async function saveCategoryCounts(catKey, attempt){
   tix.forEach(t=>{ if(t.actual !== null && t.actual !== undefined) map[t.ptn] = t.actual; });
   try{
     await window.storage.set(computeReportKey(catKey), JSON.stringify(map), true);
-    hideSaveError();
   }catch(e){
-    console.warn('save failed (attempt '+attempt+')', e);
     if(attempt < 3){
       setTimeout(()=> saveCategoryCounts(catKey, attempt+1), 800*attempt);
-    } else {
-      showSaveError();
     }
   }
-  // Also persist the full ticket list (not just the counts) so a
-  // refresh can restore everything without re-uploading the PDF.
   saveFullCategoryState(catKey);
-}
-
-function showSaveError(){
-  let el = document.getElementById('save-error-banner');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'save-error-banner';
-    el.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--mismatch);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:500;max-width:92%;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.3);';
-    document.body.appendChild(el);
-  }
-  el.textContent = '⚠️ Could not save your last count — check your connection, then re-check/re-type it to retry.';
-}
-function hideSaveError(){
-  const el = document.getElementById('save-error-banner');
-  if(el) el.remove();
 }
 
 function statusOf(t){
   return t.actual ? 'match' : 'pending';
 }
 
-// ---------- Discrepancy Findings / Correct helpers ----------
 const FINDINGS_TYPES = [
   'Wrong Karat Grading',
   'Wrong Item Code',
@@ -1134,7 +1011,6 @@ function findingItemHtml(it, ti, ii){
   </div>`;
 }
 
-// ---------- Rendering ----------
 function renderTable(){
   const q = $('#search').value.trim().toLowerCase();
   const filterStatus = $('#filter-status').value;
@@ -1193,16 +1069,6 @@ function renderTable(){
       const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
       tickets[ti].items[ii].desc = e.target.textContent.trim();
       saveFullCategoryState(activeCategory);
-    });
-  });
-  $$('.pcs-input').forEach(inp=>{
-    inp.addEventListener('input', e=>{
-      const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
-      const v = e.target.value === '' ? 0 : Number(e.target.value);
-      tickets[ti].items[ii].pcs = v;
-      tickets[ti].expected = tickets[ti].items.reduce((a,it)=>a+(Number(it.pcs)||0),0);
-      saveFullCategoryState(activeCategory);
-      renderStats();
     });
   });
   $$('.findings-toggle').forEach(btn=>{
@@ -1290,7 +1156,6 @@ function renderStats(){
 $('#search').addEventListener('input', ()=> keepScroll(renderTable));
 $('#filter-status').addEventListener('change', ()=> keepScroll(renderTable));
 
-// ---------- Global PTN search (all categories, independent of active tab) ----------
 function runGlobalSearch(){
   const q = $('#global-search-input').value.trim().toLowerCase();
   const box = $('#global-search-results');
@@ -1308,11 +1173,11 @@ function runGlobalSearch(){
   });
 
   if(!hits.length){
-    box.innerHTML = `<span style="color:var(--parchment-dim);">No matches in any uploaded category.</span>`;
+    box.innerHTML = `<span style="color:var(--text-muted);">No matches in any uploaded category.</span>`;
     return;
   }
   box.innerHTML = hits.map(h=>`
-    <div style="padding:6px 0;border-bottom:1px solid var(--line);">
+    <div style="padding:8px 0; border-bottom:1px solid var(--border);">
       <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})
       · Loan ₱${Number(h.loan).toLocaleString()}
       · ${h.actual ? 'Found' : 'Pending'}
@@ -1326,7 +1191,7 @@ $('#global-search-input').addEventListener('keydown', e=>{
 });
 
 $('#reset-counts-btn').addEventListener('click', async ()=>{
-  if(!confirm('Clear all the Found checkmarks?')) return;
+  if(!confirm('Clear all Found checkmarks?')) return;
   tickets.forEach(t=> t.actual = null);
   try{ await window.storage.set(reportKey, JSON.stringify({}), true); }catch(e){}
   saveFullCategoryState(activeCategory);
@@ -1347,7 +1212,7 @@ $('#export-btn').addEventListener('click', ()=>{
       ]);
     });
   });
-  if(rows.length === 1){ alert('No findings have been flagged yet — nothing to export.'); return; }
+  if(rows.length === 1){ alert('No findings flagged yet.'); return; }
   const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   const a = document.createElement('a');
@@ -1360,68 +1225,18 @@ $('#print-btn').addEventListener('click', ()=> window.print());
 
 $('#print-missing-btn').addEventListener('click', ()=>{
   const missingCount = tickets.filter(t=>statusOf(t)!=='match').length;
-  if(missingCount === 0){ alert('Nothing missing — everything has been checked!'); return; }
+  if(missingCount === 0){ alert('Everything has been checked!'); return; }
   document.body.classList.add('print-missing-mode');
   window.print();
   setTimeout(()=> document.body.classList.remove('print-missing-mode'), 500);
 });
 
 $('#debug-toggle').addEventListener('click', ()=>{
-  $('#debug-panel').classList.toggle('show');
+  const panel = $('#debug-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 });
 
-// ---------- Share password lock ----------
-const PASS_KEY = 'vaultledger:access-password';
-
-async function checkLock(){
-  try{
-    const res = await window.storage.get(PASS_KEY, true);
-    if(res && res.value){
-      $('#lock-overlay').style.display = 'flex';
-    } else {
-      try{ await window.storage.set(PASS_KEY, 'Strikeforce', true); }catch(e2){}
-    }
-  }catch(e){
-    try{ await window.storage.set(PASS_KEY, 'Strikeforce', true); }catch(e2){}
-  }
-}
-
-$('#lock-submit').addEventListener('click', async ()=>{
-  const entered = $('#lock-input').value;
-  let stored = '';
-  try{
-    const res = await window.storage.get(PASS_KEY, true);
-    stored = res ? res.value : '';
-  }catch(e){ stored = ''; }
-  if(entered && entered === stored){
-    $('#lock-overlay').style.display = 'none';
-  } else {
-    $('#lock-error').textContent = 'Wrong password. Please try again.';
-  }
-});
-$('#lock-input').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') $('#lock-submit').click();
-});
-
-$('#set-password-btn').addEventListener('click', async ()=>{
-  const pw = prompt('Set the password to share with your colleagues (leave blank to remove the lock):');
-  if(pw === null) return;
-  try{
-    if(pw.trim() === ''){
-      await window.storage.set(PASS_KEY, '', true);
-      alert('Password removed — the ledger is now open to anyone with the link.');
-    } else {
-      await window.storage.set(PASS_KEY, pw.trim(), true);
-      alert('Password set. Send it to your colleagues so they can get in.');
-    }
-  }catch(e){
-    alert('Something went wrong setting the password.');
-  }
-});
-
-checkLock();
-
-// ---------- Backup / Restore to a JSON file (for saving to Google Drive manually) ----------
+// BACKUP / RESTORE
 $('#backup-json-btn').addEventListener('click', ()=>{
   if(!currentBranch){ alert('Please set your branch name first.'); return; }
   const backup = {
@@ -1449,7 +1264,6 @@ $('#backup-json-btn').addEventListener('click', ()=>{
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  setStatus('Backup downloaded — upload this file to your Google Drive to keep it safe.');
 });
 
 $('#restore-json-btn').addEventListener('click', ()=>{
@@ -1462,12 +1276,11 @@ $('#restore-json-input').addEventListener('change', async (e)=>{
   try{
     const text = await file.text();
     const backup = JSON.parse(text);
-    if(!backup || !backup.categories){ alert('This does not look like a QCL Inventory Report backup file.'); return; }
+    if(!backup || !backup.categories){ alert('Invalid backup file.'); return; }
 
     if(backup.branch){
       currentBranch = backup.branch;
       $('#branch-input').value = currentBranch;
-      unlockCatUploads();
       rememberBranch(currentBranch);
     }
     if(backup.auditDate){
@@ -1475,20 +1288,19 @@ $('#restore-json-input').addEventListener('change', async (e)=>{
       $('#audit-date-input').value = currentAuditDate;
       rememberAuditDate(currentAuditDate);
     }
-    $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate || '—'}`;
-    if(!currentBranch){ alert('Please set your branch name first, then restore.'); return; }
+    $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate || '—'}`;
 
     let firstCat = null;
     for(const key of Object.keys(backup.categories)){
       const catInfo = backup.categories[key];
       if(!catInfo || !catInfo.tickets) continue;
-      categoryData[key] = {tickets: catInfo.tickets, fileName: catInfo.fileName || '(restored from backup)'};
-      saveFullCategoryState(key); // also push it into storage for this device
+      categoryData[key] = {tickets: catInfo.tickets, fileName: catInfo.fileName || '(restored)'};
+      saveFullCategoryState(key);
       const card = document.querySelector(`.cat-upload-card[data-cat="${key}"]`);
       if(card){
         card.classList.add('done');
         const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
-        if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored from backup file`;
+        if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored`;
       }
       if(!firstCat) firstCat = key;
     }
@@ -1497,13 +1309,11 @@ $('#restore-json-input').addEventListener('change', async (e)=>{
       loadCategory(firstCat);
       renderCategoryTabs();
       renderStats();
-      setStatus('Restored from backup file.');
-    } else {
-      alert('The backup file had no category data to restore.');
+      setStatus('Restored from backup file successfully.');
     }
   }catch(err){
     console.error(err);
-    alert('Could not read that file — make sure it is a QCL Inventory Report backup JSON.');
+    alert('Could not read file.');
   } finally {
     e.target.value = '';
   }
@@ -1511,13 +1321,13 @@ $('#restore-json-input').addEventListener('change', async (e)=>{
 
 $('#new-day-btn').addEventListener('click', async ()=>{
   if(!currentBranch){ alert('Please set your branch name first.'); return; }
-  if(!confirm(`Are you sure? This clears all uploaded PDFs and typed counts for "${currentBranch}" only (other branches are untouched). This will not affect the password.`)) return;
+  if(!confirm(`Clear all data for "${currentBranch}"?`)) return;
   try{
     for(const c of CATEGORIES){
       await window.storage.set(computeReportKey(c.key), JSON.stringify({}), true);
       await window.storage.set(computeDataKey(c.key), JSON.stringify({tickets:[]}), true);
     }
-  }catch(e){ console.warn('clear failed', e); }
+  }catch(e){}
 
   categoryData = {};
   tickets = [];
@@ -1533,11 +1343,9 @@ $('#new-day-btn').addEventListener('click', async ()=>{
   $('#category-tabs').innerHTML = '';
   $('#category-tabs').classList.remove('show');
   $('#dashboard').classList.remove('show');
-  $('#debug-panel').textContent = '';
-  $('#debug-toggle-wrap').style.display = 'none';
   $('#global-search-input').value = '';
   $('#global-search-results').innerHTML = '';
-  setStatus(`Cleared for branch "${currentBranch}". Upload the new PDFs when ready.`);
+  setStatus(`Cleared data for branch "${currentBranch}".`);
 });
 
 </script>
