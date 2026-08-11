@@ -324,8 +324,6 @@
 
     <div class="user-badge-bar">
       <span>👤 Logged in as: <strong id="active-user-display">AUDITOR-516</strong></span>
-      <span style="opacity:0.6;">|</span>
-      <span id="active-role-display" style="color:#fde047;">Lead Auditor</span>
       <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:6px;">Logout</button>
     </div>
   </div>
@@ -501,7 +499,6 @@ function launchReconciler(branchName) {
   
   let role = localStorage.getItem('ml_user_role') || 'lead';
   if (role === 'companion') {
-    // Companion auditor can view but Reconciler will be locked/read-only
     alert(`Auditor Mode: Companion (${localStorage.getItem('ml_activeUser') || 'Companion'}). Reconciler will open in Read-Only mode.`);
   }
   
@@ -510,10 +507,7 @@ function launchReconciler(branchName) {
 
 function updateUserInfoDisplay() {
   let user = localStorage.getItem('ml_activeUser') || 'AUDITOR-516';
-  let role = localStorage.getItem('ml_user_role') || 'lead';
-
   document.getElementById('active-user-display').innerText = user;
-  document.getElementById('active-role-display').innerText = role === 'lead' ? 'Lead Auditor' : 'Companion Auditor (QCL/Subasta Only)';
 }
 
 function doLogin() {
