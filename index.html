@@ -121,6 +121,7 @@
     border-radius: var(--radius-md);
     font-size: 13px;
     outline: none;
+    font-family: var(--font-sans);
   }
 
   .form-input:focus { border-color: var(--primary); }
@@ -137,6 +138,7 @@
     cursor: pointer;
     margin-top: 8px;
     transition: background 0.2s;
+    font-family: var(--font-sans);
   }
 
   .btn-login:hover { background: var(--primary-dark); }
@@ -180,6 +182,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    font-family: var(--font-sans);
   }
 
   .btn-toolbar:hover {
@@ -244,6 +247,7 @@
     justify-content: center;
     gap: 6px;
     transition: opacity 0.2s;
+    font-family: var(--font-sans);
   }
   .btn-tbl-status:hover { opacity: 0.9; }
 
@@ -308,6 +312,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    font-family: var(--font-sans);
   }
   .btn-back-dash:hover { background: rgba(255, 255, 255, 0.25); }
 
@@ -333,6 +338,7 @@
     gap: 8px;
     height: 40px;
     box-shadow: var(--shadow-sm);
+    font-family: var(--font-sans);
   }
 
   .btn-action:hover { background: #f8fafc; border-color: #cbd5e1; }
@@ -388,6 +394,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    font-family: var(--font-sans);
   }
 
   .tab-btn.active { background: var(--primary); color: #ffffff; }
@@ -405,7 +412,7 @@
 
   .info-item { flex: 1; border-right: 1px solid var(--border); padding-right: 12px; }
   .info-item:last-child { border-right: none; }
-  .info-item label { font-size: 10.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+  .info-item label { font-size: 10.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
   .info-item .val { font-size: 15px; font-weight: 700; margin-top: 4px; color: var(--primary); font-family: var(--font-mono); }
 
   .action-cell-flex {
@@ -428,17 +435,30 @@
     justify-content: center;
     box-shadow: var(--shadow-sm);
     flex-shrink: 0;
+    font-family: var(--font-sans);
   }
 
   .btn-upload-sub { color: var(--primary); border: 1.5px solid var(--primary); }
   .btn-remove-sub { color: var(--mismatch); border: 1.5px solid var(--mismatch); }
   .btn-add-remark { color: #475569; border: 1.5px solid #cbd5e1; }
 
-  .manual-input, .remarks-input {
+  .manual-input {
+    width: 90px;
     padding: 3px 6px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
+    font-family: var(--font-mono);
     font-size: 11.5px;
+    text-align: right;
+  }
+
+  .remarks-input {
+    width: 120px;
+    padding: 3px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    font-size: 11px;
   }
 
   .remark-tag-display {
@@ -447,6 +467,7 @@
     border-radius: 4px;
     display: inline-block;
     font-style: italic;
+    font-family: var(--font-sans);
   }
 
   .recon-details { font-size: 10.5px; color: #94a3b8; font-family: var(--font-mono); }
@@ -1954,8 +1975,6 @@ function renderActiveCurrencyData() {
   let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
   let currSym = getCurrencySymbol(activeCurrencyTab);
 
-  const archiveBtn = document.getElementById('btn-toggle-archive');
-  const archiveTag = document.getElementById('archive-status-tag');
   const uploadMasterBtn = document.getElementById('btn-upload-master');
   const uploadManualAdjBtn = document.getElementById('btn-upload-manual-adj');
   const deleteBranchBtn = document.getElementById('btn-delete-branch');
@@ -1963,31 +1982,9 @@ function renderActiveCurrencyData() {
   if (uploadMasterBtn) uploadMasterBtn.style.display = 'inline-flex';
 
   if (isArchived) {
-    if (archiveBtn) {
-      archiveBtn.className = "btn-action btn-unlock";
-      archiveBtn.innerHTML = "<span>✏️</span> Edit / Unlock";
-    }
-    if (archiveTag) {
-      archiveTag.innerText = "🔒 ARCHIVED / READ-ONLY";
-      archiveTag.style.background = "#fee2e2";
-      archiveTag.style.color = "#991b1b";
-      archiveTag.style.borderColor = "#f87171";
-    }
-
     if (uploadManualAdjBtn) uploadManualAdjBtn.style.display = 'none';
     if (deleteBranchBtn) deleteBranchBtn.style.display = 'none';
   } else {
-    if (archiveBtn) {
-      archiveBtn.className = "btn-action btn-archive";
-      archiveBtn.innerHTML = "<span>🔒</span> Save / Archive";
-    }
-    if (archiveTag) {
-      archiveTag.innerText = "🔓 EDITABLE";
-      archiveTag.style.background = "#f1f5f9";
-      archiveTag.style.color = "#334155";
-      archiveTag.style.borderColor = "#cbd5e1";
-    }
-
     if (uploadManualAdjBtn) uploadManualAdjBtn.style.display = 'inline-flex';
     if (deleteBranchBtn) deleteBranchBtn.style.display = 'inline-flex';
   }
