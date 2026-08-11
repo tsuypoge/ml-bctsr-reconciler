@@ -273,7 +273,7 @@
     </div>
     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
       <button class="btn-toolbar" style="background:#f1f5f9; color:#475569; box-shadow:none;" onclick="closeNewModal()">Cancel</button>
-      <button class="btn-toolbar" style="background:var(--primary); color:#fff;" onclick="saveNewEntry()">Save Entry</button>
+      <button class="btn-toolbar" style="background:var(--primary); color:#fff;" onclick="saveNewEntry()">Save & Open Reconciler ➔</button>
     </div>
   </div>
 </div>
@@ -321,6 +321,9 @@ function renderDashboardTable() {
 }
 
 function createNewRecon() {
+  // NOTE: Kung gusto nimo DILI na moagi og Modal, i-uncomment lang ni nga line:
+  // window.location.href = 'reconciler.html'; return;
+
   openNewModal();
 }
 
@@ -333,15 +336,21 @@ function saveNewEntry() {
 
   if (!bName) { alert("Please enter Branch Name"); return; }
 
+  let formattedBranch = bName.toUpperCase();
+
+  // Save sa array
   strikeForceEntries.push({
-    branch: bName.toUpperCase(),
+    branch: formattedBranch,
     cutoffDate: cDate || "Pending Upload",
     status: "Pending"
   });
 
   saveEntries();
   closeNewModal();
-  renderDashboardTable();
+
+  // 👉 REKTA OPEN SA RECONCILER.HTML
+  localStorage.setItem('ml_activeBranch', formattedBranch);
+  window.location.href = 'reconciler.html';
 }
 
 function launchReconciler(branchName) {
