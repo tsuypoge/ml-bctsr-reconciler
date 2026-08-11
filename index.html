@@ -4,7 +4,7 @@
 <link rel="icon" type="image/png" href="logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>M Lhuillier — Automated BCTSR Reconciler</title>
+<title>OnEcon Strike Force Template — M Lhuillier</title>
 
 <!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,14 +25,12 @@
     --primary-light: #fef2f2;
     --gold: #d4af37;
     --gold-hover: #b89628;
-    --gold-light: #fefce8;
     
-    --bg-main: #f1f5f9;
+    --bg-main: #f8fafc;
     --panel-bg: #ffffff;
     --text-main: #0f172a;
     --text-muted: #64748b;
     --border: #e2e8f0;
-    --border-subtle: #f1f5f9;
 
     --match: #15803d;
     --match-bg: #f0fdf4;
@@ -46,29 +44,223 @@
     --font-mono: 'IBM Plex Mono', monospace;
 
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.03);
-    
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: var(--font-sans);
-    background: var(--bg-main);
+    background: #ffffff;
     color: var(--text-main);
     padding-bottom: 60px;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Header Bar */
+  /* ----------------------------------------------------
+     LOGIN SCREEN
+  ---------------------------------------------------- */
+  #login-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .login-card {
+    background: #ffffff;
+    padding: 36px 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    width: 380px;
+    text-align: center;
+  }
+
+  .login-logo {
+    height: 55px;
+    margin-bottom: 12px;
+  }
+
+  .login-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+
+  .login-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    text-align: left;
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    outline: none;
+  }
+
+  .form-input:focus { border-color: var(--primary); }
+
+  .btn-login {
+    width: 100%;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 11px;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+
+  .btn-login:hover { background: var(--primary-dark); }
+
+
+  /* ----------------------------------------------------
+     DASHBOARD (OnEcon Strike Force Template)
+  ---------------------------------------------------- */
+  #dashboard-view {
+    max-width: 1700px;
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+
+  .dash-header-title {
+    text-align: center;
+    color: #dc2626;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  .dash-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .btn-toolbar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .btn-toolbar:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+
+  .dash-table-container {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .dash-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .dash-table th {
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 12px 10px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  .dash-table th .sort-icon {
+    font-size: 9px;
+    color: #94a3b8;
+    margin-left: 4px;
+  }
+
+  .dash-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+  }
+
+  .dash-table tr:hover {
+    background: #f8fafc;
+  }
+
+  /* Status and Action Buttons in Table */
+  .btn-tbl-action {
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-tbl-green {
+    background: #15803d;
+  }
+  .btn-tbl-green:hover { background: #166534; }
+
+  .btn-tbl-red {
+    background: #dc2626;
+  }
+  .btn-tbl-red:hover { background: #b91c1c; }
+
+
+  /* ----------------------------------------------------
+     RECONCILER TOOL ENGINE STYLES
+  ---------------------------------------------------- */
+  #reconciler-view {
+    display: none;
+  }
+
   header {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
     color: #ffffff;
-    padding: 16px 32px;
+    padding: 14px 32px;
     border-bottom: 3px solid var(--gold);
     box-shadow: var(--shadow-md);
   }
@@ -88,7 +280,7 @@
   }
 
   .header-logo-img {
-    height: 42px;
+    height: 40px;
     width: auto;
     object-fit: contain;
     border-radius: var(--radius-sm);
@@ -101,60 +293,26 @@
     font-size: 18px;
     padding: 8px 12px;
     border-radius: var(--radius-sm);
-    letter-spacing: -0.5px;
-    box-shadow: var(--shadow-sm);
   }
 
-  h1 {
-    font-size: 19px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
+  h1 { font-size: 18px; font-weight: 700; }
+  .header-sub { font-size: 11.5px; color: rgba(255, 255, 255, 0.75); }
 
-  .header-sub {
+  .btn-back-dash {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 6px 14px;
+    border-radius: 20px;
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 400;
-    margin-top: 1px;
-  }
-
-  .header-tag {
-    display: inline-flex;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
   }
+  .btn-back-dash:hover { background: rgba(255, 255, 255, 0.25); }
 
-  .pulse-dot {
-    width: 7px;
-    height: 7px;
-    background: #4ade80;
-    border-radius: 50%;
-    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
-    70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
-  }
-
-  /* Main Container */
-  .wrap {
-    max-width: 1600px;
-    margin: 24px auto;
-    padding: 0 24px;
-  }
-
-  /* Upload & Action Controls Bar */
   .upload-action-bar {
     display: flex;
     gap: 10px;
@@ -172,88 +330,21 @@
     font-weight: 600;
     font-size: 12.5px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    white-space: nowrap;
     height: 40px;
     box-shadow: var(--shadow-sm);
   }
 
-  .btn-action:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
+  .btn-action:hover { background: #f8fafc; border-color: #cbd5e1; }
 
-  .btn-action:active {
-    transform: translateY(0);
-  }
+  .btn-export { background: var(--primary); color: #ffffff; border: 1px solid var(--primary-dark); }
+  .btn-export:hover { background: var(--primary-dark); }
 
-  .btn-export {
-    background: var(--primary);
-    color: #ffffff;
-    border: 1px solid var(--primary-dark);
-  }
+  .btn-archive { background: #0f172a; color: #ffffff; border: 1px solid #0f172a; }
+  .btn-archive:hover { background: #1e293b; }
 
-  .btn-export:hover {
-    background: var(--primary-dark);
-    color: #ffffff;
-    border-color: var(--primary-dark);
-  }
-
-  .btn-archive {
-    background: #0f172a;
-    color: #ffffff;
-    border: 1px solid #0f172a;
-  }
-
-  .btn-archive:hover {
-    background: #1e293b;
-    border-color: #1e293b;
-  }
-
-  .btn-unlock {
-    background: #d97706;
-    color: #ffffff;
-    border: 1px solid #b45309;
-  }
-
-  .btn-unlock:hover {
-    background: #b45309;
-  }
-
-  .branch-display-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--panel-bg);
-    border: 1.5px solid var(--gold);
-    padding: 0 14px;
-    border-radius: var(--radius-md);
-    height: 40px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .branch-display-wrapper .branch-label {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--primary);
-    text-transform: uppercase;
-    white-space: nowrap;
-    letter-spacing: 0.5px;
-  }
-
-  .branch-display-wrapper .branch-name-val {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-main);
-    white-space: nowrap;
-  }
-
-  /* Currency Tabs */
   .currency-tabs-bar {
     display: flex;
     gap: 6px;
@@ -271,24 +362,13 @@
     font-weight: 600;
     cursor: pointer;
     font-size: 12.5px;
-    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     gap: 6px;
   }
 
-  .tab-btn.active {
-    background: var(--primary);
-    color: #ffffff;
-    box-shadow: var(--shadow-sm);
-  }
+  .tab-btn.active { background: var(--primary); color: #ffffff; }
 
-  .tab-btn:hover:not(.active) {
-    background: #cbd5e1;
-    color: var(--text-main);
-  }
-
-  /* Summary Dashboard Metrics */
   .summary-bar {
     background: var(--panel-bg);
     border: 1px solid var(--border);
@@ -300,135 +380,11 @@
     box-shadow: var(--shadow-sm);
   }
 
-  .info-item {
-    flex: 1;
-    border-right: 1px solid var(--border-subtle);
-    padding-right: 12px;
-  }
+  .info-item { flex: 1; border-right: 1px solid var(--border); padding-right: 12px; }
+  .info-item:last-child { border-right: none; }
+  .info-item label { font-size: 10.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+  .info-item .val { font-size: 15px; font-weight: 700; margin-top: 4px; color: var(--primary); font-family: var(--font-mono); }
 
-  .info-item:last-child {
-    border-right: none;
-    padding-right: 0;
-  }
-
-  .info-item label {
-    display: block;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-
-  .info-item .val {
-    font-size: 15px;
-    font-weight: 700;
-    margin-top: 4px;
-    color: var(--primary);
-    font-family: var(--font-mono);
-  }
-
-  .archive-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: #f1f5f9;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    padding: 3px 8px;
-    border-radius: var(--radius-sm);
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  /* Modernized Tables */
-  .table-container {
-    background: var(--panel-bg);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    overflow-x: auto;
-    box-shadow: var(--shadow-sm);
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
-    text-align: left;
-  }
-
-  th {
-    background: #f8fafc;
-    color: var(--text-muted);
-    font-size: 10.5px;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.6px;
-    padding: 12px 14px;
-    border-bottom: 2px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  td {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-  }
-
-  tr.hoverable {
-    transition: background-color 0.15s ease;
-  }
-
-  tr.hoverable:hover {
-    background: #f8fafc;
-  }
-  
-  tr { page-break-inside: avoid; break-inside: avoid; }
-  
-  .num-cell {
-    font-family: var(--font-mono);
-    text-align: right;
-    font-weight: 600;
-  }
-
-  .light-num {
-    color: #64748b;
-    font-weight: 400;
-  }
-  
-  .status-badge {
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-weight: 700;
-    display: inline-block;
-    letter-spacing: 0.2px;
-    white-space: nowrap;
-  }
-
-  .status-badge.match {
-    background: var(--match-bg);
-    color: var(--match);
-    border: 1px solid var(--match-border);
-    font-size: 12px;
-    padding: 2px 6px;
-    line-height: 1;
-  }
-
-  .status-badge.mismatch {
-    background: var(--mismatch-bg);
-    color: var(--mismatch);
-    border: 1px solid var(--mismatch-border);
-    font-size: 12px;
-    padding: 2px 6px;
-    line-height: 1;
-  }
-
-  .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
-
-  /* STRICT SIDE-BY-SIDE FLEX CONTAINER FOR ACTION CELL */
   .action-cell-flex {
     display: flex;
     align-items: center;
@@ -437,57 +393,30 @@
     flex-wrap: nowrap;
   }
 
-  /* COMPACT ICON-ONLY CIRCULAR BUTTONS */
   .btn-upload-sub, .btn-remove-sub, .btn-add-remark {
     font-size: 11px;
-    font-family: var(--font-sans);
     background: #ffffff;
-    width: 26px;
-    height: 26px;
+    width: 26px; height: 26px;
     padding: 0;
     border-radius: 50%;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin: 0;
-    white-space: nowrap;
     box-shadow: var(--shadow-sm);
     flex-shrink: 0;
   }
 
   .btn-upload-sub { color: var(--primary); border: 1.5px solid var(--primary); }
-  .btn-upload-sub:hover { background: var(--primary); color: #ffffff; transform: scale(1.1); box-shadow: var(--shadow-md); }
-
   .btn-remove-sub { color: var(--mismatch); border: 1.5px solid var(--mismatch); }
-  .btn-remove-sub:hover { background: var(--mismatch); color: #ffffff; transform: scale(1.1); box-shadow: var(--shadow-md); }
-
   .btn-add-remark { color: #475569; border: 1.5px solid #cbd5e1; }
-  .btn-add-remark:hover { background: #475569; color: #ffffff; border-color: #475569; transform: scale(1.1); box-shadow: var(--shadow-md); }
 
-  .manual-input {
-    width: 90px;
+  .manual-input, .remarks-input {
     padding: 3px 6px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    font-family: var(--font-mono);
     font-size: 11.5px;
-    text-align: right;
-    transition: border 0.2s;
   }
-  .manual-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(122, 18, 18, 0.15); }
-
-  .remarks-input {
-    width: 120px;
-    padding: 3px 6px;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    font-family: var(--font-sans);
-    font-size: 11px;
-  }
-  .remarks-input:focus { outline: none; border-color: var(--primary); }
 
   .remark-tag-display {
     font-size: 10.5px;
@@ -495,155 +424,365 @@
     border-radius: 4px;
     display: inline-block;
     font-style: italic;
-    word-break: break-word;
   }
 
-  .recon-details { font-size: 10.5px; color: #94a3b8; font-family: var(--font-mono); display: inline-block; }
-  .section-tag { font-size: 9.5px; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-right: 4px; text-transform: uppercase; }
+  .recon-details { font-size: 10.5px; color: #94a3b8; font-family: var(--font-mono); }
+  .section-tag { font-size: 9.5px; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-right: 4px; }
 
   .inner-table { width: 100%; border-collapse: collapse; font-size: 11px; background: #ffffff; margin-top: 4px; border: 1px solid #cbd5e1; }
-  .inner-table th { background: #f1f5f9; padding: 6px 10px; font-size: 9.5px; color: #475569; border-bottom: 1px solid #cbd5e1; }
-  .inner-table td { padding: 6px 10px; font-size: 11px; border-bottom: 1px solid #f1f5f9; color: #334155; }
-  .expand-icon { font-size: 10px; color: var(--primary); display: inline-block; width: 14px; cursor: pointer; user-select: none; }
+  .inner-table th { background: #f1f5f9; padding: 6px 10px; font-size: 9.5px; color: #475569; }
+  .inner-table td { padding: 6px 10px; }
 
-  @media print {
-    .upload-action-bar, .currency-tabs-bar, .btn-upload-sub, .btn-remove-sub, .btn-add-remark, .sub-upload-wrapper, .manual-input-wrapper, .remarks-input-wrapper, .hide-print { display: none !important; }
-    body { background: #fff; padding-bottom: 0; }
-    .wrap { margin: 0; padding: 0; max-width: 100%; }
-    .table-container { border: none; box-shadow: none; }
-    table th, table td { padding: 8px 10px; font-size: 10.5px; }
-    .expand-icon { display: none; }
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center;
+    z-index: 10000;
+  }
+  .modal-card {
+    background: #ffffff; padding: 24px; border-radius: var(--radius-lg); width: 480px;
   }
 </style>
 </head>
 <body>
 
-<header id="app-header">
-  <div class="header-content">
-    <div class="header-title-box">
-      <img src="logo.png" class="header-logo-img" alt="M Lhuillier Logo" onerror="this.style.display='none'; document.getElementById('fallback-logo-badge').style.display='inline-block';">
-      <div class="logo-badge" id="fallback-logo-badge" style="display:none;">ML</div>
-      <div>
-        <h1>Automated BCTSR Reconciler</h1>
-        <div class="header-sub">Master Reconciliation & Sub-Report Audit Engine</div>
-      </div>
-    </div>
-    <div class="header-tag hide-print">
-      <div class="pulse-dot"></div> Ready
-    </div>
-  </div>
-</header>
-
-<div class="wrap" id="export-container">
-  
-  <!-- CONTROLS TOOLBAR & BRANCH DISPLAY -->
-  <div class="upload-action-bar hide-print">
-    <div class="branch-display-wrapper">
-      <span class="branch-label">🏢 Branch:</span>
-      <span id="active-branch-name" class="branch-name-val">Select Branch</span>
-    </div>
-
-    <button class="btn-action btn-export" id="btn-upload-master" onclick="document.getElementById('file-upload').click()">
-      <span>📄</span> Upload Master BCTSR File(s)
-    </button>
-    <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleFileUpload(event)">
+<!-- =================================-------------------
+     1. LOGIN SCREEN
+========================================================= -->
+<div id="login-screen">
+  <div class="login-card">
+    <img src="logo.png" class="login-logo" alt="M Lhuillier" onerror="this.style.display='none';">
+    <div class="login-title">M LHUILLIER AUDIT PORTAL</div>
+    <div class="login-sub">OnEcon Strike Force Template Authentication</div>
     
-    <button class="btn-action btn-archive" id="btn-toggle-archive" onclick="toggleArchiveState()">
-      <span>🔒</span> Save / Archive
-    </button>
+    <div class="form-group">
+      <label>User ID / Employee Code</label>
+      <input type="text" id="login-user" class="form-input" value="AUDITOR-516" placeholder="Enter User ID">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" class="form-input" value="••••••••" placeholder="Password">
+    </div>
 
-    <button class="btn-action btn-export" onclick="exportToPDF()">
-      <span>📥</span> Save as PDF
-    </button>
+    <button class="btn-login" onclick="doLogin()">Login to Dashboard</button>
+  </div>
+</div>
 
-    <button class="btn-action" id="btn-delete-branch" onclick="deleteActiveBranchData()" title="Delete data for active branch">
-      <span>🗑️</span> Delete Active Branch
-    </button>
 
-    <button class="btn-action" onclick="resetAllData()" title="Clear all stored branches data">
-      <span>🔄</span> Reset All Data
-    </button>
+<!-- =================================-------------------
+     2. DASHBOARD VIEW (OnEcon Strike Force Template)
+========================================================= -->
+<div id="dashboard-view" style="display:none;">
+  <h2 class="dash-header-title">OnEcon Strike Force Template</h2>
+
+  <div class="dash-toolbar">
+    <button class="btn-toolbar" onclick="openNewModal()">New</button>
+    <button class="btn-toolbar">Edit</button>
+    <button class="btn-toolbar">Assign Auditor</button>
   </div>
 
-  <!-- CURRENCY SELECTOR TABS -->
-  <div class="currency-tabs-bar hide-print">
-    <button class="tab-btn active" id="tab-PHP" onclick="switchCurrencyTab('PHP')">🇵🇭 PHP</button>
-    <button class="tab-btn" id="tab-USD" onclick="switchCurrencyTab('USD')">🇺🇸 USD</button>
-    <button class="tab-btn" id="tab-EUR" onclick="switchCurrencyTab('EUR')">🇪🇺 EUR</button>
-    <button class="tab-btn" id="tab-JPY" onclick="switchCurrencyTab('JPY')">🇯🇵 JPY</button>
-    <button class="tab-btn" id="tab-GBP" onclick="switchCurrencyTab('GBP')">🇬🇧 GBP</button>
-  </div>
-
-  <!-- EXECUTIVE KPI SUMMARY BAR -->
-  <div class="summary-bar" id="summary-bar" style="display:none;">
-    <div class="info-item"><label>Branch Name</label><div class="val" id="val-branch">—</div></div>
-    <div class="info-item"><label>Date Range</label><div class="val" id="val-date" style="color:var(--text-main);">—</div></div>
-    <div class="info-item"><label>Active Currency Tab</label><div class="val" id="val-currency" style="color:#0284c7;">PHP</div></div>
-    <div class="info-item"><label>Status / Mode</label><div class="val" id="val-status-mode"><span class="archive-badge" id="archive-status-tag">🔓 EDITABLE</span></div></div>
-    <div class="info-item"><label>Ending Balance (BCTSR)</label><div class="val" id="val-endbal">₱0.00</div></div>
-  </div>
-
-  <!-- MAIN RECONCILIATION DATA GRID -->
-  <div class="table-container" id="main-recon-container">
-    <table>
+  <div class="dash-table-container">
+    <table class="dash-table">
       <thead>
         <tr>
-          <th>Particulars (BCTSR)</th>
-          <th style="text-align:center;">BCTSR Qty</th>
-          <th style="text-align:right;" id="th-cashin">Cash In</th>
-          <th style="text-align:right;" id="th-cashout">Cash Out</th>
-          <th style="text-align:center;">Report Quantity</th>
-          <th style="text-align:right;" id="th-reportamt">Report Amount</th>
-          <th style="text-align:right;">Variance / Remarks</th>
-          <th style="text-align:center;">Status / Sub-Report</th>
+          <th>Regionname <span class="sort-icon">▲▼</span></th>
+          <th>Branchname <span class="sort-icon">▲▼</span></th>
+          <th>Branch Code <span class="sort-icon">▲▼</span></th>
+          <th>Audit Date <span class="sort-icon">▲▼</span></th>
+          <th>Cut-off Date <span class="sort-icon">▲▼</span></th>
+          <th>Auditors <span class="sort-icon">▲▼</span></th>
+          <th>OnEcon Entry <span class="sort-icon">▲▼</span></th>
+          <th>Minutes <span class="sort-icon">▲▼</span></th>
+          <th>Findings</th>
+          <th>Upload</th>
+          <th>Checklist</th>
+          <th>Status</th>
         </tr>
       </thead>
-      <tbody id="recon-body">
-        <tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No file uploaded for this branch & currency tab yet. Please click 'Upload Master BCTSR File(s)' above.</td></tr>
+      <tbody id="dash-tbody">
+        <!-- Rows dynamically rendered -->
       </tbody>
     </table>
   </div>
+</div>
 
-  <!-- MANUAL ADJUSTMENT PIVOT SECTION -->
-  <div id="manual-adj-section" style="margin-top: 40px; padding-top: 24px; border-top: 2px dashed #cbd5e1;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <div>
-        <h2 style="font-size:17px; font-weight:700; color:var(--primary-dark);">Manual Adjustment Pivot Summary (<span id="manual-adj-curr-title">PHP</span>)</h2>
-        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Upload the Manual Adjustment Report. Rows automatically aggregate into their designated currency tab.</div>
+
+<!-- =================================-------------------
+     3. AUTOMATED BCTSR RECONCILER VIEW
+========================================================= -->
+<div id="reconciler-view">
+
+  <header id="app-header">
+    <div class="header-content">
+      <div class="header-title-box">
+        <img src="logo.png" class="header-logo-img" alt="M Lhuillier Logo" onerror="this.style.display='none'; document.getElementById('fallback-logo-badge').style.display='inline-block';">
+        <div class="logo-badge" id="fallback-logo-badge" style="display:none;">ML</div>
+        <div>
+          <h1>Automated BCTSR Reconciler</h1>
+          <div class="header-sub">Master Reconciliation & Sub-Report Audit Engine</div>
+        </div>
       </div>
       
-      <button class="btn-action hide-print" id="btn-upload-manual-adj" style="border-color:var(--primary); background:#fff; color:var(--primary);" onclick="document.getElementById('manual-adj-upload').click()">
-        <span>📊</span> Upload Manual Adjustment
+      <button class="btn-back-dash" onclick="backToDashboard()">
+        <span>←</span> Back to Dashboard
       </button>
-      <input type="file" id="manual-adj-upload" accept=".csv, .xlsx, .xls" style="display:none;" onchange="handleManualAdjUpload(event)">
+    </div>
+  </header>
+
+  <div class="wrap" id="export-container">
+    
+    <!-- CONTROLS TOOLBAR & BRANCH DISPLAY -->
+    <div class="upload-action-bar hide-print">
+      <div class="branch-display-wrapper">
+        <span class="branch-label">🏢 Branch:</span>
+        <span id="active-branch-name" class="branch-name-val">Select Branch</span>
+      </div>
+
+      <button class="btn-action btn-export" id="btn-upload-master" onclick="document.getElementById('file-upload').click()">
+        <span>📄</span> Upload Master BCTSR File(s)
+      </button>
+      <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleFileUpload(event)">
+      
+      <button class="btn-action btn-archive" id="btn-toggle-archive" onclick="toggleArchiveState()">
+        <span>🔒</span> Save / Archive
+      </button>
+
+      <button class="btn-action btn-export" onclick="exportToPDF()">
+        <span>📥</span> Save as PDF
+      </button>
+
+      <button class="btn-action" id="btn-delete-branch" onclick="deleteActiveBranchData()" title="Delete data for active branch">
+        <span>🗑️</span> Delete Active Branch
+      </button>
+
+      <button class="btn-action" onclick="resetAllData()" title="Clear all stored branches data">
+        <span>🔄</span> Reset All Data
+      </button>
     </div>
 
-    <div class="table-container" id="manual-adj-container">
+    <!-- CURRENCY SELECTOR TABS -->
+    <div class="currency-tabs-bar hide-print">
+      <button class="tab-btn active" id="tab-PHP" onclick="switchCurrencyTab('PHP')">🇵🇭 PHP</button>
+      <button class="tab-btn" id="tab-USD" onclick="switchCurrencyTab('USD')">🇺🇸 USD</button>
+      <button class="tab-btn" id="tab-EUR" onclick="switchCurrencyTab('EUR')">🇪🇺 EUR</button>
+      <button class="tab-btn" id="tab-JPY" onclick="switchCurrencyTab('JPY')">🇯🇵 JPY</button>
+      <button class="tab-btn" id="tab-GBP" onclick="switchCurrencyTab('GBP')">🇬🇧 GBP</button>
+    </div>
+
+    <!-- EXECUTIVE KPI SUMMARY BAR -->
+    <div class="summary-bar" id="summary-bar" style="display:none;">
+      <div class="info-item"><label>Branch Name</label><div class="val" id="val-branch">—</div></div>
+      <div class="info-item"><label>Date Range</label><div class="val" id="val-date" style="color:var(--text-main);">—</div></div>
+      <div class="info-item"><label>Active Currency Tab</label><div class="val" id="val-currency" style="color:#0284c7;">PHP</div></div>
+      <div class="info-item"><label>Status / Mode</label><div class="val" id="val-status-mode"><span class="archive-badge" id="archive-status-tag">🔓 EDITABLE</span></div></div>
+      <div class="info-item"><label>Ending Balance (BCTSR)</label><div class="val" id="val-endbal">₱0.00</div></div>
+    </div>
+
+    <!-- MAIN RECONCILIATION DATA GRID -->
+    <div class="table-container" id="main-recon-container">
       <table>
         <thead>
           <tr>
-            <th>Description (Grouped)</th>
-            <th style="text-align:center;">Total Qty</th>
-            <th style="text-align:right;" id="th-adj-cashin">Total Cash In</th>
-            <th style="text-align:right;" id="th-adj-cashout">Total Cash Out</th>
-            <th style="text-align:center;">Remarks</th>
+            <th>Particulars (BCTSR)</th>
+            <th style="text-align:center;">BCTSR Qty</th>
+            <th style="text-align:right;" id="th-cashin">Cash In</th>
+            <th style="text-align:right;" id="th-cashout">Cash Out</th>
+            <th style="text-align:center;">Report Quantity</th>
+            <th style="text-align:right;" id="th-reportamt">Report Amount</th>
+            <th style="text-align:right;">Variance / Remarks</th>
+            <th style="text-align:center;">Status / Sub-Report</th>
           </tr>
         </thead>
-        <tbody id="manual-adj-body">
-          <tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment file uploaded for this currency.</td></tr>
+        <tbody id="recon-body">
+          <tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No file uploaded for this branch & currency tab yet. Please click 'Upload Master BCTSR File(s)' above.</td></tr>
         </tbody>
       </table>
     </div>
+
+    <!-- MANUAL ADJUSTMENT PIVOT SECTION -->
+    <div id="manual-adj-section" style="margin-top: 40px; padding-top: 24px; border-top: 2px dashed #cbd5e1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div>
+          <h2 style="font-size:17px; font-weight:700; color:var(--primary-dark);">Manual Adjustment Pivot Summary (<span id="manual-adj-curr-title">PHP</span>)</h2>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Upload the Manual Adjustment Report. Rows automatically aggregate into their designated currency tab.</div>
+        </div>
+        
+        <button class="btn-action hide-print" id="btn-upload-manual-adj" style="border-color:var(--primary); background:#fff; color:var(--primary);" onclick="document.getElementById('manual-adj-upload').click()">
+          <span>📊</span> Upload Manual Adjustment
+        </button>
+        <input type="file" id="manual-adj-upload" accept=".csv, .xlsx, .xls" style="display:none;" onchange="handleManualAdjUpload(event)">
+      </div>
+
+      <div class="table-container" id="manual-adj-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Description (Grouped)</th>
+              <th style="text-align:center;">Total Qty</th>
+              <th style="text-align:right;" id="th-adj-cashin">Total Cash In</th>
+              <th style="text-align:right;" id="th-adj-cashout">Total Cash Out</th>
+              <th style="text-align:center;">Remarks</th>
+            </tr>
+          </thead>
+          <tbody id="manual-adj-body">
+            <tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment file uploaded for this currency.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
+</div>
+
+<!-- NEW ASSIGNMENT MODAL -->
+<div class="modal-overlay" id="new-modal">
+  <div class="modal-card">
+    <h3 style="font-size:16px; font-weight:700; color:var(--primary); margin-bottom:14px;">Create New Strike Force Entry</h3>
+    <div class="form-group">
+      <label>Region Name</label>
+      <input type="text" id="new-region" class="form-input" value="CebuNorth B">
+    </div>
+    <div class="form-group">
+      <label>Branch Name</label>
+      <input type="text" id="new-branch" class="form-input" placeholder="e.g. ML Catarman">
+    </div>
+    <div class="form-group">
+      <label>Branch Code</label>
+      <input type="text" id="new-code" class="form-input" placeholder="e.g. 516">
+    </div>
+    <div class="form-group">
+      <label>Audit Date</label>
+      <input type="text" id="new-audit-date" class="form-input" value="07/27/2026 - 07/27/2026">
+    </div>
+    <div class="form-group">
+      <label>Cut-off Date</label>
+      <input type="text" id="new-cutoff-date" class="form-input" value="06/11/2026 - 07/26/2026">
+    </div>
+    <div class="form-group">
+      <label>Auditors</label>
+      <input type="text" id="new-auditors" class="form-input" placeholder="e.g. Rey John A. Duero / Le Cris O. Ugay">
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
+      <button class="btn-toolbar" onclick="closeNewModal()">Cancel</button>
+      <button class="btn-toolbar" style="background:var(--primary); color:#fff; border:none;" onclick="saveNewEntry()">Save Entry</button>
+    </div>
+  </div>
 </div>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+// DEFAULT DASHBOARD DATA STORE (MATCHES SCREENSHOT EXACTLY)
+let strikeForceEntries = [
+  {
+    region: "CebuNorth B",
+    branch: "ML Catarman",
+    code: "516",
+    auditDate: "07/27/2026 - 07/27/2026",
+    cutoffDate: "06/11/2026 - 07/26/2026",
+    auditors: "Rey John A. Duero / Le Cris O. Ugay / Calasang, Neil Erick",
+    entryStatus: "Closed",
+    status: "For Acknowledgment"
+  },
+  {
+    region: "CebuNorth B",
+    branch: "ML Liloan 3",
+    code: "829",
+    auditDate: "07/27/2026 - 07/27/2026",
+    cutoffDate: "07/21/2026 - 07/26/2026",
+    auditors: "Hendrix Entienza / Ricardo Cenera / Edgardo T. Interone",
+    entryStatus: "Closed",
+    status: "For Acknowledgment"
+  },
+  {
+    region: "CebuNorth B",
+    branch: "ML Compostela",
+    code: "090",
+    auditDate: "07/27/2026 - 07/27/2026",
+    cutoffDate: "06/15/2026 - 07/26/2026",
+    auditors: "Michaelfel T. Aca-ac",
+    entryStatus: "Closed",
+    status: "For Acknowledgment"
+  }
+];
+
 let activeBranch = "Select Branch";
 let activeCurrencyTab = 'PHP';
 let branchesStore = {}; 
+
+function doLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard-view').style.display = 'block';
+  renderDashboardTable();
+}
+
+function renderDashboardTable() {
+  const tbody = document.getElementById('dash-tbody');
+  tbody.innerHTML = '';
+
+  strikeForceEntries.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.region}</td>
+      <td style="font-weight:700;">${row.branch}</td>
+      <td>${row.code}</td>
+      <td>${row.auditDate}</td>
+      <td>${row.cutoffDate}</td>
+      <td style="max-width:220px; font-size:11px; line-height:1.3;">${row.auditors}</td>
+      <td>${row.entryStatus}</td>
+      <td><button class="btn-tbl-action btn-tbl-green">View</button></td>
+      <td><button class="btn-tbl-action btn-tbl-green">AEF</button></td>
+      <td><button class="btn-tbl-action btn-tbl-red" onclick="launchReconciler('${row.branch.replace(/'/g, "\\'")}')">Upload</button></td>
+      <td><button class="btn-tbl-action btn-tbl-green">View</button></td>
+      <td style="font-weight:600; font-size:11px; color:#475569;">${row.status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openNewModal() { document.getElementById('new-modal').style.display = 'flex'; }
+function closeNewModal() { document.getElementById('new-modal').style.display = 'none'; }
+
+function saveNewEntry() {
+  let bName = document.getElementById('new-branch').value.trim();
+  let bCode = document.getElementById('new-code').value.trim();
+  let rName = document.getElementById('new-region').value.trim();
+  let aDate = document.getElementById('new-audit-date').value.trim();
+  let cDate = document.getElementById('new-cutoff-date').value.trim();
+  let auds = document.getElementById('new-auditors').value.trim();
+
+  if (!bName) { alert("Please enter Branch Name"); return; }
+
+  strikeForceEntries.push({
+    region: rName || "CebuNorth B",
+    branch: bName,
+    code: bCode || "000",
+    auditDate: aDate || "08/11/2026 - 08/11/2026",
+    cutoffDate: cDate || "07/01/2026 - 08/10/2026",
+    auditors: auds || "Auditor Team",
+    entryStatus: "Open",
+    status: "In Progress"
+  });
+
+  closeNewModal();
+  renderDashboardTable();
+}
+
+function launchReconciler(branchName) {
+  activeBranch = branchName.toUpperCase().trim();
+  document.getElementById('dashboard-view').style.display = 'none';
+  document.getElementById('reconciler-view').style.display = 'block';
+
+  updateBranchDropdownUI();
+  switchCurrencyTab(activeCurrencyTab);
+}
+
+function backToDashboard() {
+  document.getElementById('reconciler-view').style.display = 'none';
+  document.getElementById('dashboard-view').style.display = 'block';
+}
 
 function createEmptyBranchStore() {
   return {
