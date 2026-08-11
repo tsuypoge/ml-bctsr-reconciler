@@ -890,7 +890,7 @@
     });
 
     if (visibleEntries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">Walay nakita nga Branch Entry para sa imong account (${currentUser}).</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found for your account (${currentUser}).</td></tr>`;
       return;
     }
 
@@ -1097,7 +1097,7 @@
 
   window.deleteEntry = function(index) {
     let bName = strikeForceEntries[index].branch;
-    if (confirm(`Sigurado ka nga gusto nimo i-delete ang "${bName}"?`)) {
+    if (confirm(`Are you sure you want to delete "${bName}"?`)) {
       strikeForceEntries.splice(index, 1);
       saveEntries();
       addAuditLog(`Deleted Branch Entry: ${bName}`);
@@ -1107,7 +1107,7 @@
 
   window.archiveEntry = function(index) {
     let bName = strikeForceEntries[index].branch;
-    if (confirm(`I-archive ba ang "${bName}"?`)) {
+    if (confirm(`Are you sure you want to archive "${bName}"?`)) {
       strikeForceEntries[index].status = "Archived";
       saveEntries();
       addAuditLog(`Archived Branch Entry: ${bName}`);
