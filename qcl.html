@@ -57,7 +57,6 @@
 
   ::selection { background: var(--primary); color: #ffffff; }
 
-  /* Header Bar */
   header {
     background: #ffffff;
     color: var(--text-main);
@@ -80,11 +79,7 @@
     gap: 14px;
   }
 
-  .header-logo-img {
-    height: 48px;
-    width: auto;
-    object-fit: contain;
-  }
+  .header-logo-img { height: 48px; width: auto; object-fit: contain; }
 
   .logo-badge {
     background: var(--primary);
@@ -97,23 +92,11 @@
     box-shadow: var(--shadow-sm);
   }
 
-  h1 {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--primary);
-    letter-spacing: -0.02em;
-  }
-
-  .header-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-weight: 500;
-    margin-top: 1px;
-  }
+  h1 { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; }
+  .header-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
 
   .wrap { max-width: 1280px; margin: 28px auto; padding: 0 24px; }
 
-  /* Buttons */
   .btn {
     font-family: var(--font-sans);
     font-size: 13px;
@@ -134,12 +117,7 @@
   .btn:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
   .btn:active { transform: translateY(0); }
 
-  .btn.ghost {
-    background: rgba(255,255,255,0.15);
-    color: #ffffff;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: none;
-  }
+  .btn.ghost { background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3); box-shadow: none; }
   .btn.ghost:hover { background: #ffffff; color: var(--primary); border-color: #ffffff; }
 
   .btn.small { padding: 7px 13px; font-size: 12px; }
@@ -148,7 +126,6 @@
 
   input[type=file] { display: none; }
 
-  /* Branch Box & Search Box Cards */
   .branch-box {
     background: var(--panel-bg);
     border-radius: var(--radius-lg);
@@ -170,7 +147,6 @@
   }
   .input-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
 
-  /* Category Uploads */
   .cat-uploads { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
   .cat-upload-card {
     flex: 1; min-width: 240px;
@@ -186,11 +162,9 @@
   .cat-upload-card h3 { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
   .cat-upload-card .cat-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
   .cat-upload-card .cat-status { margin-top: 12px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
-  .cat-upload-card.done .cat-status { color: var(--match); font-weight: 800; }
 
   #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
-  /* Tabs */
   .tabs {
     display: none; margin-top: 24px; gap: 10px; flex-wrap: wrap;
     position: sticky; top: 0; z-index: 50;
@@ -209,7 +183,6 @@
   .tab .t-name { font-size: 15px; font-weight: 800; color: var(--primary); }
   .tab .t-count { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
 
-  /* Dashboard Stats */
   #dashboard { display: none; margin-top: 24px; }
   #dashboard.show { display: block; }
 
@@ -234,7 +207,6 @@
   .cat-card .figures { font-size: 18px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; color: var(--text-main); }
   .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
-  /* Toolbar */
   .toolbar {
     display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
     background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-card);
@@ -250,7 +222,6 @@
     border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
   }
 
-  /* Ledger Table */
   .ledger {
     background: var(--panel-bg); border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card); overflow: hidden; padding: 8px;
@@ -310,6 +281,15 @@
   .found-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--match); }
   .actions-cell { white-space: nowrap; text-align: right; }
 
+  .cloud-tag {
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 800;
+  }
+
   @media print {
     header, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap, .btn-dashboard, .branch-box { display: none !important; }
     body { background: #fff; color: #000; }
@@ -322,7 +302,6 @@
 </head>
 <body>
 
-<!-- HEADER BAR WITH LOGO -->
 <header>
   <div class="header-content">
     <div class="header-title-box">
@@ -333,19 +312,18 @@
         <div class="header-sub">Automated Pawn Ticket Verification & Audit Engine</div>
       </div>
     </div>
+    <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
   </div>
 </header>
 
 <div class="wrap">
 
-  <!-- TOP ACTION BAR WITH BACK TO DASHBOARD -->
   <div style="display:flex; justify-content:flex-start; align-items:center; margin-bottom:20px;">
     <button class="btn btn-dashboard" onclick="window.location.href='index.html'" title="Return to Main Dashboard">
       <span>⬅️</span> Back to Dashboard
     </button>
   </div>
 
-  <!-- BRANCH SELECTOR CARD -->
   <div class="branch-box" id="branch-box">
     <h3>🏢 Which branch is this?</h3>
     <p>Each branch keeps its own separate inventory data. Select or enter your branch name to prevent data mixing.</p>
@@ -357,7 +335,6 @@
     <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
-  <!-- GLOBAL SEARCH BOX -->
   <div class="branch-box" id="global-search-box">
     <h3>🔎 Search PTN (All Categories)</h3>
     <p>Look up a pawn ticket number across Prenda, Terms Extended, and Re-appraisal simultaneously.</p>
@@ -368,7 +345,6 @@
     <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
   </div>
 
-  <!-- CATEGORY UPLOADS -->
   <div class="cat-uploads" id="cat-uploads">
     <div class="cat-upload-card" data-cat="prenda">
       <h3>Prenda</h3>
@@ -395,7 +371,6 @@
 
   <div id="status-line"></div>
 
-  <!-- UTILITY BUTTONS -->
   <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
     <button class="btn ghost small" id="backup-json-btn">💾 Backup to File</button>
     <button class="btn ghost small" id="restore-json-btn">📂 Restore from File</button>
@@ -408,10 +383,8 @@
     <div id="debug-panel" style="display:none; background:#fff; padding:12px; border-radius:8px; margin-top:8px; text-align:left; font-size:11px; max-height:150px; overflow:auto;"></div>
   </div>
 
-  <!-- CATEGORY TABS -->
   <div class="tabs" id="category-tabs"></div>
 
-  <!-- DASHBOARD -->
   <div id="dashboard">
     <div class="stats-row" id="stats-row"></div>
     <div class="cat-row" id="cat-row"></div>
@@ -455,905 +428,892 @@
 
 </div>
 
-<script>
-// LocalStorage Fallback
-if(!window.storage){
-  const LS_PREFIX = 'vaultledger_local:';
-  window.storage = {
-    async get(key, shared){
-      const raw = localStorage.getItem(LS_PREFIX + key);
-      if(raw === null) throw new Error('Key not found: ' + key);
-      return {key, value: raw, shared: !!shared};
-    },
-    async set(key, value, shared){
-      localStorage.setItem(LS_PREFIX + key, value);
-      return {key, value, shared: !!shared};
-    },
-    async delete(key, shared){
-      localStorage.removeItem(LS_PREFIX + key);
-      return {key, deleted: true, shared: !!shared};
-    },
-    async list(prefix, shared){
-      const keys = [];
-      const full = LS_PREFIX + (prefix || '');
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k && k.startsWith(full)) keys.push(k.slice(LS_PREFIX.length));
-      }
-      return {keys, prefix, shared: !!shared};
-    }
+<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvkLtHz_fAUiEIhFjABhtovTemFFhAFR4",
+    authDomain: "sftools-139a1.firebaseapp.com",
+    databaseURL: "https://sftools-139a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "sftools-139a1",
+    storageBucket: "sftools-139a1.firebasestorage.app",
+    messagingSenderId: "504177778177",
+    appId: "1:504177778177:web:5c9c522efa2130516dea00"
   };
-}
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-const CODE_MAP = {
-  '101':'Jewelry','102':'Jewelry','103':'Jewelry','104':'Jewelry','105':'Jewelry','108':'Jewelry',
-  '300':'Watch'
-};
-function categoryOf(code){ return CODE_MAP[code] || 'Others'; }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const CATEGORIES = [
-  {key:'prenda', label:'Prenda'},
-  {key:'terms', label:'Terms Extended'},
-  {key:'reappraisal', label:'Re-appraisal'}
-];
-let categoryData = {};
-let activeCategory = null;
-let tickets = [];
-let unparsedLines = [];
-let reportKey = '';
-let currentBranch = '';
-let currentAuditDate = '';
+  const CODE_MAP = {
+    '101':'Jewelry','102':'Jewelry','103':'Jewelry','104':'Jewelry','105':'Jewelry','108':'Jewelry',
+    '300':'Watch'
+  };
+  function categoryOf(code){ return CODE_MAP[code] || 'Others'; }
 
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const CATEGORIES = [
+    {key:'prenda', label:'Prenda'},
+    {key:'terms', label:'Terms Extended'},
+    {key:'reappraisal', label:'Re-appraisal'}
+  ];
+  let categoryData = {};
+  let activeCategory = null;
+  let tickets = [];
+  let unparsedLines = [];
+  let reportKey = '';
+  let currentBranch = '';
+  let currentAuditDate = '';
 
-function slugBranch(name){
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
-}
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-$('#audit-date-input').addEventListener('change', e=>{
-  currentAuditDate = e.target.value;
-  rememberAuditDate(currentAuditDate);
-  if(currentBranch){
-    $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+  function slugBranch(name){
+    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
-  renderStats();
-});
 
-$('#branch-confirm-btn').addEventListener('click', ()=>{
-  const val = $('#branch-input').value.trim();
-  if(!val){ alert('Please enter branch name.'); return; }
-  const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
-  if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"?`)) return;
+  // 🔥 Realtime Firebase Cloud Sync Listener for QCL
+  function listenFirebaseQCLStore() {
+    if (!currentBranch) return;
+    const branchSlug = slugBranch(currentBranch);
+    
+    onValue(ref(db, `qclStore/${branchSlug}`), (snapshot) => {
+      const val = snapshot.val();
+      if (val) {
+        let changed = false;
+        Object.keys(val).forEach(catKey => {
+          if (val[catKey] && val[catKey].tickets) {
+            categoryData[catKey] = {
+              tickets: val[catKey].tickets,
+              fileName: val[catKey].fileName || '(cloud-synced)'
+            };
+            changed = true;
 
-  currentBranch = val;
-  currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
-  $('#audit-date-input').value = currentAuditDate;
-  $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
-  rememberBranch(currentBranch);
-  rememberAuditDate(currentAuditDate);
+            const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+            if(card){
+              card.classList.add('done');
+              const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+              if(statusEl) statusEl.textContent = `✓ ${val[catKey].tickets.length} tickets — synced`;
+            }
+          }
+        });
 
-  categoryData = {};
-  tickets = [];
-  activeCategory = null;
-  $$('.cat-upload-card').forEach(card=>{
-    card.classList.remove('done');
-    const key = card.dataset.cat;
-    document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-    card.querySelector('.cat-file-input').value = '';
+        if (changed && activeCategory && categoryData[activeCategory]) {
+          tickets = categoryData[activeCategory].tickets;
+          renderCategoryTabs();
+          renderTable();
+          renderStats();
+        }
+      }
+    });
+  }
+
+  function syncQCLCategoryToFirebase(catKey) {
+    if (!currentBranch || !categoryData[catKey]) return;
+    const branchSlug = slugBranch(currentBranch);
+    set(ref(db, `qclStore/${branchSlug}/${catKey}`), {
+      tickets: categoryData[catKey].tickets,
+      fileName: categoryData[catKey].fileName,
+      lastUpdated: new Date().toISOString()
+    }).catch(e => console.warn("Firebase sync fallback local:", e));
+  }
+
+  $('#audit-date-input').addEventListener('change', e=>{
+    currentAuditDate = e.target.value;
+    rememberAuditDate(currentAuditDate);
+    if(currentBranch){
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+    }
+    renderStats();
   });
-  $('#category-tabs').innerHTML = '';
-  $('#category-tabs').classList.remove('show');
-  $('#dashboard').classList.remove('show');
-  $('#global-search-input').value = '';
-  $('#global-search-results').innerHTML = '';
 
-  autoRestoreBranch();
-});
+  $('#branch-confirm-btn').addEventListener('click', ()=>{
+    const val = $('#branch-input').value.trim();
+    if(!val){ alert('Please enter branch name.'); return; }
+    const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
+    if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"?`)) return;
 
-(async ()=>{
-  $('#audit-date-input').value = new Date().toISOString().slice(0,10);
-  const remembered = await recallBranch();
-  const rememberedDate = await recallAuditDate();
-  if(rememberedDate) $('#audit-date-input').value = rememberedDate;
-  if(remembered){
-    $('#branch-input').value = remembered;
-    currentBranch = remembered;
-    currentAuditDate = $('#audit-date-input').value;
+    currentBranch = val;
+    currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
+    $('#audit-date-input').value = currentAuditDate;
     $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+    rememberBranch(currentBranch);
+    rememberAuditDate(currentAuditDate);
+
+    categoryData = {};
+    tickets = [];
+    activeCategory = null;
+    $$('.cat-upload-card').forEach(card=>{
+      card.classList.remove('done');
+      const key = card.dataset.cat;
+      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
+      card.querySelector('.cat-file-input').value = '';
+    });
+    $('#category-tabs').innerHTML = '';
+    $('#category-tabs').classList.remove('show');
+    $('#dashboard').classList.remove('show');
+    $('#global-search-input').value = '';
+    $('#global-search-results').innerHTML = '';
+
+    listenFirebaseQCLStore();
     autoRestoreBranch();
-  }
-})();
-
-$$('.cat-upload-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelector(`.cat-file-input[data-cat="${btn.dataset.cat}"]`).click();
   });
-});
-$$('.cat-file-input').forEach(inp=>{
-  inp.addEventListener('change', e=>{
-    if(e.target.files[0]) handleFile(e.target.files[0], e.target.dataset.cat);
+
+  (async ()=>{
+    let activeB = localStorage.getItem('ml_activeBranch');
+    $('#audit-date-input').value = new Date().toISOString().slice(0,10);
+    const remembered = activeB || await recallBranch();
+    const rememberedDate = await recallAuditDate();
+    if(rememberedDate) $('#audit-date-input').value = rememberedDate;
+    if(remembered){
+      $('#branch-input').value = remembered;
+      currentBranch = remembered;
+      currentAuditDate = $('#audit-date-input').value;
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+      listenFirebaseQCLStore();
+      autoRestoreBranch();
+    }
+  })();
+
+  $$('.cat-upload-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelector(`.cat-file-input[data-cat="${btn.dataset.cat}"]`).click();
+    });
   });
-});
+  $$('.cat-file-input').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      if(e.target.files[0]) handleFile(e.target.files[0], e.target.dataset.cat);
+    });
+  });
 
-function setStatus(msg){ $('#status-line').textContent = msg; }
+  function setStatus(msg){ $('#status-line').textContent = msg; }
 
-async function handleFile(file, catKey){
-  const isExcelLike = /\.(xlsx|xls|csv)$/i.test(file.name);
-  setStatus(isExcelLike ? 'Reading Excel file...' : 'Reading PDF file...');
-  try{
-    let catTickets;
-    if(isExcelLike){
-      const parsed = await parseExcelFile(file);
-      unparsedLines = parsed.unparsed;
-      if(!parsed.tickets.length){
-        setStatus('No pawn ticket rows found. Please check file headers.');
-        return;
+  async function handleFile(file, catKey){
+    const isExcelLike = /\.(xlsx|xls|csv)$/i.test(file.name);
+    setStatus(isExcelLike ? 'Reading Excel file...' : 'Reading PDF file...');
+    try{
+      let catTickets;
+      if(isExcelLike){
+        const parsed = await parseExcelFile(file);
+        unparsedLines = parsed.unparsed;
+        if(!parsed.tickets.length){
+          setStatus('No pawn ticket rows found. Please check file headers.');
+          return;
+        }
+        catTickets = parsed.tickets.map((t,i)=>({
+          id: catKey+'_'+i,
+          ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
+          expected: t.items.reduce((a,it)=>a+it.pcs,0),
+          actual: null
+        }));
+      } else {
+        const lines = await extractLines(file);
+        const result = parseLines(lines);
+        unparsedLines = result.unparsed;
+        const secs = result.sections;
+        if(!secs.length || secs.every(s=>s.tickets.length===0)){
+          setStatus('No pawn ticket table found in PDF.');
+          return;
+        }
+        const best = secs.reduce((a,b)=> b.tickets.length > a.tickets.length ? b : a, secs[0]);
+        catTickets = best.tickets.map((t,i)=>({
+          id: catKey+'_'+i,
+          ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
+          expected: t.items.reduce((a,it)=>a+it.pcs,0),
+          actual: null
+        }));
       }
-      catTickets = parsed.tickets.map((t,i)=>({
-        id: catKey+'_'+i,
-        ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
-        expected: t.items.reduce((a,it)=>a+it.pcs,0),
-        actual: null
-      }));
-    } else {
-      const lines = await extractLines(file);
-      const result = parseLines(lines);
-      unparsedLines = result.unparsed;
-      const secs = result.sections;
-      if(!secs.length || secs.every(s=>s.tickets.length===0)){
-        setStatus('No pawn ticket table found in PDF.');
-        return;
+
+      categoryData[catKey] = {tickets: catTickets, fileName: file.name};
+
+      saveFullCategoryState(catKey);
+      syncQCLCategoryToFirebase(catKey);
+
+      const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+      card.classList.add('done');
+      document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
+
+      setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed.`);
+      if(unparsedLines.length){
+        $('#debug-toggle-wrap').style.display='block';
+        $('#debug-panel').textContent = unparsedLines.join('\n');
       }
-      const best = secs.reduce((a,b)=> b.tickets.length > a.tickets.length ? b : a, secs[0]);
-      catTickets = best.tickets.map((t,i)=>({
-        id: catKey+'_'+i,
-        ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
-        expected: t.items.reduce((a,it)=>a+it.pcs,0),
-        actual: null
-      }));
+
+      activeCategory = catKey;
+      loadCategory(catKey);
+      renderCategoryTabs();
+    }catch(err){
+      console.error(err);
+      setStatus('Error reading file: ' + err.message);
     }
-
-    categoryData[catKey] = {tickets: catTickets, fileName: file.name};
-
-    const rk = computeReportKey(catKey);
-    await loadSavedCounts(rk, catTickets);
-    saveFullCategoryState(catKey);
-
-    const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
-    card.classList.add('done');
-    document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
-
-    setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed.`);
-    if(unparsedLines.length){
-      $('#debug-toggle-wrap').style.display='block';
-      $('#debug-panel').textContent = unparsedLines.join('\n');
-    }
-
-    activeCategory = catKey;
-    loadCategory(catKey);
-    renderCategoryTabs();
-  }catch(err){
-    console.error(err);
-    setStatus('Error reading file: ' + err.message);
   }
-}
 
-function formatExcelDate(val){
-  if(val === null || val === undefined || val === '') return '';
-  if(val instanceof Date && !isNaN(val)){
-    const mm = String(val.getUTCMonth()+1).padStart(2,'0');
-    const dd = String(val.getUTCDate()).padStart(2,'0');
-    const yyyy = val.getUTCFullYear();
-    return `${mm}/${dd}/${yyyy}`;
-  }
-  if(typeof val === 'number'){
-    const days = Math.round(val);
-    const d = new Date((days - 25569) * 86400 * 1000);
-    if(!isNaN(d)){
-      const mm = String(d.getUTCMonth()+1).padStart(2,'0');
-      const dd = String(d.getUTCDate()).padStart(2,'0');
-      const yyyy = d.getUTCFullYear();
+  function formatExcelDate(val){
+    if(val === null || val === undefined || val === '') return '';
+    if(val instanceof Date && !isNaN(val)){
+      const mm = String(val.getUTCMonth()+1).padStart(2,'0');
+      const dd = String(val.getUTCDate()).padStart(2,'0');
+      const yyyy = val.getUTCFullYear();
       return `${mm}/${dd}/${yyyy}`;
     }
-  }
-  return String(val).trim();
-}
-
-function findHeaderCol(headerRow, candidates){
-  for(let i=0;i<headerRow.length;i++){
-    const cell = String(headerRow[i]||'').toLowerCase().trim();
-    if(candidates.some(c=>cell.includes(c))) return i;
-  }
-  return -1;
-}
-
-async function parseExcelFile(file){
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, {type:'array'});
-  const sheetName = wb.SheetNames[0];
-  const sheet = wb.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
-
-  let headerIdx = -1, cols = {};
-  for(let i=0;i<rows.length;i++){
-    const row = rows[i].map(c=>String(c||'').toLowerCase());
-    const hasPTN = row.some(c=>c.includes('pawn ticket number'));
-    const hasDate = row.some(c=>c.includes('transaction date'));
-    if(hasPTN && hasDate){ headerIdx = i; break; }
-  }
-  if(headerIdx === -1) return {tickets:[], unparsed: rows.map(r=>r.join(' | '))};
-
-  const header = rows[headerIdx];
-  cols.ptn   = findHeaderCol(header, ['pawn ticket number']);
-  cols.date  = findHeaderCol(header, ['transaction date']);
-  cols.code  = findHeaderCol(header, ['item code']);
-  cols.desc  = findHeaderCol(header, ['description']);
-  cols.pcs   = findHeaderCol(header, ['no. of pcs','no of pcs','pcs']);
-  cols.wt    = findHeaderCol(header, ['wt.','wt']);
-  cols.karat = findHeaderCol(header, ['karat']);
-  cols.loan  = findHeaderCol(header, ['loan value']);
-
-  const tickets = [];
-  const unparsed = [];
-  let current = null;
-
-  for(let i=headerIdx+1;i<rows.length;i++){
-    const row = rows[i];
-    if(!row || row.every(c=>String(c||'').trim()==='')) continue;
-
-    const rawPtn = cols.ptn>=0 ? String(row[cols.ptn]||'').trim() : '';
-    const desc = cols.desc>=0 ? String(row[cols.desc]||'').trim() : '';
-    const code = cols.code>=0 ? String(row[cols.code]||'').trim() : '';
-
-    if(/^total\b/i.test(rawPtn) || /^total\b/i.test(desc)) continue;
-
-    const pcs = cols.pcs>=0 ? (Number(row[cols.pcs]) || (desc?1:0)) : (desc?1:0);
-    const wt = cols.wt>=0 ? (Number(row[cols.wt]) || 0) : 0;
-    const karat = cols.karat>=0 ? (Number(row[cols.karat]) || 0) : 0;
-    const loan = cols.loan>=0 ? (Number(row[cols.loan]) || 0) : 0;
-
-    if(rawPtn){
-      const ptn = rawPtn.replace(/\*+$/,'').trim();
-      const date = formatExcelDate(cols.date>=0 ? row[cols.date] : '');
-      if(!desc){ unparsed.push(row.join(' | ')); continue; }
-      current = { ptn, date, items:[{code, desc, pcs, wt, karat}], loan };
-      tickets.push(current);
-    } else if(desc && current){
-      current.items.push({code, desc, pcs, wt, karat});
-    } else if(desc || code){
-      unparsed.push(row.join(' | '));
+    if(typeof val === 'number'){
+      const days = Math.round(val);
+      const d = new Date((days - 25569) * 86400 * 1000);
+      if(!isNaN(d)){
+        const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+        const dd = String(d.getUTCDate()).padStart(2,'0');
+        const yyyy = d.getUTCFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+      }
     }
+    return String(val).trim();
   }
 
-  return {tickets, unparsed};
-}
-
-async function extractLines(file){
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-  const allLines = [];
-  for(let p=1;p<=pdf.numPages;p++){
-    const page = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    const rows = {};
-    content.items.forEach(it=>{
-      const y = Math.round(it.transform[5]);
-      if(!rows[y]) rows[y]=[];
-      rows[y].push({x:it.transform[4], text:it.str});
-    });
-    const ys = Object.keys(rows).map(Number).sort((a,b)=>b-a);
-    ys.forEach(y=>{
-      const rowItems = rows[y].sort((a,b)=>a.x-b.x);
-      const line = rowItems.map(r=>r.text).join(' ').replace(/\s+/g,' ').trim();
-      if(line) allLines.push(line);
-    });
-  }
-  return allLines;
-}
-
-function normalize(line){
-  return line
-    .replace(/([A-Za-z])(\d)/g,'$1 $2')
-    .replace(/(\d)([A-Za-z])/g,'$1 $2')
-    .replace(/\s+/g,' ')
-    .trim();
-}
-const isPTN = t => /^\d{5,}-\d{4}-\d+\*{0,6}$/.test(t);
-const isDate = t => /^\d{2}\/\d{2}\/\d{4}$/.test(t);
-const isCode3 = t => /^\d{3}$/.test(t);
-const isNum = t => /^[\d,]+(\.\d+)?$/.test(t);
-const toNum = t => parseFloat(String(t).replace(/,/g,'')) || 0;
-
-function parseTokens(tokens){
-  if(tokens.length >= 11 && isPTN(tokens[1]) && isDate(tokens[2]) && isCode3(tokens[3])){
-    const trail = tokens.slice(-6);
-    if(trail.every(isNum)){
-      const [pcs,wt,karat,price,carat,loan] = trail;
-      const desc = tokens.slice(4, tokens.length-6).join(' ').trim();
-      if(desc) return {type:'main', ptn:tokens[1], date:tokens[2], code:tokens[3], desc,
-        pcs:Math.round(toNum(pcs)), wt:toNum(wt), karat:Math.round(toNum(karat)), loan:toNum(loan)};
+  function findHeaderCol(headerRow, candidates){
+    for(let i=0;i<headerRow.length;i++){
+      const cell = String(headerRow[i]||'').toLowerCase().trim();
+      if(candidates.some(c=>cell.includes(c))) return i;
     }
+    return -1;
   }
-  if(tokens.length >= 6 && isCode3(tokens[0]) && !isPTN(tokens[1]||'') && !isDate(tokens[1]||'')){
-    const trail = tokens.slice(-5);
-    if(trail.every(isNum)){
-      const [pcs,wt,karat,price,carat] = trail;
-      const desc = tokens.slice(1, tokens.length-5).join(' ').trim();
-      if(desc && !/^(total|jewelry|watch|silver|cellphone|opi|compasia|motor)$/i.test(desc))
-        return {type:'sub', code:tokens[0], desc, pcs:Math.round(toNum(pcs)), wt:toNum(wt), karat:Math.round(toNum(karat))};
-    }
-  }
-  return null;
-}
 
-function parseLines(rawLines){
-  const sections = [];
-  const unparsed = [];
-  let current = null;
-  rawLines.forEach(raw=>{
-    const norm = normalize(raw);
-    if(/Pawn\s*Ticket\s*Number/i.test(norm) && /Transaction\s*Date/i.test(norm)){
-      current = {tickets:[], statedTotal:null};
-      sections.push(current);
-      return;
+  async function parseExcelFile(file){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const sheetName = wb.SheetNames[0];
+    const sheet = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
+
+    let headerIdx = -1, cols = {};
+    for(let i=0;i<rows.length;i++){
+      const row = rows[i].map(c=>String(c||'').toLowerCase());
+      const hasPTN = row.some(c=>c.includes('pawn ticket number'));
+      const hasDate = row.some(c=>c.includes('transaction date'));
+      if(hasPTN && hasDate){ headerIdx = i; break; }
     }
-    if(!current) { if(norm) unparsed.push(norm); return; }
-    const tokens = norm.split(/\s+/).filter(Boolean);
-    const parsed = parseTokens(tokens);
-    if(parsed && parsed.type==='main'){
-      current.tickets.push({
-        ptn: parsed.ptn, date: parsed.date,
-        items:[{code:parsed.code, desc:parsed.desc, pcs:parsed.pcs, wt:parsed.wt, karat:parsed.karat}],
-        loan: parsed.loan
+    if(headerIdx === -1) return {tickets:[], unparsed: rows.map(r=>r.join(' | '))};
+
+    const header = rows[headerIdx];
+    cols.ptn   = findHeaderCol(header, ['pawn ticket number']);
+    cols.date  = findHeaderCol(header, ['transaction date']);
+    cols.code  = findHeaderCol(header, ['item code']);
+    cols.desc  = findHeaderCol(header, ['description']);
+    cols.pcs   = findHeaderCol(header, ['no. of pcs','no of pcs','pcs']);
+    cols.wt    = findHeaderCol(header, ['wt.','wt']);
+    cols.karat = findHeaderCol(header, ['karat']);
+    cols.loan  = findHeaderCol(header, ['loan value']);
+
+    const tickets = [];
+    const unparsed = [];
+    let current = null;
+
+    for(let i=headerIdx+1;i<rows.length;i++){
+      const row = rows[i];
+      if(!row || row.every(c=>String(c||'').trim()==='')) continue;
+
+      const rawPtn = cols.ptn>=0 ? String(row[cols.ptn]||'').trim() : '';
+      const desc = cols.desc>=0 ? String(row[cols.desc]||'').trim() : '';
+      const code = cols.code>=0 ? String(row[cols.code]||'').trim() : '';
+
+      if(/^total\b/i.test(rawPtn) || /^total\b/i.test(desc)) continue;
+
+      const pcs = cols.pcs>=0 ? (Number(row[cols.pcs]) || (desc?1:0)) : (desc?1:0);
+      const wt = cols.wt>=0 ? (Number(row[cols.wt]) || 0) : 0;
+      const karat = cols.karat>=0 ? (Number(row[cols.karat]) || 0) : 0;
+      const loan = cols.loan>=0 ? (Number(row[cols.loan]) || 0) : 0;
+
+      if(rawPtn){
+        const ptn = rawPtn.replace(/\*+$/,'').trim();
+        const date = formatExcelDate(cols.date>=0 ? row[cols.date] : '');
+        if(!desc){ unparsed.push(row.join(' | ')); continue; }
+        current = { ptn, date, items:[{code, desc, pcs, wt, karat}], loan };
+        tickets.push(current);
+      } else if(desc && current){
+        current.items.push({code, desc, pcs, wt, karat});
+      } else if(desc || code){
+        unparsed.push(row.join(' | '));
+      }
+    }
+
+    return {tickets, unparsed};
+  }
+
+  async function extractLines(file){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    const allLines = [];
+    for(let p=1;p<=pdf.numPages;p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const rows = {};
+      content.items.forEach(it=>{
+        const y = Math.round(it.transform[5]);
+        if(!rows[y]) rows[y]=[];
+        rows[y].push({x:it.transform[4], text:it.str});
       });
-    } else if(parsed && parsed.type==='sub'){
-      if(current.tickets.length){
-        current.tickets[current.tickets.length-1].items.push(
-          {code:parsed.code, desc:parsed.desc, pcs:parsed.pcs, wt:parsed.wt, karat:parsed.karat});
+      const ys = Object.keys(rows).map(Number).sort((a,b)=>b-a);
+      ys.forEach(y=>{
+        const rowItems = rows[y].sort((a,b)=>a.x-b.x);
+        const line = rowItems.map(r=>r.text).join(' ').replace(/\s+/g,' ').trim();
+        if(line) allLines.push(line);
+      });
+    }
+    return allLines;
+  }
+
+  function normalize(line){
+    return line
+      .replace(/([A-Za-z])(\d)/g,'$1 $2')
+      .replace(/(\d)([A-Za-z])/g,'$1 $2')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+  const isPTN = t => /^\d{5,}-\d{4}-\d+\*{0,6}$/.test(t);
+  const isDate = t => /^\d{2}\/\d{2}\/\d{4}$/.test(t);
+  const isCode3 = t => /^\d{3}$/.test(t);
+  const isNum = t => /^[\d,]+(\.\d+)?$/.test(t);
+  const toNum = t => parseFloat(String(t).replace(/,/g,'')) || 0;
+
+  function parseTokens(tokens){
+    if(tokens.length >= 11 && isPTN(tokens[1]) && isDate(tokens[2]) && isCode3(tokens[3])){
+      const trail = tokens.slice(-6);
+      if(trail.every(isNum)){
+        const [pcs,wt,karat,price,carat,loan] = trail;
+        const desc = tokens.slice(4, tokens.length-6).join(' ').trim();
+        if(desc) return {type:'main', ptn:tokens[1], date:tokens[2], code:tokens[3], desc,
+          pcs:Math.round(toNum(pcs)), wt:toNum(wt), karat:Math.round(toNum(karat)), loan:toNum(loan)};
+      }
+    }
+    if(tokens.length >= 6 && isCode3(tokens[0]) && !isPTN(tokens[1]||'') && !isDate(tokens[1]||'')){
+      const trail = tokens.slice(-5);
+      if(trail.every(isNum)){
+        const [pcs,wt,karat,price,carat] = trail;
+        const desc = tokens.slice(1, tokens.length-5).join(' ').trim();
+        if(desc && !/^(total|jewelry|watch|silver|cellphone|opi|compasia|motor)$/i.test(desc))
+          return {type:'sub', code:tokens[0], desc, pcs:Math.round(toNum(pcs)), wt:toNum(wt), karat:Math.round(toNum(karat))};
+      }
+    }
+    return null;
+  }
+
+  function parseLines(rawLines){
+    const sections = [];
+    const unparsed = [];
+    let current = null;
+    rawLines.forEach(raw=>{
+      const norm = normalize(raw);
+      if(/Pawn\s*Ticket\s*Number/i.test(norm) && /Transaction\s*Date/i.test(norm)){
+        current = {tickets:[], statedTotal:null};
+        sections.push(current);
+        return;
+      }
+      if(!current) { if(norm) unparsed.push(norm); return; }
+      const tokens = norm.split(/\s+/).filter(Boolean);
+      const parsed = parseTokens(tokens);
+      if(parsed && parsed.type==='main'){
+        current.tickets.push({
+          ptn: parsed.ptn, date: parsed.date,
+          items:[{code:parsed.code, desc:parsed.desc, pcs:parsed.pcs, wt:parsed.wt, karat:parsed.karat}],
+          loan: parsed.loan
+        });
+      } else if(parsed && parsed.type==='sub'){
+        if(current.tickets.length){
+          current.tickets[current.tickets.length-1].items.push(
+            {code:parsed.code, desc:parsed.desc, pcs:parsed.pcs, wt:parsed.wt, karat:parsed.karat});
+        } else {
+          unparsed.push(norm);
+        }
       } else {
-        unparsed.push(norm);
-      }
-    } else {
-      const m = norm.match(/^total\s+([\d,]+)\s+[\d,.]+\s+[\d,]+\.\d{2}\s+([\d,]+\.\d{2})\s*$/i)
-             || norm.match(/^total\s+([\d,]+)\s+([\d,]+\.\d{2})\s*$/i);
-      if(m){ current.statedTotal = {pcs: toNum(m[1]), amount: toNum(m[2])}; }
-      else if(norm) unparsed.push(norm);
-    }
-  });
-  return {sections, unparsed};
-}
-
-function keepScroll(fn){
-  const y = window.scrollY;
-  fn();
-  requestAnimationFrame(()=>{ window.scrollTo(0, y); });
-  setTimeout(()=>{ window.scrollTo(0, y); }, 50);
-}
-
-function renderCategoryTabs(){
-  const wrap = $('#category-tabs');
-  wrap.innerHTML = '';
-  CATEGORIES.forEach(c=>{
-    const data = categoryData[c.key];
-    const div = document.createElement('div');
-    const enabled = !!data;
-    div.className = 'tab' + (enabled?' enabled':' disabled') + (c.key===activeCategory?' active':'');
-    div.innerHTML = `<div class="t-name">${c.label}</div><div class="t-count">${data ? data.tickets.length+' tickets' : 'not uploaded yet'}</div>`;
-    if(enabled) div.addEventListener('click', ()=>{ keepScroll(()=>{ loadCategory(c.key); renderCategoryTabs(); }); });
-    wrap.appendChild(div);
-  });
-  wrap.classList.add('show');
-}
-
-function computeReportKey(catKey){
-  return 'vaultledger:' + slugBranch(currentBranch) + ':' + catKey;
-}
-function computeDataKey(catKey){
-  return computeReportKey(catKey) + ':full';
-}
-
-async function saveFullCategoryState(catKey, attempt){
-  attempt = attempt || 1;
-  if(!catKey || !categoryData[catKey]) return;
-  const payload = JSON.stringify({
-    tickets: categoryData[catKey].tickets,
-    fileName: categoryData[catKey].fileName
-  });
-  try{
-    await window.storage.set(computeDataKey(catKey), payload, true);
-  }catch(e){
-    if(attempt < 3){
-      setTimeout(()=> saveFullCategoryState(catKey, attempt+1), 800*attempt);
-    }
-  }
-}
-
-async function restoreCategoryFromStorage(catKey){
-  try{
-    const res = await window.storage.get(computeDataKey(catKey), true);
-    if(!res || !res.value) return false;
-    const saved = JSON.parse(res.value);
-    if(!saved.tickets || !saved.tickets.length) return false;
-    categoryData[catKey] = {tickets: saved.tickets, fileName: saved.fileName || '(restored)'};
-
-    const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
-    if(card){
-      card.classList.add('done');
-      const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
-      if(statusEl) statusEl.textContent = `✓ ${saved.tickets.length} tickets — restored`;
-    }
-    return true;
-  }catch(e){
-    return false;
-  }
-}
-
-async function autoRestoreBranch(){
-  let firstRestored = null;
-  for(const c of CATEGORIES){
-    const ok = await restoreCategoryFromStorage(c.key);
-    if(ok && !firstRestored) firstRestored = c.key;
-  }
-  if(firstRestored){
-    activeCategory = firstRestored;
-    loadCategory(firstRestored);
-    renderCategoryTabs();
-    renderStats();
-    setStatus(`Restored saved data for branch "${currentBranch}".`);
-  }
-}
-
-const REMEMBERED_BRANCH_KEY = 'vaultledger:remembered-branch';
-async function rememberBranch(name){
-  try{ await window.storage.set(REMEMBERED_BRANCH_KEY, name, false); }catch(e){}
-}
-async function recallBranch(){
-  try{
-    const res = await window.storage.get(REMEMBERED_BRANCH_KEY, false);
-    return (res && res.value) ? res.value : '';
-  }catch(e){ return ''; }
-}
-
-const REMEMBERED_AUDIT_DATE_KEY = 'vaultledger:remembered-audit-date';
-async function rememberAuditDate(dateStr){
-  try{ await window.storage.set(REMEMBERED_AUDIT_DATE_KEY, dateStr, false); }catch(e){}
-}
-async function recallAuditDate(){
-  try{
-    const res = await window.storage.get(REMEMBERED_AUDIT_DATE_KEY, false);
-    return (res && res.value) ? res.value : '';
-  }catch(e){ return ''; }
-}
-
-function loadCategory(catKey){
-  activeCategory = catKey;
-  tickets = categoryData[catKey].tickets;
-  reportKey = computeReportKey(catKey);
-  $('#dashboard').classList.add('show');
-  renderTable();
-}
-
-async function loadSavedCounts(rk, tix){
-  try{
-    const res = await window.storage.get(rk, true);
-    if(res && res.value){
-      const saved = JSON.parse(res.value);
-      tix.forEach(t=>{ if(saved[t.ptn] !== undefined) t.actual = saved[t.ptn]; });
-    }
-  }catch(e){}
-}
-
-let saveTimer = null;
-function persistCounts(){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=> saveCategoryCounts(activeCategory), 400);
-}
-
-async function saveCategoryCounts(catKey, attempt){
-  attempt = attempt || 1;
-  if(!catKey || !categoryData[catKey]) return;
-  const tix = categoryData[catKey].tickets;
-  const map = {};
-  tix.forEach(t=>{ if(t.actual !== null && t.actual !== undefined) map[t.ptn] = t.actual; });
-  try{
-    await window.storage.set(computeReportKey(catKey), JSON.stringify(map), true);
-  }catch(e){
-    if(attempt < 3){
-      setTimeout(()=> saveCategoryCounts(catKey, attempt+1), 800*attempt);
-    }
-  }
-  saveFullCategoryState(catKey);
-}
-
-function statusOf(t){
-  return t.actual ? 'match' : 'pending';
-}
-
-const FINDINGS_TYPES = [
-  'Wrong Karat Grading',
-  'Wrong Item Code',
-  'Wrong Quantity',
-  'Wrong Description',
-  'Wrong Weight'
-];
-
-function correctOptionsFor(finding){
-  switch(finding){
-    case 'Wrong Karat Grading':
-      return ['22K','21K','20K','18K','14K','12K','10K'];
-    case 'Wrong Item Code':
-      return ['101','102','103','104','105','106','107','108'];
-    case 'Wrong Quantity':
-      return Array.from({length:100}, (_,i)=> String(i+1));
-    case 'Wrong Description':
-      return ['Necklace','Pendant','Earring','Ring','Terno','Set'];
-    case 'Wrong Weight':
-      return Array.from({length:3000}, (_,i)=> ((i+1)/10).toFixed(1));
-    default:
-      return [];
-  }
-}
-
-function correctOptionsHtml(finding, selected){
-  const opts = correctOptionsFor(finding);
-  const placeholder = finding ? '— Select Correct —' : '— Select Findings first —';
-  return `<option value="">${placeholder}</option>` +
-    opts.map(v=>`<option value="${v}" ${selected===v?'selected':''}>${v}</option>`).join('');
-}
-
-function findingItemHtml(it, ti, ii){
-  const finding = it.finding || '';
-  const correct = it.correct || '';
-  return `<div class="finding-item">
-    <select class="finding-select" data-ti="${ti}" data-ii="${ii}">
-      <option value="">— Select Findings —</option>
-      ${FINDINGS_TYPES.map(f=>`<option value="${f}" ${finding===f?'selected':''}>${f}</option>`).join('')}
-    </select>
-    <select class="correct-select" data-ti="${ti}" data-ii="${ii}" ${!finding?'disabled':''}>
-      ${correctOptionsHtml(finding, correct)}
-    </select>
-  </div>`;
-}
-
-function renderTable(){
-  const q = $('#search').value.trim().toLowerCase();
-  const filterStatus = $('#filter-status').value;
-  const body = $('#ledger-body');
-  body.innerHTML = '';
-  let shown = 0;
-
-  tickets.forEach((t, idx)=>{
-    const st = statusOf(t);
-    if(filterStatus !== 'all' && st !== filterStatus) return;
-    if(q){
-      const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
-      if(!hay.includes(q)) return;
-    }
-    shown++;
-    const tr = document.createElement('tr');
-
-    const flagged = /\*/.test(t.ptn);
-    tr.dataset.status = st;
-    const isFound = st === 'match';
-    tr.innerHTML = `
-      <td class="num">${idx+1}</td>
-      <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
-      <td class="date">${t.date||'—'}</td>
-      <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
-      <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
-      <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
-      <td class="status-cell">${statusBadge(st)}</td>
-      <td class="findings-list">
-        <button class="findings-toggle${t.items.some(it=>it.finding)?' has-findings':''}" data-ti="${idx}" title="Click to view/edit findings">Findings</button>
-        <div class="findings-body" data-ti="${idx}">${t.items.map((it,ii)=>findingItemHtml(it, idx, ii)).join('')}</div>
-      </td>
-      <td class="actions-cell">
-        <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
-      </td>
-    `;
-    body.appendChild(tr);
-  });
-
-  $('#empty-note').style.display = shown ? 'none' : 'block';
-
-  $$('.found-check').forEach(chk=>{
-    chk.addEventListener('change', e=>{
-      const i = +e.target.dataset.idx;
-      tickets[i].actual = e.target.checked ? true : null;
-      persistCounts();
-      renderStats();
-      const tr = e.target.closest('tr');
-      const st = statusOf(tickets[i]);
-      tr.dataset.status = st;
-      tr.querySelector('.status-cell').innerHTML = statusBadge(st);
-    });
-  });
-  $$('.desc-text').forEach(el=>{
-    el.addEventListener('blur', e=>{
-      const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
-      tickets[ti].items[ii].desc = e.target.textContent.trim();
-      saveFullCategoryState(activeCategory);
-    });
-  });
-  $$('.findings-toggle').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const ti = e.target.dataset.ti;
-      const body = e.target.closest('.findings-list').querySelector('.findings-body');
-      body.classList.toggle('show');
-    });
-  });
-  $$('.finding-select').forEach(sel=>{
-    sel.addEventListener('change', e=>{
-      const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
-      const val = e.target.value;
-      tickets[ti].items[ii].finding = val;
-      tickets[ti].items[ii].correct = '';
-      saveFullCategoryState(activeCategory);
-      const wrap = e.target.closest('.finding-item');
-      const correctSel = wrap.querySelector('.correct-select');
-      correctSel.disabled = !val;
-      correctSel.innerHTML = correctOptionsHtml(val, '');
-      const toggleBtn = e.target.closest('.findings-list').querySelector('.findings-toggle');
-      const hasFinding = tickets[ti].items.some(it=>it.finding);
-      toggleBtn.classList.toggle('has-findings', hasFinding);
-    });
-  });
-  $$('.correct-select').forEach(sel=>{
-    sel.addEventListener('change', e=>{
-      const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
-      tickets[ti].items[ii].correct = e.target.value;
-      saveFullCategoryState(activeCategory);
-    });
-  });
-  $$('[data-del]').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const i = +e.target.dataset.del;
-      if(confirm('Delete this ticket from the list?')){
-        tickets.splice(i,1);
-        saveFullCategoryState(activeCategory);
-        renderTable(); renderStats();
+        const m = norm.match(/^total\s+([\d,]+)\s+[\d,.]+\s+[\d,]+\.\d{2}\s+([\d,]+\.\d{2})\s*$/i)
+               || norm.match(/^total\s+([\d,]+)\s+([\d,]+\.\d{2})\s*$/i);
+        if(m){ current.statedTotal = {pcs: toNum(m[1]), amount: toNum(m[2])}; }
+        else if(norm) unparsed.push(norm);
       }
     });
-  });
-
-  renderStats();
-}
-
-function statusBadge(st){
-  if(st==='match') return `<span class="status-badge match">Found</span><span class="stamp">✓ OK</span>`;
-  return `<span class="status-badge pending">Pending</span>`;
-}
-
-function renderStats(){
-  const total = tickets.length;
-  const matched = tickets.filter(t=>statusOf(t)==='match').length;
-  const pending = total - matched;
-
-  $('#stats-row').innerHTML = `
-    <div class="stat-chip"><div class="num">${total}</div><div class="lab">Total Tickets</div></div>
-    <div class="stat-chip match"><div class="num">${matched}</div><div class="lab">Found</div></div>
-    <div class="stat-chip pending"><div class="num">${pending}</div><div class="lab">Pending</div></div>
-    <div class="stat-chip"><div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div><div class="lab">Audit Date</div></div>
-  `;
-
-  const cats = {};
-  tickets.forEach(t=>{
-    t.items.forEach(it=>{
-      const cat = categoryOf(it.code);
-      if(!cats[cat]) cats[cat] = {expected:0, counted:0};
-      cats[cat].expected += it.pcs;
-    });
-    if(t.actual){
-      const primaryCat = categoryOf(t.items[0].code);
-      const ticketPcs = t.items.reduce((a,it)=>a+(Number(it.pcs)||0),0);
-      cats[primaryCat].counted += ticketPcs;
-    }
-  });
-  $('#cat-row').innerHTML = Object.entries(cats).map(([name,v])=>`
-    <div class="cat-card">
-      <div class="name">${name}</div>
-      <div class="figures">${v.counted} <small>/ ${v.expected} pcs</small></div>
-    </div>
-  `).join('');
-}
-
-$('#search').addEventListener('input', ()=> keepScroll(renderTable));
-$('#filter-status').addEventListener('change', ()=> keepScroll(renderTable));
-
-function runGlobalSearch(){
-  const q = $('#global-search-input').value.trim().toLowerCase();
-  const box = $('#global-search-results');
-  if(!q){ box.innerHTML = ''; return; }
-
-  const hits = [];
-  CATEGORIES.forEach(c=>{
-    const data = categoryData[c.key];
-    if(!data) return;
-    data.tickets.forEach(t=>{
-      if(t.ptn.toLowerCase().includes(q)){
-        hits.push({label: c.label, ptn: t.ptn, date: t.date, loan: t.loan, actual: t.actual});
-      }
-    });
-  });
-
-  if(!hits.length){
-    box.innerHTML = `<span style="color:var(--text-muted);">No matches in any uploaded category.</span>`;
-    return;
+    return {sections, unparsed};
   }
-  box.innerHTML = hits.map(h=>`
-    <div style="padding:8px 0; border-bottom:1px solid var(--border);">
-      <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})
-      · Loan ₱${Number(h.loan).toLocaleString()}
-      · ${h.actual ? 'Found' : 'Pending'}
-    </div>
-  `).join('');
-}
 
-$('#global-search-btn').addEventListener('click', runGlobalSearch);
-$('#global-search-input').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') runGlobalSearch();
-});
+  function keepScroll(fn){
+    const y = window.scrollY;
+    fn();
+    requestAnimationFrame(()=>{ window.scrollTo(0, y); });
+    setTimeout(()=>{ window.scrollTo(0, y); }, 50);
+  }
 
-$('#reset-counts-btn').addEventListener('click', async ()=>{
-  if(!confirm('Clear all Found checkmarks?')) return;
-  tickets.forEach(t=> t.actual = null);
-  try{ await window.storage.set(reportKey, JSON.stringify({}), true); }catch(e){}
-  saveFullCategoryState(activeCategory);
-  renderTable();
-});
-
-$('#export-btn').addEventListener('click', ()=>{
-  const rows = [['Pawn Ticket #','Date','Principal Amount','Item Code','Description','Karat','Weight','Findings','Correct','Status']];
-  tickets.forEach(t=>{
-    const flaggedItems = t.items.filter(i=>i.finding);
-    if(!flaggedItems.length) return;
-    const st = statusOf(t);
-    flaggedItems.forEach(it=>{
-      rows.push([
-        t.ptn, t.date, t.loan ?? '', it.code || '', it.desc || '',
-        it.karat ? it.karat+'K' : '', it.wt ?? '',
-        it.finding || '', it.correct || '', st
-      ]);
+  function renderCategoryTabs(){
+    const wrap = $('#category-tabs');
+    wrap.innerHTML = '';
+    CATEGORIES.forEach(c=>{
+      const data = categoryData[c.key];
+      const div = document.createElement('div');
+      const enabled = !!data;
+      div.className = 'tab' + (enabled?' enabled':' disabled') + (c.key===activeCategory?' active':'');
+      div.innerHTML = `<div class="t-name">${c.label}</div><div class="t-count">${data ? data.tickets.length+' tickets' : 'not uploaded yet'}</div>`;
+      if(enabled) div.addEventListener('click', ()=>{ keepScroll(()=>{ loadCategory(c.key); renderCategoryTabs(); }); });
+      wrap.appendChild(div);
     });
-  });
-  if(rows.length === 1){ alert('No findings flagged yet.'); return; }
-  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'discrepancy-report.csv';
-  a.click();
-});
+    wrap.classList.add('show');
+  }
 
-$('#print-btn').addEventListener('click', ()=> window.print());
+  function computeReportKey(catKey){
+    return 'vaultledger:' + slugBranch(currentBranch) + ':' + catKey;
+  }
+  function computeDataKey(catKey){
+    return computeReportKey(catKey) + ':full';
+  }
 
-$('#print-missing-btn').addEventListener('click', ()=>{
-  const missingCount = tickets.filter(t=>statusOf(t)!=='match').length;
-  if(missingCount === 0){ alert('Everything has been checked!'); return; }
-  document.body.classList.add('print-missing-mode');
-  window.print();
-  setTimeout(()=> document.body.classList.remove('print-missing-mode'), 500);
-});
+  async function saveFullCategoryState(catKey){
+    if(!catKey || !categoryData[catKey]) return;
+    const payload = JSON.stringify({
+      tickets: categoryData[catKey].tickets,
+      fileName: categoryData[catKey].fileName
+    });
+    localStorage.setItem(computeDataKey(catKey), payload);
+    syncQCLCategoryToFirebase(catKey);
+  }
 
-$('#debug-toggle').addEventListener('click', ()=>{
-  const panel = $('#debug-panel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-});
+  async function restoreCategoryFromStorage(catKey){
+    try{
+      const raw = localStorage.getItem(computeDataKey(catKey));
+      if(!raw) return false;
+      const saved = JSON.parse(raw);
+      if(!saved.tickets || !saved.tickets.length) return false;
+      categoryData[catKey] = {tickets: saved.tickets, fileName: saved.fileName || '(restored)'};
 
-// BACKUP / RESTORE
-$('#backup-json-btn').addEventListener('click', ()=>{
-  if(!currentBranch){ alert('Please set your branch name first.'); return; }
-  const backup = {
-    app: 'QCL Inventory Report',
-    exportedAt: new Date().toISOString(),
-    branch: currentBranch,
-    auditDate: currentAuditDate,
-    categories: {}
-  };
-  CATEGORIES.forEach(c=>{
-    if(categoryData[c.key]){
-      backup.categories[c.key] = {
-        tickets: categoryData[c.key].tickets,
-        fileName: categoryData[c.key].fileName
-      };
-    }
-  });
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const dateStr = new Date().toISOString().slice(0,10);
-  a.href = url;
-  a.download = `qcl-inventory-backup-${slugBranch(currentBranch)}-${dateStr}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-
-$('#restore-json-btn').addEventListener('click', ()=>{
-  $('#restore-json-input').click();
-});
-
-$('#restore-json-input').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const backup = JSON.parse(text);
-    if(!backup || !backup.categories){ alert('Invalid backup file.'); return; }
-
-    if(backup.branch){
-      currentBranch = backup.branch;
-      $('#branch-input').value = currentBranch;
-      rememberBranch(currentBranch);
-    }
-    if(backup.auditDate){
-      currentAuditDate = backup.auditDate;
-      $('#audit-date-input').value = currentAuditDate;
-      rememberAuditDate(currentAuditDate);
-    }
-    $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate || '—'}`;
-
-    let firstCat = null;
-    for(const key of Object.keys(backup.categories)){
-      const catInfo = backup.categories[key];
-      if(!catInfo || !catInfo.tickets) continue;
-      categoryData[key] = {tickets: catInfo.tickets, fileName: catInfo.fileName || '(restored)'};
-      saveFullCategoryState(key);
-      const card = document.querySelector(`.cat-upload-card[data-cat="${key}"]`);
+      const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
       if(card){
         card.classList.add('done');
-        const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
-        if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored`;
+        const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+        if(statusEl) statusEl.textContent = `✓ ${saved.tickets.length} tickets — restored`;
       }
-      if(!firstCat) firstCat = key;
+      return true;
+    }catch(e){
+      return false;
     }
-    if(firstCat){
-      activeCategory = firstCat;
-      loadCategory(firstCat);
+  }
+
+  async function autoRestoreBranch(){
+    let firstRestored = null;
+    for(const c of CATEGORIES){
+      const ok = await restoreCategoryFromStorage(c.key);
+      if(ok && !firstRestored) firstRestored = c.key;
+    }
+    if(firstRestored){
+      activeCategory = firstRestored;
+      loadCategory(firstRestored);
       renderCategoryTabs();
       renderStats();
-      setStatus('Restored from backup file successfully.');
+      setStatus(`Restored saved data for branch "${currentBranch}".`);
     }
-  }catch(err){
-    console.error(err);
-    alert('Could not read file.');
-  } finally {
-    e.target.value = '';
   }
-});
 
-$('#new-day-btn').addEventListener('click', async ()=>{
-  if(!currentBranch){ alert('Please set your branch name first.'); return; }
-  if(!confirm(`Clear all data for "${currentBranch}"?`)) return;
-  try{
-    for(const c of CATEGORIES){
-      await window.storage.set(computeReportKey(c.key), JSON.stringify({}), true);
-      await window.storage.set(computeDataKey(c.key), JSON.stringify({tickets:[]}), true);
+  const REMEMBERED_BRANCH_KEY = 'vaultledger:remembered-branch';
+  async function rememberBranch(name){
+    try{ localStorage.setItem(REMEMBERED_BRANCH_KEY, name); }catch(e){}
+  }
+  async function recallBranch(){
+    try{ return localStorage.getItem(REMEMBERED_BRANCH_KEY) || ''; }catch(e){ return ''; }
+  }
+
+  const REMEMBERED_AUDIT_DATE_KEY = 'vaultledger:remembered-audit-date';
+  async function rememberAuditDate(dateStr){
+    try{ localStorage.setItem(REMEMBERED_AUDIT_DATE_KEY, dateStr); }catch(e){}
+  }
+  async function recallAuditDate(){
+    try{ return localStorage.getItem(REMEMBERED_AUDIT_DATE_KEY) || ''; }catch(e){ return ''; }
+  }
+
+  function loadCategory(catKey){
+    activeCategory = catKey;
+    tickets = categoryData[catKey].tickets;
+    reportKey = computeReportKey(catKey);
+    $('#dashboard').classList.add('show');
+    renderTable();
+  }
+
+  function persistCounts(){
+    saveFullCategoryState(activeCategory);
+  }
+
+  function statusOf(t){
+    return t.actual ? 'match' : 'pending';
+  }
+
+  const FINDINGS_TYPES = [
+    'Wrong Karat Grading',
+    'Wrong Item Code',
+    'Wrong Quantity',
+    'Wrong Description',
+    'Wrong Weight'
+  ];
+
+  function correctOptionsFor(finding){
+    switch(finding){
+      case 'Wrong Karat Grading':
+        return ['22K','21K','20K','18K','14K','12K','10K'];
+      case 'Wrong Item Code':
+        return ['101','102','103','104','105','106','107','108'];
+      case 'Wrong Quantity':
+        return Array.from({length:100}, (_,i)=> String(i+1));
+      case 'Wrong Description':
+        return ['Necklace','Pendant','Earring','Ring','Terno','Set'];
+      case 'Wrong Weight':
+        return Array.from({length:3000}, (_,i)=> ((i+1)/10).toFixed(1));
+      default:
+        return [];
     }
-  }catch(e){}
+  }
 
-  categoryData = {};
-  tickets = [];
-  activeCategory = null;
-  unparsedLines = [];
+  function correctOptionsHtml(finding, selected){
+    const opts = correctOptionsFor(finding);
+    const placeholder = finding ? '— Select Correct —' : '— Select Findings first —';
+    return `<option value="">${placeholder}</option>` +
+      opts.map(v=>`<option value="${v}" ${selected===v?'selected':''}>${v}</option>`).join('');
+  }
 
-  $$('.cat-upload-card').forEach(card=>{
-    card.classList.remove('done');
-    const key = card.dataset.cat;
-    document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-    card.querySelector('.cat-file-input').value = '';
+  function findingItemHtml(it, ti, ii){
+    const finding = it.finding || '';
+    const correct = it.correct || '';
+    return `<div class="finding-item">
+      <select class="finding-select" data-ti="${ti}" data-ii="${ii}">
+        <option value="">— Select Findings —</option>
+        ${FINDINGS_TYPES.map(f=>`<option value="${f}" ${finding===f?'selected':''}>${f}</option>`).join('')}
+      </select>
+      <select class="correct-select" data-ti="${ti}" data-ii="${ii}" ${!finding?'disabled':''}>
+        ${correctOptionsHtml(finding, correct)}
+      </select>
+    </div>`;
+  }
+
+  function renderTable(){
+    const q = $('#search').value.trim().toLowerCase();
+    const filterStatus = $('#filter-status').value;
+    const body = $('#ledger-body');
+    body.innerHTML = '';
+    let shown = 0;
+
+    tickets.forEach((t, idx)=>{
+      const st = statusOf(t);
+      if(filterStatus !== 'all' && st !== filterStatus) return;
+      if(q){
+        const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
+        if(!hay.includes(q)) return;
+      }
+      shown++;
+      const tr = document.createElement('tr');
+
+      const flagged = /\*/.test(t.ptn);
+      tr.dataset.status = st;
+      const isFound = st === 'match';
+      tr.innerHTML = `
+        <td class="num">${idx+1}</td>
+        <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
+        <td class="date">${t.date||'—'}</td>
+        <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
+        <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
+        <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
+        <td class="status-cell">${statusBadge(st)}</td>
+        <td class="findings-list">
+          <button class="findings-toggle${t.items.some(it=>it.finding)?' has-findings':''}" data-ti="${idx}" title="Click to view/edit findings">Findings</button>
+          <div class="findings-body" data-ti="${idx}">${t.items.map((it,ii)=>findingItemHtml(it, idx, ii)).join('')}</div>
+        </td>
+        <td class="actions-cell">
+          <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+
+    $('#empty-note').style.display = shown ? 'none' : 'block';
+
+    $$('.found-check').forEach(chk=>{
+      chk.addEventListener('change', e=>{
+        const i = +e.target.dataset.idx;
+        tickets[i].actual = e.target.checked ? true : null;
+        persistCounts();
+        renderStats();
+        const tr = e.target.closest('tr');
+        const st = statusOf(tickets[i]);
+        tr.dataset.status = st;
+        tr.querySelector('.status-cell').innerHTML = statusBadge(st);
+      });
+    });
+    $$('.desc-text').forEach(el=>{
+      el.addEventListener('blur', e=>{
+        const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
+        tickets[ti].items[ii].desc = e.target.textContent.trim();
+        saveFullCategoryState(activeCategory);
+      });
+    });
+    $$('.findings-toggle').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        const ti = e.target.dataset.ti;
+        const body = e.target.closest('.findings-list').querySelector('.findings-body');
+        body.classList.toggle('show');
+      });
+    });
+    $$('.finding-select').forEach(sel=>{
+      sel.addEventListener('change', e=>{
+        const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
+        const val = e.target.value;
+        tickets[ti].items[ii].finding = val;
+        tickets[ti].items[ii].correct = '';
+        saveFullCategoryState(activeCategory);
+        const wrap = e.target.closest('.finding-item');
+        const correctSel = wrap.querySelector('.correct-select');
+        correctSel.disabled = !val;
+        correctSel.innerHTML = correctOptionsHtml(val, '');
+        const toggleBtn = e.target.closest('.findings-list').querySelector('.findings-toggle');
+        const hasFinding = tickets[ti].items.some(it=>it.finding);
+        toggleBtn.classList.toggle('has-findings', hasFinding);
+      });
+    });
+    $$('.correct-select').forEach(sel=>{
+      sel.addEventListener('change', e=>{
+        const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
+        tickets[ti].items[ii].correct = e.target.value;
+        saveFullCategoryState(activeCategory);
+      });
+    });
+    $$('[data-del]').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        const i = +e.target.dataset.del;
+        if(confirm('Delete this ticket from the list?')){
+          tickets.splice(i,1);
+          saveFullCategoryState(activeCategory);
+          renderTable(); renderStats();
+        }
+      });
+    });
+
+    renderStats();
+  }
+
+  function statusBadge(st){
+    if(st==='match') return `<span class="status-badge match">Found</span><span class="stamp">✓ OK</span>`;
+    return `<span class="status-badge pending">Pending</span>`;
+  }
+
+  function renderStats(){
+    const total = tickets.length;
+    const matched = tickets.filter(t=>statusOf(t)==='match').length;
+    const pending = total - matched;
+
+    $('#stats-row').innerHTML = `
+      <div class="stat-chip"><div class="num">${total}</div><div class="lab">Total Tickets</div></div>
+      <div class="stat-chip match"><div class="num">${matched}</div><div class="lab">Found</div></div>
+      <div class="stat-chip pending"><div class="num">${pending}</div><div class="lab">Pending</div></div>
+      <div class="stat-chip"><div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div><div class="lab">Audit Date</div></div>
+    `;
+
+    const cats = {};
+    tickets.forEach(t=>{
+      t.items.forEach(it=>{
+        const cat = categoryOf(it.code);
+        if(!cats[cat]) cats[cat] = {expected:0, counted:0};
+        cats[cat].expected += it.pcs;
+      });
+      if(t.actual){
+        const primaryCat = categoryOf(t.items[0].code);
+        const ticketPcs = t.items.reduce((a,it)=>a+(Number(it.pcs)||0),0);
+        cats[primaryCat].counted += ticketPcs;
+      }
+    });
+    $('#cat-row').innerHTML = Object.entries(cats).map(([name,v])=>`
+      <div class="cat-card">
+        <div class="name">${name}</div>
+        <div class="figures">${v.counted} <small>/ ${v.expected} pcs</small></div>
+      </div>
+    `).join('');
+  }
+
+  $('#search').addEventListener('input', ()=> keepScroll(renderTable));
+  $('#filter-status').addEventListener('change', ()=> keepScroll(renderTable));
+
+  function runGlobalSearch(){
+    const q = $('#global-search-input').value.trim().toLowerCase();
+    const box = $('#global-search-results');
+    if(!q){ box.innerHTML = ''; return; }
+
+    const hits = [];
+    CATEGORIES.forEach(c=>{
+      const data = categoryData[c.key];
+      if(!data) return;
+      data.tickets.forEach(t=>{
+        if(t.ptn.toLowerCase().includes(q)){
+          hits.push({label: c.label, ptn: t.ptn, date: t.date, loan: t.loan, actual: t.actual});
+        }
+      });
+    });
+
+    if(!hits.length){
+      box.innerHTML = `<span style="color:var(--text-muted);">No matches in any uploaded category.</span>`;
+      return;
+    }
+    box.innerHTML = hits.map(h=>`
+      <div style="padding:8px 0; border-bottom:1px solid var(--border);">
+        <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})
+        · Loan ₱${Number(h.loan).toLocaleString()}
+        · ${h.actual ? 'Found' : 'Pending'}
+      </div>
+    `).join('');
+  }
+
+  $('#global-search-btn').addEventListener('click', runGlobalSearch);
+  $('#global-search-input').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') runGlobalSearch();
   });
-  $('#category-tabs').innerHTML = '';
-  $('#category-tabs').classList.remove('show');
-  $('#dashboard').classList.remove('show');
-  $('#global-search-input').value = '';
-  $('#global-search-results').innerHTML = '';
-  setStatus(`Cleared data for branch "${currentBranch}".`);
-});
+
+  $('#reset-counts-btn').addEventListener('click', async ()=>{
+    if(!confirm('Clear all Found checkmarks?')) return;
+    tickets.forEach(t=> t.actual = null);
+    saveFullCategoryState(activeCategory);
+    renderTable();
+  });
+
+  $('#export-btn').addEventListener('click', ()=>{
+    const rows = [['Pawn Ticket #','Date','Principal Amount','Item Code','Description','Karat','Weight','Findings','Correct','Status']];
+    tickets.forEach(t=>{
+      const flaggedItems = t.items.filter(i=>i.finding);
+      if(!flaggedItems.length) return;
+      const st = statusOf(t);
+      flaggedItems.forEach(it=>{
+        rows.push([
+          t.ptn, t.date, t.loan ?? '', it.code || '', it.desc || '',
+          it.karat ? it.karat+'K' : '', it.wt ?? '',
+          it.finding || '', it.correct || '', st
+        ]);
+      });
+    });
+    if(rows.length === 1){ alert('No findings flagged yet.'); return; }
+    const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'discrepancy-report.csv';
+    a.click();
+  });
+
+  $('#print-btn').addEventListener('click', ()=> window.print());
+
+  $('#print-missing-btn').addEventListener('click', ()=>{
+    const missingCount = tickets.filter(t=>statusOf(t)!=='match').length;
+    if(missingCount === 0){ alert('Everything has been checked!'); return; }
+    document.body.classList.add('print-missing-mode');
+    window.print();
+    setTimeout(()=> document.body.classList.remove('print-missing-mode'), 500);
+  });
+
+  $('#debug-toggle').addEventListener('click', ()=>{
+    const panel = $('#debug-panel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  $('#backup-json-btn').addEventListener('click', ()=>{
+    if(!currentBranch){ alert('Please set your branch name first.'); return; }
+    const backup = {
+      app: 'QCL Inventory Report',
+      exportedAt: new Date().toISOString(),
+      branch: currentBranch,
+      auditDate: currentAuditDate,
+      categories: {}
+    };
+    CATEGORIES.forEach(c=>{
+      if(categoryData[c.key]){
+        backup.categories[c.key] = {
+          tickets: categoryData[c.key].tickets,
+          fileName: categoryData[c.key].fileName
+        };
+      }
+    });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `qcl-inventory-backup-${slugBranch(currentBranch)}-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  $('#restore-json-btn').addEventListener('click', ()=>{
+    $('#restore-json-input').click();
+  });
+
+  $('#restore-json-input').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const backup = JSON.parse(text);
+      if(!backup || !backup.categories){ alert('Invalid backup file.'); return; }
+
+      if(backup.branch){
+        currentBranch = backup.branch;
+        $('#branch-input').value = currentBranch;
+        rememberBranch(currentBranch);
+      }
+      if(backup.auditDate){
+        currentAuditDate = backup.auditDate;
+        $('#audit-date-input').value = currentAuditDate;
+        rememberAuditDate(currentAuditDate);
+      }
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate || '—'}`;
+
+      let firstCat = null;
+      for(const key of Object.keys(backup.categories)){
+        const catInfo = backup.categories[key];
+        if(!catInfo || !catInfo.tickets) continue;
+        categoryData[key] = {tickets: catInfo.tickets, fileName: catInfo.fileName || '(restored)'};
+        saveFullCategoryState(key);
+        const card = document.querySelector(`.cat-upload-card[data-cat="${key}"]`);
+        if(card){
+          card.classList.add('done');
+          const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
+          if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored`;
+        }
+        if(!firstCat) firstCat = key;
+      }
+      if(firstCat){
+        activeCategory = firstCat;
+        loadCategory(firstCat);
+        renderCategoryTabs();
+        renderStats();
+        setStatus('Restored from backup file successfully.');
+      }
+    }catch(err){
+      console.error(err);
+      alert('Could not read file.');
+    } finally {
+      e.target.value = '';
+    }
+  });
+
+  $('#new-day-btn').addEventListener('click', async ()=>{
+    if(!currentBranch){ alert('Please set your branch name first.'); return; }
+    if(!confirm(`Clear all data for "${currentBranch}"?`)) return;
+    categoryData = {};
+    tickets = [];
+    activeCategory = null;
+    unparsedLines = [];
+
+    $$('.cat-upload-card').forEach(card=>{
+      card.classList.remove('done');
+      const key = card.dataset.cat;
+      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
+      card.querySelector('.cat-file-input').value = '';
+    });
+    $('#category-tabs').innerHTML = '';
+    $('#category-tabs').classList.remove('show');
+    $('#dashboard').classList.remove('show');
+    $('#global-search-input').value = '';
+    $('#global-search-results').innerHTML = '';
+    setStatus(`Cleared data for branch "${currentBranch}".`);
+  });
 
 </script>
 </body>
