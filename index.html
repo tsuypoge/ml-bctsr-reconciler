@@ -70,9 +70,9 @@
   .form-group { text-align: left; margin-bottom: 18px; }
   .form-group label { display: block; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  .form-input {
+  .form-input, .form-select {
     width: 100%;
-    padding: 12px 14px;
+    padding: 11px 14px;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
     font-size: 13.5px;
@@ -81,7 +81,7 @@
     transition: all 0.2s;
     background: #ffffff;
   }
-  .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
+  .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
 
   .btn-login {
     width: 100%;
@@ -102,7 +102,7 @@
 
   /* Dashboard View */
   #dashboard-view {
-    max-width: 1250px;
+    max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
   }
@@ -150,6 +150,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
+    margin-bottom: 20px;
   }
 
   .admin-box {
@@ -242,19 +243,6 @@
   }
   .dash-table tr:hover { background: #fffdfd; }
 
-  .companion-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: #f1f5f9;
-    color: #0f172a;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 1px solid #cbd5e1;
-  }
-
   .btn-tbl-status {
     border: none;
     padding: 8px 18px;
@@ -327,7 +315,7 @@
   }
 
   .log-box {
-    max-height: 140px;
+    max-height: 130px;
     overflow-y: auto;
     font-family: var(--font-mono);
     font-size: 11px;
@@ -336,6 +324,24 @@
     padding: 10px;
     border-radius: 6px;
     line-height: 1.4;
+  }
+
+  .user-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  .user-list-table th {
+    background: #e2e8f0;
+    color: #334155;
+    padding: 8px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .user-list-table td {
+    padding: 8px;
+    border-bottom: 1px solid #e2e8f0;
   }
 </style>
 </head>
@@ -405,6 +411,37 @@
         </div>
       </div>
     </div>
+
+    <!-- 👤 ENROLL NEW USER SECTION -->
+    <div class="admin-box" style="margin-top:10px;">
+      <h4>👤 User Enrollment & Permission Management</h4>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
+        <input type="text" id="enroll-userid" class="form-input" placeholder="User ID / Employee Code">
+        <input type="text" id="enroll-fullname" class="form-input" placeholder="Full Name">
+        <select id="enroll-role" class="form-select">
+          <option value="user">Standard Auditor</option>
+          <option value="admin">Master Administrator</option>
+        </select>
+        <button class="btn-toolbar" style="background:var(--primary); color:#fff; justify-content:center;" onclick="enrollNewUser()">➕ Enroll User</button>
+      </div>
+
+      <!-- ENROLLED USERS TABLE -->
+      <div style="max-height:160px; overflow-y:auto; background:#fff; border-radius:6px; border:1px solid #e2e8f0;">
+        <table class="user-list-table">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Full Name</th>
+              <th>Role</th>
+              <th style="text-align:center;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="enrolled-users-tbody">
+            <!-- Enrolled users loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <div class="dash-toolbar">
@@ -425,7 +462,6 @@
         <tr>
           <th>Branchname</th>
           <th>Cut-off Date</th>
-          <th>Companion Auditor</th>
           <th style="text-align:center;">Inventory</th>
           <th style="text-align:center;">Status</th>
           <th style="text-align:center;">Action</th>
@@ -438,7 +474,7 @@
   </div>
 </div>
 
-<!-- NEW ENTRY MODAL (WITH COMPANION ASSIGNMENT) -->
+<!-- NEW ENTRY MODAL -->
 <div class="modal-overlay" id="new-modal">
   <div class="modal-card">
     <h3 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:18px;">Create New Branch Recon Entry</h3>
@@ -453,14 +489,6 @@
       <input type="text" id="new-cutoff-date" class="form-input" placeholder="e.g. 06/11/2026 - 07/26/2026">
     </div>
 
-    <div class="form-group">
-      <label>Assign Companion Auditor (Kauban Auditor)</label>
-      <input type="text" id="new-companion" class="form-input" placeholder="e.g. AUDITOR-202 (John Doe)">
-      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-        * Companion can edit <strong>QCL</strong> and <strong>Subasta/SR</strong> inventory.
-      </div>
-    </div>
-
     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
       <button class="btn-toolbar" style="background:#f1f5f9; color:#475569; box-shadow:none;" onclick="closeNewModal()">Cancel</button>
       <button class="btn-toolbar" style="background:var(--primary); color:#fff;" onclick="saveNewEntry()">Save & Open Reconciler ➔</button>
@@ -470,10 +498,15 @@
 
 <script>
 let strikeForceEntries = [
-  { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companion: "AUDITOR-202", status: "In Progress" },
-  { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companion: "AUDITOR-105", status: "Pending" },
-  { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companion: "AUDITOR-308", status: "Pending" },
-  { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companion: "AUDITOR-412", status: "In Progress" }
+  { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", status: "In Progress" },
+  { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", status: "Pending" },
+  { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", status: "Pending" },
+  { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", status: "In Progress" }
+];
+
+let enrolledUsers = [
+  { userId: "ADMIN-MASTER", name: "Master Admin", role: "admin" },
+  { userId: "AUDITOR-516", name: "Auditor User", role: "user" }
 ];
 
 let systemAuditLogs = [];
@@ -490,9 +523,13 @@ function addAuditLog(msg) {
 }
 
 function loadEntries() {
-  let saved = localStorage.getItem('ml_strikeForceEntries');
-  if (saved) {
-    try { strikeForceEntries = JSON.parse(saved); } catch(e){}
+  let savedEntries = localStorage.getItem('ml_strikeForceEntries');
+  if (savedEntries) {
+    try { strikeForceEntries = JSON.parse(savedEntries); } catch(e){}
+  }
+  let savedUsers = localStorage.getItem('ml_enrolled_users');
+  if (savedUsers) {
+    try { enrolledUsers = JSON.parse(savedUsers); } catch(e){}
   }
   let savedLogs = localStorage.getItem('ml_audit_logs');
   if (savedLogs) {
@@ -504,11 +541,58 @@ function saveEntries() {
   localStorage.setItem('ml_strikeForceEntries', JSON.stringify(strikeForceEntries));
 }
 
+function saveEnrolledUsers() {
+  localStorage.setItem('ml_enrolled_users', JSON.stringify(enrolledUsers));
+}
+
+function renderEnrolledUsersTable() {
+  const tbody = document.getElementById('enrolled-users-tbody');
+  tbody.innerHTML = '';
+
+  enrolledUsers.forEach((u, idx) => {
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${u.userId}</strong></td>
+      <td>${u.name}</td>
+      <td><span style="font-weight:700; color:${u.role==='admin'?'#cc0000':'#0284c7'};">${u.role.toUpperCase()}</span></td>
+      <td style="text-align:center;">
+        <button class="btn-action btn-delete" onclick="deleteEnrolledUser(${idx})">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function enrollNewUser() {
+  let uid = document.getElementById('enroll-userid').value.trim();
+  let name = document.getElementById('enroll-fullname').value.trim();
+  let role = document.getElementById('enroll-role').value;
+
+  if (!uid || !name) { alert("Please enter User ID and Full Name."); return; }
+
+  enrolledUsers.push({ userId: uid.toUpperCase(), name: name, role: role });
+  saveEnrolledUsers();
+  renderEnrolledUsersTable();
+
+  addAuditLog(`Enrolled User: ${uid.toUpperCase()} (${name}) - Role: ${role.toUpperCase()}`);
+
+  document.getElementById('enroll-userid').value = '';
+  document.getElementById('enroll-fullname').value = '';
+}
+
+function deleteEnrolledUser(index) {
+  let u = enrolledUsers[index];
+  if (confirm(`Remove enrolled user ${u.userId}?`)) {
+    enrolledUsers.splice(index, 1);
+    saveEnrolledUsers();
+    renderEnrolledUsersTable();
+    addAuditLog(`Removed Enrolled User: ${u.userId}`);
+  }
+}
+
 function renderDashboardTable() {
   const tbody = document.getElementById('dash-tbody');
   tbody.innerHTML = '';
-
-  let currentRole = localStorage.getItem('ml_user_role') || 'lead';
 
   strikeForceEntries.forEach((row, index) => {
     let statusBg = "#16a34a";
@@ -520,9 +604,6 @@ function renderDashboardTable() {
     tr.innerHTML = `
       <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
       <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
-      <td>
-        <span class="companion-tag">🤝 ${row.companion || 'Unassigned'}</span>
-      </td>
       
       <!-- INVENTORY COLUMN -->
       <td style="text-align:center;">
@@ -539,10 +620,8 @@ function renderDashboardTable() {
 
       <!-- ACTION COLUMN -->
       <td style="text-align:center;">
-        ${(currentRole === 'lead' || currentRole === 'admin') ? `
-          <button class="btn-action btn-archive" title="Archive" onclick="archiveEntry(${index})">📁 Archive</button>
-          <button class="btn-action btn-delete" title="Delete" onclick="deleteEntry(${index})">🗑️ Delete</button>
-        ` : `<span style="font-size:11px; color:#94a3b8; font-weight:600;">Read-Only</span>`}
+        <button class="btn-action btn-archive" title="Archive" onclick="archiveEntry(${index})">📁 Archive</button>
+        <button class="btn-action btn-delete" title="Delete" onclick="deleteEntry(${index})">🗑️ Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -555,7 +634,6 @@ function closeNewModal() { document.getElementById('new-modal').style.display = 
 function saveNewEntry() {
   let bName = document.getElementById('new-branch').value.trim();
   let cDate = document.getElementById('new-cutoff-date').value.trim();
-  let cCompanion = document.getElementById('new-companion').value.trim();
 
   if (!bName) { alert("Please enter Branch Name"); return; }
 
@@ -564,12 +642,11 @@ function saveNewEntry() {
   strikeForceEntries.push({
     branch: formattedBranch,
     cutoffDate: cDate || "Pending Upload",
-    companion: cCompanion || "Unassigned",
     status: "Pending"
   });
 
   saveEntries();
-  addAuditLog(`Created Branch Entry: ${formattedBranch} (Assigned: ${cCompanion || 'None'})`);
+  addAuditLog(`Created Branch Entry: ${formattedBranch}`);
   closeNewModal();
 
   localStorage.setItem('ml_activeBranch', formattedBranch);
@@ -627,6 +704,7 @@ function exportMasterDatabaseJSON() {
     exportedAt: new Date().toISOString(),
     user: localStorage.getItem('ml_activeUser'),
     entries: strikeForceEntries,
+    enrolledUsers: enrolledUsers,
     branchesStore: localStorage.getItem('ml_branchesStore'),
     auditLogs: systemAuditLogs
   };
@@ -650,6 +728,10 @@ function importMasterDatabaseJSON(evt) {
       if (data.entries) {
         strikeForceEntries = data.entries;
         saveEntries();
+      }
+      if (data.enrolledUsers) {
+        enrolledUsers = data.enrolledUsers;
+        saveEnrolledUsers();
       }
       if (data.branchesStore) {
         localStorage.setItem('ml_branchesStore', data.branchesStore);
@@ -701,19 +783,28 @@ function updateUserInfoDisplay() {
 }
 
 function doLogin() {
-  let user = document.getElementById('login-user').value.trim() || 'ADMIN-MASTER';
-  let role = user.toUpperCase().includes('ADMIN') ? 'admin' : 'lead';
+  let userInput = document.getElementById('login-user').value.trim().toUpperCase() || 'ADMIN-MASTER';
+  
+  let foundUser = enrolledUsers.find(u => u.userId === userInput);
+  let role = 'user';
+
+  if (foundUser) {
+    role = foundUser.role;
+  } else if (userInput.includes('ADMIN')) {
+    role = 'admin';
+  }
 
   sessionStorage.setItem('ml_logged_in', 'true');
-  localStorage.setItem('ml_activeUser', user);
+  localStorage.setItem('ml_activeUser', userInput);
   localStorage.setItem('ml_user_role', role);
 
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('dashboard-view').style.display = 'block';
   
-  addAuditLog(`User Logged In: ${user} [Role: ${role}]`);
+  addAuditLog(`User Logged In: ${userInput} [Role: ${role}]`);
   updateUserInfoDisplay();
   loadEntries();
+  renderEnrolledUsersTable();
   renderDashboardTable();
 }
 
@@ -730,6 +821,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dashboard-view').style.display = 'block';
     updateUserInfoDisplay();
     loadEntries();
+    renderEnrolledUsersTable();
     renderDashboardTable();
   }
 });
