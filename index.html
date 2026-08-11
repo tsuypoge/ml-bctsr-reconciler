@@ -196,6 +196,23 @@
   }
   .btn-tbl-status:hover { opacity: 0.9; transform: translateY(-1px); }
 
+  /* Action Buttons */
+  .btn-action {
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.2s;
+    margin: 0 2px;
+  }
+  .btn-archive { background: #f1f5f9; color: #334155; }
+  .btn-archive:hover { background: #e2e8f0; color: #0f172a; }
+  .btn-delete { background: #fee2e2; color: #991b1b; }
+  .btn-delete:hover { background: #fca5a5; color: #7f1d1d; }
+
   /* Modal */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -250,6 +267,7 @@
           <th>Branchname <span class="sort-icon">▲▼</span></th>
           <th>Cut-off Date <span class="sort-icon">▲▼</span></th>
           <th style="text-align:center;">Status</th>
+          <th style="text-align:center;">Action</th>
         </tr>
       </thead>
       <tbody id="dash-tbody">
@@ -301,10 +319,11 @@ function renderDashboardTable() {
   const tbody = document.getElementById('dash-tbody');
   tbody.innerHTML = '';
 
-  strikeForceEntries.forEach((row) => {
+  strikeForceEntries.forEach((row, index) => {
     let statusBg = "#16a34a";
     if (row.status === "In Progress") statusBg = "#ea580c";
     else if (row.status === "Pending") statusBg = "#64748b";
+    else if (row.status === "Archived") statusBg = "#475569";
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -315,15 +334,16 @@ function renderDashboardTable() {
           ${row.status} ➔
         </button>
       </td>
+      <td style="text-align:center;">
+        <button class="btn-action btn-archive" title="Archive" onclick="archiveEntry(${index})">📁 Archive</button>
+        <button class="btn-action btn-delete" title="Delete" onclick="deleteEntry(${index})">🗑️ Delete</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
 function createNewRecon() {
-  // NOTE: Kung gusto nimo DILI na moagi og Modal, i-uncomment lang ni nga line:
-  // window.location.href = 'reconciler.html'; return;
-
   openNewModal();
 }
 
@@ -338,7 +358,6 @@ function saveNewEntry() {
 
   let formattedBranch = bName.toUpperCase();
 
-  // Save sa array
   strikeForceEntries.push({
     branch: formattedBranch,
     cutoffDate: cDate || "Pending Upload",
@@ -348,9 +367,24 @@ function saveNewEntry() {
   saveEntries();
   closeNewModal();
 
-  // 👉 REKTA OPEN SA RECONCILER.HTML
   localStorage.setItem('ml_activeBranch', formattedBranch);
   window.location.href = 'reconciler.html';
+}
+
+function deleteEntry(index) {
+  if (confirm(`Sigurado ka nga gusto nimo i-delete ang "${strikeForceEntries[index].branch}"?`)) {
+    strikeForceEntries.splice(index, 1);
+    saveEntries();
+    renderDashboardTable();
+  }
+}
+
+function archiveEntry(index) {
+  if (confirm(`I-archive ba ang "${strikeForceEntries[index].branch}"?`)) {
+    strikeForceEntries[index].status = "Archived";
+    saveEntries();
+    renderDashboardTable();
+  }
 }
 
 function launchReconciler(branchName) {
