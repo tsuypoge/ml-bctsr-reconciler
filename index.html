@@ -87,6 +87,13 @@
     gap: 14px;
   }
 
+  .header-logo-img {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+  }
+
   .logo-badge {
     background: #ffffff;
     color: var(--primary);
@@ -218,19 +225,19 @@
     background: #b45309;
   }
 
-  .branch-select-wrapper {
+  .branch-display-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
     background: var(--panel-bg);
     border: 1.5px solid var(--gold);
-    padding: 0 12px;
+    padding: 0 14px;
     border-radius: var(--radius-md);
     height: 40px;
     box-shadow: var(--shadow-sm);
   }
 
-  .branch-select-wrapper label {
+  .branch-display-wrapper .branch-label {
     font-size: 11px;
     font-weight: 800;
     color: var(--primary);
@@ -239,15 +246,11 @@
     letter-spacing: 0.5px;
   }
 
-  .branch-select {
-    border: none;
-    outline: none;
+  .branch-display-wrapper .branch-name-val {
     font-size: 13px;
     font-weight: 700;
     color: var(--text-main);
-    background: transparent;
-    cursor: pointer;
-    min-width: 150px;
+    white-space: nowrap;
   }
 
   /* Currency Tabs */
@@ -518,7 +521,8 @@
 <header id="app-header">
   <div class="header-content">
     <div class="header-title-box">
-      <div class="logo-badge">ML</div>
+      <img src="logo.png" class="header-logo-img" alt="M Lhuillier Logo" onerror="this.style.display='none'; document.getElementById('fallback-logo-badge').style.display='inline-block';">
+      <div class="logo-badge" id="fallback-logo-badge" style="display:none;">ML</div>
       <div>
         <h1>Automated BCTSR Reconciler</h1>
         <div class="header-sub">Master Reconciliation & Sub-Report Audit Engine</div>
@@ -532,13 +536,11 @@
 
 <div class="wrap" id="export-container">
   
-  <!-- CONTROLS & BRANCH SELECTOR TOOLBAR -->
+  <!-- CONTROLS TOOLBAR & BRANCH DISPLAY -->
   <div class="upload-action-bar hide-print">
-    <div class="branch-select-wrapper">
-      <label for="branch-select">🏢 Branch:</label>
-      <select id="branch-select" class="branch-select" onchange="onBranchDropdownChange(this.value)">
-        <option value="Select Branch">Select Branch</option>
-      </select>
+    <div class="branch-display-wrapper">
+      <span class="branch-label">🏢 Branch:</span>
+      <span id="active-branch-name" class="branch-name-val">Select Branch</span>
     </div>
 
     <button class="btn-action btn-export" id="btn-upload-master" onclick="document.getElementById('file-upload').click()">
@@ -1486,7 +1488,7 @@ const REPORT_RULES = {
   "Fund Transfer Received From BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Received :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Received :", curr) },
   "Fund Transfer Given to BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Given :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Given :", curr) },
   
-  // FUND TRANSFER RECEIVED FROM BC/HO -> B2B RECEIVED ONLY
+  // FUND TRANSFER RECEIVED FROM BC/HO -> B2B RECEIVED ONLY (ALL CURRENCIES: PHP, USD, EUR, JPY, GBP)
   "Fund Transfer Received From BC/HO": { 
     sheet: "B2B", 
     altSheet: "B2B PHP",
@@ -1504,7 +1506,7 @@ const REPORT_RULES = {
     } 
   },
 
-  // FUND TRANSFER GIVEN TO BC/HO -> B2B GIVEN + B2FD GIVEN
+  // FUND TRANSFER GIVEN TO BC/HO -> B2B GIVEN + B2FD GIVEN (ALL CURRENCIES: PHP, USD, EUR, JPY, GBP)
   "Fund Transfer Given to BC/HO": { 
     sheet: "B2B", 
     altSheet: "B2FD",
@@ -1838,21 +1840,10 @@ function loadStateFromStorage() {
 }
 
 function updateBranchDropdownUI() {
-  const select = document.getElementById('branch-select');
-  select.innerHTML = '';
-
-  let branchList = Object.keys(branchesStore);
-  if (branchList.length === 0) {
-    branchList = ["Select Branch"];
+  const el = document.getElementById('active-branch-name');
+  if (el) {
+    el.innerText = activeBranch || "Select Branch";
   }
-
-  branchList.forEach(b => {
-    let opt = document.createElement('option');
-    opt.value = b;
-    opt.innerText = b;
-    if (b === activeBranch) opt.selected = true;
-    select.appendChild(opt);
-  });
 }
 
 function onBranchDropdownChange(newBranch) {
@@ -2672,8 +2663,8 @@ function renderReconciliationTable(data) {
         matchedSheet = rule.sheet;
         let activeSheet = sheetsStore[rule.sheet] || sheetsStore[rule.altSheet];
         
-        // Dynamic detection if B2B + B2FD are both uploaded for Fund Transfer Given to BC/HO
-        if (rule.altSheet === "B2FD" || rule.sheet === "B2FD") {
+        // Dynamic detection for Fund Transfer Given to BC/HO (B2B + B2FD)
+        if (item.particular === "Fund Transfer Given to BC/HO") {
           let b2bSheet = sheetsStore["B2B"] || sheetsStore["B2B PHP"];
           let b2fdSheet = sheetsStore["B2FD"];
           let hasB2B = b2bSheet && b2bSheet.length > 0;
