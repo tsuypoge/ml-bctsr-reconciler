@@ -100,7 +100,7 @@
 
   /* Dashboard View */
   #dashboard-view {
-    max-width: 1100px;
+    max-width: 1150px;
     margin: 40px auto;
     padding: 0 20px;
   }
@@ -140,7 +140,7 @@
   }
   .btn-toolbar:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 
-  /* Dropdown for Inventory */
+  /* Dropdown for Inventory Toolbar */
   .dropdown {
     position: relative;
     display: inline-block;
@@ -201,7 +201,7 @@
     color: var(--primary);
     font-size: 11.5px;
     font-weight: 800;
-    padding: 16px 20px;
+    padding: 16px 16px;
     border-bottom: 2px solid #f1f5f9;
     white-space: nowrap;
     text-align: left;
@@ -212,7 +212,7 @@
   .dash-table th .sort-icon { font-size: 9px; color: #94a3b8; margin-left: 4px; }
 
   .dash-table td {
-    padding: 16px 20px;
+    padding: 16px 16px;
     border-bottom: 1px solid #f8fafc;
     color: #334155;
     vertical-align: middle;
@@ -237,6 +237,31 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   .btn-tbl-status:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* Inventory Action Buttons inside Table */
+  .btn-inv {
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    color: #334155;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 2px;
+  }
+  .btn-inv:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(204, 0, 0, 0.2);
+  }
 
   /* Action Buttons */
   .btn-action {
@@ -301,6 +326,7 @@
         <tr>
           <th>Branchname <span class="sort-icon">▲▼</span></th>
           <th>Cut-off Date <span class="sort-icon">▲▼</span></th>
+          <th style="text-align:center;">Inventory</th>
           <th style="text-align:center;">Status</th>
           <th style="text-align:center;">Action</th>
         </tr>
@@ -345,11 +371,21 @@ function renderDashboardTable() {
     tr.innerHTML = `
       <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
       <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
+      
+      <!-- INVENTORY COLUMN -->
+      <td style="text-align:center;">
+        <button class="btn-inv" title="Subasta / SR" onclick="launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subasta_sr')">🏷️ Subasta/SR</button>
+        <button class="btn-inv" title="QCL" onclick="launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'qcl')">💎 QCL</button>
+      </td>
+
+      <!-- STATUS COLUMN -->
       <td style="text-align:center;">
         <button class="btn-tbl-status" style="background:${statusBg};" onclick="launchReconciler('${row.branch.replace(/'/g, "\\'")}')">
           ${row.status} ➔
         </button>
       </td>
+
+      <!-- ACTION COLUMN -->
       <td style="text-align:center;">
         <button class="btn-action btn-archive" title="Archive" onclick="archiveEntry(${index})">📁 Archive</button>
         <button class="btn-action btn-delete" title="Delete" onclick="deleteEntry(${index})">🗑️ Delete</button>
@@ -370,6 +406,12 @@ function launchInventory(type) {
   } else if (type === 'qcl') {
     window.location.href = 'qcl.html';
   }
+}
+
+function launchBranchInventory(branchName, type) {
+  let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
+  localStorage.setItem('ml_activeBranch', activeB);
+  launchInventory(type);
 }
 
 function deleteEntry(index) {
