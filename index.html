@@ -102,7 +102,7 @@
 
   /* Dashboard View */
   #dashboard-view {
-    max-width: 1200px;
+    max-width: 1250px;
     margin: 40px auto;
     padding: 0 20px;
   }
@@ -298,10 +298,10 @@
   .btn-delete { background: #fee2e2; color: #991b1b; }
   .btn-delete:hover { background: #fca5a5; }
 
-  /* Modal */
+  /* Modal Base */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(4px);
     display: none; align-items: center; justify-content: center;
     z-index: 10000;
@@ -313,6 +313,108 @@
     width: 480px;
     box-shadow: var(--shadow-card);
   }
+
+  /* 🎯 ENROLL USER MODAL DESIGN MATCHING SCREENSHOT */
+  .enroll-modal-card {
+    width: 440px;
+    border-radius: 20px;
+    padding: 28px 28px 24px 28px;
+    background: #ffffff;
+    box-shadow: 0 20px 30px rgba(0,0,0,0.25);
+  }
+
+  .modal-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .modal-header-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-header-title span {
+    color: #7c3aed; /* Purple Plus Icon */
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  .btn-close-x {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .btn-close-x:hover { color: #0f172a; }
+
+  .enroll-modal-card .form-group {
+    margin-bottom: 14px;
+  }
+
+  .enroll-modal-card .form-group label {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+    text-transform: uppercase;
+  }
+
+  .enroll-modal-card .form-input {
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 13.5px;
+    color: #1e293b;
+  }
+
+  .form-input.bg-soft {
+    background-color: #ebf3fe; /* Soft Light Blue tint */
+    border-color: #dbeafe;
+  }
+
+  .enroll-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .btn-enroll-cancel {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-enroll-cancel:hover { background: #e2e8f0; color: #0f172a; }
+
+  .btn-enroll-submit {
+    background: #dc2626; /* Vibrant ML Red */
+    color: #ffffff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+  }
+  .btn-enroll-submit:hover { background: #b91c1c; transform: translateY(-1px); }
 
   .log-box {
     max-height: 130px;
@@ -412,17 +514,11 @@
       </div>
     </div>
 
-    <!-- 👤 ENROLL NEW USER SECTION -->
+    <!-- 👤 USER MANAGEMENT SECTION -->
     <div class="admin-box" style="margin-top:10px;">
-      <h4>👤 User Enrollment & Permission Management</h4>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
-        <input type="text" id="enroll-userid" class="form-input" placeholder="User ID / Employee Code">
-        <input type="text" id="enroll-fullname" class="form-input" placeholder="Full Name">
-        <select id="enroll-role" class="form-select">
-          <option value="user">Standard Auditor</option>
-          <option value="admin">Master Administrator</option>
-        </select>
-        <button class="btn-toolbar" style="background:var(--primary); color:#fff; justify-content:center;" onclick="enrollNewUser()">➕ Enroll User</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h4>👤 User Enrollment & Permission Management</h4>
+        <button class="btn-toolbar" style="background:var(--primary); color:#fff; padding:6px 14px; font-size:12px;" onclick="openEnrollModal()">➕ Enroll New User</button>
       </div>
 
       <!-- ENROLLED USERS TABLE -->
@@ -430,9 +526,10 @@
         <table class="user-list-table">
           <thead>
             <tr>
-              <th>User ID</th>
+              <th>Username</th>
               <th>Full Name</th>
-              <th>Role</th>
+              <th>Position</th>
+              <th>Department</th>
               <th style="text-align:center;">Action</th>
             </tr>
           </thead>
@@ -496,6 +593,53 @@
   </div>
 </div>
 
+<!-- 💜 3. ENROLL NEW USER MODAL (EXACT DESIGN MATCHING SCREENSHOT) -->
+<div class="modal-overlay" id="enroll-modal">
+  <div class="modal-card enroll-modal-card">
+    <div class="modal-header-custom">
+      <div class="modal-header-title">
+        <span>┼</span> Enroll New User
+      </div>
+      <button class="btn-close-x" onclick="closeEnrollModal()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label>USERNAME</label>
+      <input type="text" id="enroll-username" class="form-input bg-soft" value="admin" placeholder="Enter Username">
+    </div>
+
+    <div class="form-group">
+      <label>FULL NAME</label>
+      <input type="text" id="enroll-fullname" class="form-input" placeholder="e.g. Jane Doe">
+    </div>
+
+    <div class="form-group">
+      <label>DESIGNATION / POSITION</label>
+      <input type="text" id="enroll-position" class="form-input" value="Audit Specialist" placeholder="Designation / Position">
+    </div>
+
+    <div class="form-group">
+      <label>DEPARTMENT</label>
+      <input type="text" id="enroll-department" class="form-input" value="StrikeForce/Fraud Audit-IAD" placeholder="Department">
+    </div>
+
+    <div class="form-group">
+      <label>EMAIL ADDRESS</label>
+      <input type="email" id="enroll-email" class="form-input" placeholder="e.g. j.doe@sfcaliquidation.biz">
+    </div>
+
+    <div class="form-group">
+      <label>DEFAULT PASSWORD</label>
+      <input type="password" id="enroll-password" class="form-input bg-soft" value="••••••••" placeholder="Password">
+    </div>
+
+    <div class="enroll-modal-footer">
+      <button class="btn-enroll-cancel" onclick="closeEnrollModal()">Cancel</button>
+      <button class="btn-enroll-submit" onclick="submitEnrollUser()">+ Enroll User</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let strikeForceEntries = [
   { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", status: "In Progress" },
@@ -505,8 +649,8 @@ let strikeForceEntries = [
 ];
 
 let enrolledUsers = [
-  { userId: "ADMIN-MASTER", name: "Master Admin", role: "admin" },
-  { userId: "AUDITOR-516", name: "Auditor User", role: "user" }
+  { username: "admin", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" },
+  { username: "AUDITOR-516", name: "Lead Auditor", position: "Senior Auditor", department: "Internal Audit", email: "auditor516@mlhuillier.biz" }
 ];
 
 let systemAuditLogs = [];
@@ -545,6 +689,40 @@ function saveEnrolledUsers() {
   localStorage.setItem('ml_enrolled_users', JSON.stringify(enrolledUsers));
 }
 
+function openEnrollModal() {
+  document.getElementById('enroll-modal').style.display = 'flex';
+}
+
+function closeEnrollModal() {
+  document.getElementById('enroll-modal').style.display = 'none';
+}
+
+function submitEnrollUser() {
+  let uname = document.getElementById('enroll-username').value.trim();
+  let fname = document.getElementById('enroll-fullname').value.trim();
+  let pos = document.getElementById('enroll-position').value.trim();
+  let dept = document.getElementById('enroll-department').value.trim();
+  let email = document.getElementById('enroll-email').value.trim();
+
+  if (!uname || !fname) {
+    alert("Please enter Username and Full Name.");
+    return;
+  }
+
+  enrolledUsers.push({
+    username: uname,
+    name: fname,
+    position: pos || "Audit Specialist",
+    department: dept || "StrikeForce/Fraud Audit-IAD",
+    email: email || `${uname}@mlhuillier.biz`
+  });
+
+  saveEnrolledUsers();
+  renderEnrolledUsersTable();
+  addAuditLog(`Enrolled User: ${uname} (${fname})`);
+  closeEnrollModal();
+}
+
 function renderEnrolledUsersTable() {
   const tbody = document.getElementById('enrolled-users-tbody');
   tbody.innerHTML = '';
@@ -552,9 +730,10 @@ function renderEnrolledUsersTable() {
   enrolledUsers.forEach((u, idx) => {
     let tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${u.userId}</strong></td>
+      <td><strong>${u.username}</strong></td>
       <td>${u.name}</td>
-      <td><span style="font-weight:700; color:${u.role==='admin'?'#cc0000':'#0284c7'};">${u.role.toUpperCase()}</span></td>
+      <td>${u.position}</td>
+      <td>${u.department}</td>
       <td style="text-align:center;">
         <button class="btn-action btn-delete" onclick="deleteEnrolledUser(${idx})">🗑️</button>
       </td>
@@ -563,30 +742,13 @@ function renderEnrolledUsersTable() {
   });
 }
 
-function enrollNewUser() {
-  let uid = document.getElementById('enroll-userid').value.trim();
-  let name = document.getElementById('enroll-fullname').value.trim();
-  let role = document.getElementById('enroll-role').value;
-
-  if (!uid || !name) { alert("Please enter User ID and Full Name."); return; }
-
-  enrolledUsers.push({ userId: uid.toUpperCase(), name: name, role: role });
-  saveEnrolledUsers();
-  renderEnrolledUsersTable();
-
-  addAuditLog(`Enrolled User: ${uid.toUpperCase()} (${name}) - Role: ${role.toUpperCase()}`);
-
-  document.getElementById('enroll-userid').value = '';
-  document.getElementById('enroll-fullname').value = '';
-}
-
 function deleteEnrolledUser(index) {
   let u = enrolledUsers[index];
-  if (confirm(`Remove enrolled user ${u.userId}?`)) {
+  if (confirm(`Remove enrolled user ${u.username}?`)) {
     enrolledUsers.splice(index, 1);
     saveEnrolledUsers();
     renderEnrolledUsersTable();
-    addAuditLog(`Removed Enrolled User: ${u.userId}`);
+    addAuditLog(`Removed Enrolled User: ${u.username}`);
   }
 }
 
@@ -785,11 +947,11 @@ function updateUserInfoDisplay() {
 function doLogin() {
   let userInput = document.getElementById('login-user').value.trim().toUpperCase() || 'ADMIN-MASTER';
   
-  let foundUser = enrolledUsers.find(u => u.userId === userInput);
+  let foundUser = enrolledUsers.find(u => u.username.toUpperCase() === userInput);
   let role = 'user';
 
-  if (foundUser) {
-    role = foundUser.role;
+  if (foundUser && foundUser.username.toUpperCase().includes('ADMIN')) {
+    role = 'admin';
   } else if (userInput.includes('ADMIN')) {
     role = 'admin';
   }
