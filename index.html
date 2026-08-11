@@ -700,6 +700,26 @@ function getCurrencySymbol(curr) {
   }
 }
 
+// AUTOMATIC SHEET TYPE DETECTOR (B2B vs B2FD)
+function detectSheetType(rows, defaultTarget) {
+  if (!rows || !Array.isArray(rows) || rows.length === 0) return defaultTarget;
+  
+  let fullStr = "";
+  for (let i = 0; i < Math.min(15, rows.length); i++) {
+    if (rows[i] && Array.isArray(rows[i])) {
+      fullStr += " " + rows[i].join(" ").toLowerCase();
+    }
+  }
+
+  if (fullStr.includes("ccbranch") || fullStr.includes("recvd. from") || fullStr.includes("given to") || fullStr.includes("ref no.")) {
+    return "B2B";
+  } else if (fullStr.includes("bank") && fullStr.includes("account")) {
+    return "B2FD";
+  }
+  
+  return defaultTarget;
+}
+
 // INTL MONEY TRANSFER SENDOUT & CHARGES CALCULATORS
 function sumIntlSendoutPrincipal(sheetData, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
@@ -1330,47 +1350,181 @@ function countB2FD(sheetData, branchName, targetCurr = "PHP") {
   return count;
 }
 
+// ROBUST B2B CALCULATORS
+function sumB2B(sheetData, keyword, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let searchKey = keyword.toLowerCase().trim();
+  let targetC = targetCurr.toUpperCase().trim();
+
+  let summaryTotal = 0;
+  let foundSummary = false;
+
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    let colA = String(row[0] || '').trim().toLowerCase();
+
+    let rowCurr = "";
+    row.forEach(cell => {
+      let s = String(cell || '').trim().toUpperCase();
+      if (['PHP','USD','EUR','JPY','GBP','PESO'].includes(s)) {
+        rowCurr = s === 'PESO' ? 'PHP' : s;
+      }
+    });
+    if (rowCurr && rowCurr !== targetC) continue;
+
+    let isMatch = false;
+    if (searchKey.includes("received") || searchKey.includes("recvd")) {
+      isMatch = colA.includes("total received") || colA.includes("total recvd");
+    } else if (searchKey.includes("given")) {
+      isMatch = colA.includes("total given");
+    } else {
+      isMatch = (colA === searchKey);
+    }
+    if (isMatch && row.length > 1 && row[1]) {
+      let val = parseFloat(String(row[1] || '').replace(/,/g, '').trim());
+      if (!isNaN(val)) {
+        summaryTotal += val;
+        foundSummary = true;
+      }
+    }
+  }
+
+  if (foundSummary && summaryTotal > 0) return summaryTotal;
+
+  // Fallback: sum transaction rows directly
+  let isGiven = searchKey.includes("given");
+  let headerIdx = -1, transCol = -1, amtCol = -1, currCol = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let r = sheetData[i];
+    if (!r || !Array.isArray(r)) continue;
+    for (let c_i = 0; c_i < r.length; c_i++) {
+      let c_str = String(r[c_i] || '').trim().toLowerCase();
+      if (['transaction', 'trans type', 'type'].includes(c_str)) transCol = c_i;
+      else if (['amount', 'trans amount', 'total amount'].includes(c_str)) amtCol = c_i;
+      else if (['currency', 'curr'].includes(c_str)) currCol = c_i;
+    }
+    if (transCol !== -1 && amtCol !== -1) { headerIdx = i; break; }
+  }
+
+  let rowTotal = 0;
+  if (headerIdx !== -1 && transCol !== -1 && amtCol !== -1) {
+    for (let i = headerIdx + 1; i < sheetData.length; i++) {
+      let r = sheetData[i];
+      if (!r || !Array.isArray(r) || r.length <= Math.max(transCol, amtCol)) continue;
+      let colA = String(r[0] || '').trim().toLowerCase();
+      if (colA.includes('total')) continue;
+
+      let rCurr = (currCol !== -1 && r.length > currCol) ? String(r[currCol] || '').trim().toUpperCase() : targetC;
+      if (rCurr === 'PESO') rCurr = 'PHP';
+      if (rCurr && rCurr !== targetC) continue;
+
+      let trans = String(r[transCol] || '').trim().toLowerCase();
+      if ((isGiven && trans.includes('given')) || (!isGiven && (trans.includes('recvd') || trans.includes('received')))) {
+        let val = parseFloat(String(r[amtCol] || '').replace(/,/g, '').trim());
+        if (!isNaN(val)) rowTotal += val;
+      }
+    }
+  }
+
+  return summaryTotal > 0 ? summaryTotal : rowTotal;
+}
+
+function countB2B(sheetData, keyword, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let isGiven = keyword.toLowerCase().includes("given");
+  let targetC = targetCurr.toUpperCase().trim();
+
+  let headerIdx = -1, transCol = -1, currCol = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let r = sheetData[i];
+    if (!r || !Array.isArray(r)) continue;
+    for (let c_i = 0; c_i < r.length; c_i++) {
+      let c_str = String(r[c_i] || '').trim().toLowerCase();
+      if (['transaction', 'trans type', 'type'].includes(c_str)) transCol = c_i;
+      else if (['currency', 'curr'].includes(c_str)) currCol = c_i;
+    }
+    if (transCol !== -1) { headerIdx = i; break; }
+  }
+
+  let count = 0;
+  if (headerIdx !== -1 && transCol !== -1) {
+    for (let i = headerIdx + 1; i < sheetData.length; i++) {
+      let r = sheetData[i];
+      if (!r || !Array.isArray(r) || r.length <= transCol) continue;
+      let colA = String(r[0] || '').trim().toLowerCase();
+      if (colA.includes('total')) continue;
+
+      let rCurr = (currCol !== -1 && r.length > currCol) ? String(r[currCol] || '').trim().toUpperCase() : targetC;
+      if (rCurr === 'PESO') rCurr = 'PHP';
+      if (rCurr && rCurr !== targetC) continue;
+
+      let trans = String(r[transCol] || '').trim().toLowerCase();
+      if ((isGiven && trans.includes('given')) || (!isGiven && (trans.includes('recvd') || trans.includes('received')))) {
+        count++;
+      }
+    }
+  } else {
+    for (let i = 0; i < sheetData.length; i++) {
+      let r = sheetData[i];
+      if (!r || !Array.isArray(r)) continue;
+      let colA = String(r[0] || '').trim().toLowerCase();
+      if (colA.includes('total')) continue;
+      let trans = String(r[3] || '').trim().toLowerCase();
+      if ((isGiven && trans.includes('given')) || (!isGiven && (trans.includes('recvd') || trans.includes('received')))) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
 const REPORT_RULES = {
   "Fund Transfer Received From BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Received :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Received :", curr) },
   "Fund Transfer Given to BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Given :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Given :", curr) },
+  
+  // FUND TRANSFER RECEIVED FROM BC/HO -> B2B RECEIVED ONLY
   "Fund Transfer Received From BC/HO": { 
+    sheet: "B2B", 
+    altSheet: "B2B PHP",
+    getSum: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      return sumB2B(b2bData, "Total Received :", curr);
+    }, 
+    getQty: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      return countB2B(b2bData, "Total Received :", curr);
+    } 
+  },
+
+  // FUND TRANSFER GIVEN TO BC/HO -> B2B GIVEN + B2FD GIVEN
+  "Fund Transfer Given to BC/HO": { 
     sheet: "B2B", 
     altSheet: "B2FD",
     getSum: (data, branch, items, curr) => {
       let bData = getActiveBranchData();
       let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
-      let b2fdData = sheets["B2FD"] || data;
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      let b2fdData = sheets["B2FD"] || [];
+      let b2bSum = sumB2B(b2bData, "Total Given :", curr);
       let b2fdSum = sumB2FD(b2fdData, branch, curr);
-      if (b2fdSum > 0) return b2fdSum;
-      return sumB2B(sheets["B2B"] || data, "Total Received :", curr);
+      return b2bSum + b2fdSum;
     }, 
     getQty: (data, branch, items, curr) => {
       let bData = getActiveBranchData();
       let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
-      let b2fdData = sheets["B2FD"] || data;
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      let b2fdData = sheets["B2FD"] || [];
+      let b2bQty = countB2B(b2bData, "Total Given :", curr);
       let b2fdQty = countB2FD(b2fdData, branch, curr);
-      if (b2fdQty > 0) return b2fdQty;
-      return countB2B(sheets["B2B"] || data, "Total Received :", curr);
-    } 
-  },
-  "Fund Transfer Given to BC/HO": { 
-    sheet: "B2FD", 
-    altSheet: "B2B",
-    getSum: (data, branch, items, curr) => {
-      let bData = getActiveBranchData();
-      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
-      let b2fdData = sheets["B2FD"] || data;
-      let b2fdSum = sumB2FD(b2fdData, branch, curr);
-      if (b2fdSum > 0) return b2fdSum;
-      return sumB2B(sheets["B2B"] || data, "Total Given :", curr);
-    }, 
-    getQty: (data, branch, items, curr) => {
-      let bData = getActiveBranchData();
-      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
-      let b2fdData = sheets["B2FD"] || data;
-      let b2fdQty = countB2FD(b2fdData, branch, curr);
-      if (b2fdQty > 0) return b2fdQty;
-      return countB2B(sheets["B2B"] || data, "Total Given :", curr);
+      return b2bQty + b2fdQty;
     } 
   },
 
@@ -1641,71 +1795,6 @@ function isBranchMatch(rowBranch, headerBranch) {
     return true;
   }
   return false;
-}
-
-function sumB2B(sheetData, keyword, targetCurr = "PHP") {
-  if (!sheetData || !Array.isArray(sheetData)) return 0;
-  let total = 0;
-  let searchKey = keyword.toLowerCase().trim();
-  let targetC = targetCurr.toUpperCase().trim();
-
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (!row || !Array.isArray(row)) continue;
-    let colA = String(row[0] || '').trim().toLowerCase();
-
-    let rowCurr = "";
-    row.forEach(cell => {
-      let s = String(cell || '').trim().toUpperCase();
-      if (['PHP','USD','EUR','JPY','GBP','PESO'].includes(s)) {
-        rowCurr = s === 'PESO' ? 'PHP' : s;
-      }
-    });
-    if (rowCurr && rowCurr !== targetC) continue;
-
-    let isMatch = false;
-    if (searchKey.includes("received") || searchKey.includes("recvd")) {
-      isMatch = colA.includes("total received") || colA.includes("total recvd");
-    } else if (searchKey.includes("given")) {
-      isMatch = colA.includes("total given");
-    } else {
-      isMatch = (colA === searchKey);
-    }
-    if (isMatch) {
-      let val = parseFloat(String(row[1] || '').replace(/,/g, '').trim());
-      if (!isNaN(val)) total += val;
-    }
-  }
-  return total;
-}
-
-function countB2B(sheetData, keyword, targetCurr = "PHP") {
-  if (!sheetData || !Array.isArray(sheetData)) return 0;
-  let isGiven = keyword.toLowerCase().includes("given");
-  let count = 0;
-  let targetC = targetCurr.toUpperCase().trim();
-
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (!row || !Array.isArray(row)) continue;
-
-    let rowCurr = "";
-    row.forEach(cell => {
-      let s = String(cell || '').trim().toUpperCase();
-      if (['PHP','USD','EUR','JPY','GBP','PESO'].includes(s)) {
-        rowCurr = s === 'PESO' ? 'PHP' : s;
-      }
-    });
-    if (rowCurr && rowCurr !== targetC) continue;
-
-    let transactionType = String(row[3] || '').trim().toLowerCase();
-    if (isGiven && transactionType.includes("given")) {
-      count++;
-    } else if (!isGiven && (transactionType.includes("recvd") || transactionType.includes("received"))) {
-      count++;
-    }
-  }
-  return count;
 }
 
 function parseNum(val) {
@@ -2144,15 +2233,11 @@ async function handleSubReportUpload(evt, itemKey) {
   if (!files || files.length === 0) return;
   
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
-  let sheetTarget = rule ? rule.sheet : itemKey;
+  let defaultSheetTarget = rule ? rule.sheet : itemKey;
   
   let bData = getActiveBranchData();
   if (!bData.parsedSheetsStore[activeCurrencyTab]) {
     bData.parsedSheetsStore[activeCurrencyTab] = {};
-  }
-
-  if (!bData.parsedSheetsStore[activeCurrencyTab][sheetTarget]) {
-    bData.parsedSheetsStore[activeCurrencyTab][sheetTarget] = [];
   }
 
   for (let file of files) {
@@ -2166,6 +2251,12 @@ async function handleSubReportUpload(evt, itemKey) {
     }
 
     if (newSheetData && newSheetData.length > 0) {
+      let sheetTarget = detectSheetType(newSheetData, defaultSheetTarget);
+
+      if (!bData.parsedSheetsStore[activeCurrencyTab][sheetTarget]) {
+        bData.parsedSheetsStore[activeCurrencyTab][sheetTarget] = [];
+      }
+
       bData.parsedSheetsStore[activeCurrencyTab][sheetTarget] = bData.parsedSheetsStore[activeCurrencyTab][sheetTarget].concat(newSheetData);
     }
   }
@@ -2182,6 +2273,9 @@ function removeSubReport(itemKey) {
     let bData = getActiveBranchData();
     if (bData.parsedSheetsStore[activeCurrencyTab]) {
       delete bData.parsedSheetsStore[activeCurrencyTab][sheetTarget];
+      if (rule && rule.altSheet) {
+        delete bData.parsedSheetsStore[activeCurrencyTab][rule.altSheet];
+      }
     }
     saveStateToStorage();
     renderActiveCurrencyData();
@@ -2577,7 +2671,28 @@ function renderReconciliationTable(data) {
       } else {
         matchedSheet = rule.sheet;
         let activeSheet = sheetsStore[rule.sheet] || sheetsStore[rule.altSheet];
-        if (activeSheet && activeSheet.length > 0) {
+        
+        // Dynamic detection if B2B + B2FD are both uploaded for Fund Transfer Given to BC/HO
+        if (rule.altSheet === "B2FD" || rule.sheet === "B2FD") {
+          let b2bSheet = sheetsStore["B2B"] || sheetsStore["B2B PHP"];
+          let b2fdSheet = sheetsStore["B2FD"];
+          let hasB2B = b2bSheet && b2bSheet.length > 0;
+          let hasB2FD = b2fdSheet && b2fdSheet.length > 0;
+          if (hasB2B || hasB2FD) {
+            hasSubReport = true;
+            reportTotal = rule.getSum(data, data.branch, data.items, curr);
+            reportQty = rule.getQty ? rule.getQty(data, data.branch, data.items, curr) : '—';
+            if (hasB2B && hasB2FD) {
+              matchedSheet = "B2B + B2FD";
+            } else if (hasB2FD) {
+              matchedSheet = "B2FD";
+            } else {
+              matchedSheet = "B2B";
+            }
+          } else {
+            matchedSheet = `<span style="color:#dc2626;">Sheet 'B2B/B2FD' Missing</span>`;
+          }
+        } else if (activeSheet && activeSheet.length > 0) {
           hasSubReport = true;
           reportTotal = rule.getSum(activeSheet, data.branch, data.items, curr);
           reportQty = rule.getQty ? rule.getQty(activeSheet, data.branch, data.items, curr) : '—';
