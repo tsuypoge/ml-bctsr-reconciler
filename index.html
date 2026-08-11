@@ -369,7 +369,7 @@
   }
 
   td {
-    padding: 11px 14px;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
   }
@@ -396,8 +396,8 @@
   }
   
   .status-badge {
-    font-size: 10.5px;
-    padding: 4px 10px;
+    font-size: 10px;
+    padding: 3px 8px;
     border-radius: 20px;
     font-weight: 700;
     display: inline-block;
@@ -405,27 +405,42 @@
     white-space: nowrap;
   }
 
-  .status-badge.match { background: var(--match-bg); color: var(--match); border: 1px solid var(--match-border); }
-  .status-badge.mismatch { background: var(--mismatch-bg); color: var(--mismatch); border: 1px solid var(--mismatch-border); }
-  .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
-  .status-badge.remarks { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; }
+  .status-badge.match {
+    background: var(--match-bg);
+    color: var(--match);
+    border: 1px solid var(--match-border);
+    font-size: 12px;
+    padding: 2px 6px;
+    line-height: 1;
+  }
 
-  /* SIDE-BY-SIDE FLEX CONTAINER FOR ACTION CELL */
+  .status-badge.mismatch {
+    background: var(--mismatch-bg);
+    color: var(--mismatch);
+    border: 1px solid var(--mismatch-border);
+    font-size: 12px;
+    padding: 2px 6px;
+    line-height: 1;
+  }
+
+  .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
+
+  /* STRICT SIDE-BY-SIDE FLEX CONTAINER FOR ACTION CELL */
   .action-cell-flex {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 5px;
+    flex-wrap: nowrap;
   }
 
-  /* ICON-ONLY CIRCULAR BUTTONS WITH HOVER TOOLTIP SUPPORTS */
+  /* COMPACT ICON-ONLY CIRCULAR BUTTONS */
   .btn-upload-sub, .btn-remove-sub, .btn-add-remark {
-    font-size: 14px;
+    font-size: 11px;
     font-family: var(--font-sans);
     background: #ffffff;
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     padding: 0;
     border-radius: 50%;
     font-weight: 600;
@@ -437,6 +452,7 @@
     margin: 0;
     white-space: nowrap;
     box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
   }
 
   .btn-upload-sub { color: var(--primary); border: 1.5px solid var(--primary); }
@@ -449,24 +465,24 @@
   .btn-add-remark:hover { background: #475569; color: #ffffff; border-color: #475569; transform: scale(1.1); box-shadow: var(--shadow-md); }
 
   .manual-input {
-    width: 100px;
-    padding: 4px 8px;
+    width: 90px;
+    padding: 3px 6px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 11.5px;
     text-align: right;
     transition: border 0.2s;
   }
   .manual-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(122, 18, 18, 0.15); }
 
   .remarks-input {
-    width: 140px;
-    padding: 4px 8px;
+    width: 120px;
+    padding: 3px 6px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     font-family: var(--font-sans);
-    font-size: 11.5px;
+    font-size: 11px;
   }
   .remarks-input:focus { outline: none; border-color: var(--primary); }
 
@@ -2534,7 +2550,12 @@ function renderReconciliationTable(data) {
     let itemKey = item.particular;
     let rule = REPORT_RULES[item.particular];
 
-    if (item.particular === 'POS Jewelry Sales') {
+    // AUTOMATIC NON-CASH REMARKS OVERRIDE EXCEPT FOR RENEWAL ANYWHERE PROCESS
+    if (item.category === "Non-Cash" && item.particular !== "Renewal Anywhere Process") {
+      rule = { isRemarks: true };
+    }
+
+    if (item.particular === 'POS Jewelry Sales' && (!rule || !rule.isRemarks)) {
       posJewelrySeen++;
       if (posJewelrySeen > 1) {
         rule = { isManual: true };
@@ -2563,16 +2584,17 @@ function renderReconciliationTable(data) {
     let diff = reportTotal !== null ? (reportTotal - item.amount) : null;
     let statusHtml = `<span class="status-badge pending">No Sub-Sheet</span>`, varText = "—", varColor = "";
     if (isRemarks) {
-      statusHtml = `<span class="status-badge remarks">📝 REMARKS</span>`; varText = "—";
+      statusHtml = `<span class="status-badge remarks" title="REMARKS">📝</span>`; varText = "—";
     } else if (diff !== null) {
       if (Math.abs(diff) < 0.01) {
-        statusHtml = `<span class="status-badge match">🟢 MATCHED</span>`; varText = "0.00"; varColor = "color:var(--match);";
+        statusHtml = `<span class="status-badge match" title="MATCHED">✔</span>`; varText = "0.00"; varColor = "color:var(--match);";
       } else {
-        statusHtml = `<span class="status-badge mismatch">🔴 DISCREPANCY</span>`; varText = diff > 0 ? `+${formatMoney(diff, currSym)}` : formatMoney(diff, currSym); varColor = "color:var(--mismatch);";
+        statusHtml = `<span class="status-badge mismatch" title="DISCREPANCY">✖</span>`; varText = diff > 0 ? `+${formatMoney(diff, currSym)}` : formatMoney(diff, currSym); varColor = "color:var(--mismatch);";
       }
     }
+
     let currentRemark = manualRemarks[itemKey] || '';
-    let isBoxOpen = openRemarksInput[itemKey] || isRemarks || currentRemark !== '';
+    let isBoxOpen = openRemarksInput[itemKey] || currentRemark !== '';
     let remarkHtml = '';
 
     if (!isArchived) {
@@ -2589,7 +2611,7 @@ function renderReconciliationTable(data) {
 
     let actionCellHtml = '';
     if (isRemarks) {
-      actionCellHtml = `<div class="action-cell-flex"><div>${statusHtml}</div><div>${remarkHtml}</div></div>`;
+      actionCellHtml = `<div class="action-cell-flex"><div>${remarkHtml || '<span style="color:var(--text-muted);">—</span>'}</div></div>`;
     } else if (isManual) {
       let currentVal = manualInputs[itemKey] !== undefined ? manualInputs[itemKey] : '';
       actionCellHtml = `
