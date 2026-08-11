@@ -208,6 +208,15 @@
     backdrop-filter: blur(4px);
   }
 
+  .db-status-badge {
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 800;
+  }
+
   .dash-table-container {
     background: #ffffff;
     border-radius: var(--radius-lg);
@@ -340,7 +349,7 @@
   }
 
   .modal-header-title span {
-    color: #7c3aed; /* Purple Plus Icon */
+    color: #7c3aed;
     font-size: 20px;
     font-weight: 900;
   }
@@ -378,7 +387,7 @@
   }
 
   .form-input.bg-soft {
-    background-color: #ebf3fe; /* Soft Light Blue tint */
+    background-color: #ebf3fe;
     border-color: #dbeafe;
   }
 
@@ -403,7 +412,7 @@
   .btn-enroll-cancel:hover { background: #e2e8f0; color: #0f172a; }
 
   .btn-enroll-submit {
-    background: #dc2626; /* Vibrant ML Red */
+    background: #dc2626;
     color: #ffffff;
     border: none;
     padding: 10px 24px;
@@ -548,6 +557,7 @@
     </div>
 
     <div class="user-badge-bar">
+      <span class="db-status-badge" id="firebase-status">🔥 Cloud Sync Active</span>
       <span>👤 Logged in as: <strong id="active-user-display">ADMIN-MASTER</strong></span>
       <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:6px;">Logout</button>
     </div>
@@ -593,7 +603,7 @@
   </div>
 </div>
 
-<!-- 💜 3. ENROLL NEW USER MODAL (EXACT DESIGN MATCHING SCREENSHOT) -->
+<!-- 💜 ENROLL NEW USER MODAL -->
 <div class="modal-overlay" id="enroll-modal">
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
@@ -640,353 +650,392 @@
   </div>
 </div>
 
-<script>
-let strikeForceEntries = [
-  { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", status: "In Progress" },
-  { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", status: "Pending" },
-  { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", status: "Pending" },
-  { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", status: "In Progress" }
-];
+<!-- 🔥 FIREBASE REALTIME DATABASE SDK PERSISTENCE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-let enrolledUsers = [
-  { username: "admin", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" },
-  { username: "AUDITOR-516", name: "Lead Auditor", position: "Senior Auditor", department: "Internal Audit", email: "auditor516@mlhuillier.biz" }
-];
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvkLtHz_fAUiEIhFjABhtovTemFFhAFR4",
+    authDomain: "sftools-139a1.firebaseapp.com",
+    databaseURL: "https://sftools-139a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "sftools-139a1",
+    storageBucket: "sftools-139a1.firebasestorage.app",
+    messagingSenderId: "504177778177",
+    appId: "1:504177778177:web:5c9c522efa2130516dea00"
+  };
 
-let systemAuditLogs = [];
+  // Initialize Firebase & Realtime Database
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-function addAuditLog(msg) {
-  let time = new Date().toLocaleTimeString();
-  systemAuditLogs.unshift(`[${time}] ${msg}`);
-  if (systemAuditLogs.length > 20) systemAuditLogs.pop();
-  
-  let logBox = document.getElementById('admin-log-display');
-  if (logBox) logBox.innerHTML = systemAuditLogs.join('<br>');
-  
-  localStorage.setItem('ml_audit_logs', JSON.stringify(systemAuditLogs));
-}
+  let strikeForceEntries = [
+    { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", status: "In Progress" },
+    { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", status: "Pending" },
+    { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", status: "Pending" },
+    { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", status: "In Progress" }
+  ];
 
-function loadEntries() {
-  let savedEntries = localStorage.getItem('ml_strikeForceEntries');
-  if (savedEntries) {
-    try { strikeForceEntries = JSON.parse(savedEntries); } catch(e){}
-  }
-  let savedUsers = localStorage.getItem('ml_enrolled_users');
-  if (savedUsers) {
-    try { enrolledUsers = JSON.parse(savedUsers); } catch(e){}
-  }
-  let savedLogs = localStorage.getItem('ml_audit_logs');
-  if (savedLogs) {
-    try { systemAuditLogs = JSON.parse(savedLogs); } catch(e){}
-  }
-}
+  let enrolledUsers = [
+    { username: "admin", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" },
+    { username: "AUDITOR-516", name: "Lead Auditor", position: "Senior Auditor", department: "Internal Audit", email: "auditor516@mlhuillier.biz" }
+  ];
 
-function saveEntries() {
-  localStorage.setItem('ml_strikeForceEntries', JSON.stringify(strikeForceEntries));
-}
+  let systemAuditLogs = [];
 
-function saveEnrolledUsers() {
-  localStorage.setItem('ml_enrolled_users', JSON.stringify(enrolledUsers));
-}
-
-function openEnrollModal() {
-  document.getElementById('enroll-modal').style.display = 'flex';
-}
-
-function closeEnrollModal() {
-  document.getElementById('enroll-modal').style.display = 'none';
-}
-
-function submitEnrollUser() {
-  let uname = document.getElementById('enroll-username').value.trim();
-  let fname = document.getElementById('enroll-fullname').value.trim();
-  let pos = document.getElementById('enroll-position').value.trim();
-  let dept = document.getElementById('enroll-department').value.trim();
-  let email = document.getElementById('enroll-email').value.trim();
-
-  if (!uname || !fname) {
-    alert("Please enter Username and Full Name.");
-    return;
-  }
-
-  enrolledUsers.push({
-    username: uname,
-    name: fname,
-    position: pos || "Audit Specialist",
-    department: dept || "StrikeForce/Fraud Audit-IAD",
-    email: email || `${uname}@mlhuillier.biz`
+  // 🔥 Firebase Listeners (Real-Time Synchronization across browsers)
+  onValue(ref(db, 'strikeForceEntries'), (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      strikeForceEntries = val;
+      localStorage.setItem('ml_strikeForceEntries', JSON.stringify(strikeForceEntries));
+      renderDashboardTable();
+    }
   });
 
-  saveEnrolledUsers();
-  renderEnrolledUsersTable();
-  addAuditLog(`Enrolled User: ${uname} (${fname})`);
-  closeEnrollModal();
-}
-
-function renderEnrolledUsersTable() {
-  const tbody = document.getElementById('enrolled-users-tbody');
-  tbody.innerHTML = '';
-
-  enrolledUsers.forEach((u, idx) => {
-    let tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${u.username}</strong></td>
-      <td>${u.name}</td>
-      <td>${u.position}</td>
-      <td>${u.department}</td>
-      <td style="text-align:center;">
-        <button class="btn-action btn-delete" onclick="deleteEnrolledUser(${idx})">🗑️</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+  onValue(ref(db, 'enrolledUsers'), (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      enrolledUsers = val;
+      localStorage.setItem('ml_enrolled_users', JSON.stringify(enrolledUsers));
+      renderEnrolledUsersTable();
+    }
   });
-}
 
-function deleteEnrolledUser(index) {
-  let u = enrolledUsers[index];
-  if (confirm(`Remove enrolled user ${u.username}?`)) {
-    enrolledUsers.splice(index, 1);
+  onValue(ref(db, 'systemAuditLogs'), (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      systemAuditLogs = val;
+      let logBox = document.getElementById('admin-log-display');
+      if (logBox) logBox.innerHTML = systemAuditLogs.join('<br>');
+    }
+  });
+
+  function syncToFirebase(node, data) {
+    set(ref(db, node), data).catch(err => {
+      console.warn("Firebase sync fallback to local storage:", err);
+    });
+  }
+
+  function addAuditLog(msg) {
+    let time = new Date().toLocaleTimeString();
+    systemAuditLogs.unshift(`[${time}] ${msg}`);
+    if (systemAuditLogs.length > 25) systemAuditLogs.pop();
+    
+    let logBox = document.getElementById('admin-log-display');
+    if (logBox) logBox.innerHTML = systemAuditLogs.join('<br>');
+    
+    syncToFirebase('systemAuditLogs', systemAuditLogs);
+    localStorage.setItem('ml_audit_logs', JSON.stringify(systemAuditLogs));
+  }
+
+  function saveEntries() {
+    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(strikeForceEntries));
+    syncToFirebase('strikeForceEntries', strikeForceEntries);
+  }
+
+  function saveEnrolledUsers() {
+    localStorage.setItem('ml_enrolled_users', JSON.stringify(enrolledUsers));
+    syncToFirebase('enrolledUsers', enrolledUsers);
+  }
+
+  function renderEnrolledUsersTable() {
+    const tbody = document.getElementById('enrolled-users-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    enrolledUsers.forEach((u, idx) => {
+      let tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${u.username}</strong></td>
+        <td>${u.name}</td>
+        <td>${u.position}</td>
+        <td>${u.department}</td>
+        <td style="text-align:center;">
+          <button class="btn-action btn-delete" onclick="window.deleteEnrolledUser(${idx})">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderDashboardTable() {
+    const tbody = document.getElementById('dash-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    strikeForceEntries.forEach((row, index) => {
+      let statusBg = "#16a34a";
+      if (row.status === "In Progress") statusBg = "#ea580c";
+      else if (row.status === "Pending") statusBg = "#64748b";
+      else if (row.status === "Archived") statusBg = "#475569";
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
+        <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
+        
+        <!-- INVENTORY COLUMN -->
+        <td style="text-align:center;">
+          <button class="btn-inv" title="Subasta / SR" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subasta_sr')">🏷️ Subasta/SR</button>
+          <button class="btn-inv" title="QCL" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'qcl')">💎 QCL</button>
+        </td>
+
+        <!-- STATUS / RECONCILER COLUMN -->
+        <td style="text-align:center;">
+          <button class="btn-tbl-status" style="background:${statusBg};" onclick="window.launchReconciler('${row.branch.replace(/'/g, "\\'")}')">
+            ${row.status} ➔
+          </button>
+        </td>
+
+        <!-- ACTION COLUMN -->
+        <td style="text-align:center;">
+          <button class="btn-action btn-archive" title="Archive" onclick="window.archiveEntry(${index})">📁 Archive</button>
+          <button class="btn-action btn-delete" title="Delete" onclick="window.deleteEntry(${index})">🗑️ Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Attach functions to window scope for onclick handlers
+  window.openEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'flex'; };
+  window.closeEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'none'; };
+
+  window.submitEnrollUser = function() {
+    let uname = document.getElementById('enroll-username').value.trim();
+    let fname = document.getElementById('enroll-fullname').value.trim();
+    let pos = document.getElementById('enroll-position').value.trim();
+    let dept = document.getElementById('enroll-department').value.trim();
+    let email = document.getElementById('enroll-email').value.trim();
+
+    if (!uname || !fname) {
+      alert("Please enter Username and Full Name.");
+      return;
+    }
+
+    enrolledUsers.push({
+      username: uname,
+      name: fname,
+      position: pos || "Audit Specialist",
+      department: dept || "StrikeForce/Fraud Audit-IAD",
+      email: email || `${uname}@mlhuillier.biz`
+    });
+
     saveEnrolledUsers();
     renderEnrolledUsersTable();
-    addAuditLog(`Removed Enrolled User: ${u.username}`);
-  }
-}
-
-function renderDashboardTable() {
-  const tbody = document.getElementById('dash-tbody');
-  tbody.innerHTML = '';
-
-  strikeForceEntries.forEach((row, index) => {
-    let statusBg = "#16a34a";
-    if (row.status === "In Progress") statusBg = "#ea580c";
-    else if (row.status === "Pending") statusBg = "#64748b";
-    else if (row.status === "Archived") statusBg = "#475569";
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
-      <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
-      
-      <!-- INVENTORY COLUMN -->
-      <td style="text-align:center;">
-        <button class="btn-inv" title="Subasta / SR" onclick="launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subasta_sr')">🏷️ Subasta/SR</button>
-        <button class="btn-inv" title="QCL" onclick="launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'qcl')">💎 QCL</button>
-      </td>
-
-      <!-- STATUS / RECONCILER COLUMN -->
-      <td style="text-align:center;">
-        <button class="btn-tbl-status" style="background:${statusBg};" onclick="launchReconciler('${row.branch.replace(/'/g, "\\'")}')">
-          ${row.status} ➔
-        </button>
-      </td>
-
-      <!-- ACTION COLUMN -->
-      <td style="text-align:center;">
-        <button class="btn-action btn-archive" title="Archive" onclick="archiveEntry(${index})">📁 Archive</button>
-        <button class="btn-action btn-delete" title="Delete" onclick="deleteEntry(${index})">🗑️ Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function openNewModal() { document.getElementById('new-modal').style.display = 'flex'; }
-function closeNewModal() { document.getElementById('new-modal').style.display = 'none'; }
-
-function saveNewEntry() {
-  let bName = document.getElementById('new-branch').value.trim();
-  let cDate = document.getElementById('new-cutoff-date').value.trim();
-
-  if (!bName) { alert("Please enter Branch Name"); return; }
-
-  let formattedBranch = bName.toUpperCase();
-
-  strikeForceEntries.push({
-    branch: formattedBranch,
-    cutoffDate: cDate || "Pending Upload",
-    status: "Pending"
-  });
-
-  saveEntries();
-  addAuditLog(`Created Branch Entry: ${formattedBranch}`);
-  closeNewModal();
-
-  localStorage.setItem('ml_activeBranch', formattedBranch);
-  window.location.href = 'reconciler.html';
-}
-
-function launchBranchInventory(branchName, type) {
-  let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
-  localStorage.setItem('ml_activeBranch', activeB);
-  if (type === 'subasta_sr') {
-    window.location.href = 'subasta_sr.html';
-  } else if (type === 'qcl') {
-    window.location.href = 'qcl.html';
-  }
-}
-
-function deleteEntry(index) {
-  let bName = strikeForceEntries[index].branch;
-  if (confirm(`Sigurado ka nga gusto nimo i-delete ang "${bName}"?`)) {
-    strikeForceEntries.splice(index, 1);
-    saveEntries();
-    addAuditLog(`Deleted Branch Entry: ${bName}`);
-    renderDashboardTable();
-  }
-}
-
-function archiveEntry(index) {
-  let bName = strikeForceEntries[index].branch;
-  if (confirm(`I-archive ba ang "${bName}"?`)) {
-    strikeForceEntries[index].status = "Archived";
-    saveEntries();
-    addAuditLog(`Archived Branch Entry: ${bName}`);
-    renderDashboardTable();
-  }
-}
-
-function launchReconciler(branchName) {
-  let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
-  localStorage.setItem('ml_activeBranch', activeB);
-  window.location.href = 'reconciler.html';
-}
-
-/* ⚡ MASTER ADMIN FUNCTIONS */
-function toggleAdminPanelUI() {
-  let panel = document.getElementById('admin-control-panel');
-  if (panel.style.display === 'none' || panel.style.display === '') {
-    panel.style.display = 'block';
-  } else {
-    panel.style.display = 'none';
-  }
-}
-
-function exportMasterDatabaseJSON() {
-  let fullData = {
-    exportedAt: new Date().toISOString(),
-    user: localStorage.getItem('ml_activeUser'),
-    entries: strikeForceEntries,
-    enrolledUsers: enrolledUsers,
-    branchesStore: localStorage.getItem('ml_branchesStore'),
-    auditLogs: systemAuditLogs
+    addAuditLog(`Enrolled User: ${uname} (${fname})`);
+    window.closeEnrollModal();
   };
 
-  let blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
-  let a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `ML_Master_Database_Backup_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  addAuditLog("Exported Master Database Backup JSON.");
-}
-
-function importMasterDatabaseJSON(evt) {
-  let file = evt.target.files[0];
-  if (!file) return;
-
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      let data = JSON.parse(e.target.result);
-      if (data.entries) {
-        strikeForceEntries = data.entries;
-        saveEntries();
-      }
-      if (data.enrolledUsers) {
-        enrolledUsers = data.enrolledUsers;
-        saveEnrolledUsers();
-      }
-      if (data.branchesStore) {
-        localStorage.setItem('ml_branchesStore', data.branchesStore);
-      }
-      alert("Master Database restored successfully!");
-      addAuditLog("Restored Master Database from JSON file.");
-      location.reload();
-    } catch(err) {
-      alert("Invalid Backup File Format.");
+  window.deleteEnrolledUser = function(index) {
+    let u = enrolledUsers[index];
+    if (confirm(`Remove enrolled user ${u.username}?`)) {
+      enrolledUsers.splice(index, 1);
+      saveEnrolledUsers();
+      renderEnrolledUsersTable();
+      addAuditLog(`Removed Enrolled User: ${u.username}`);
     }
   };
-  reader.readAsText(file);
-}
 
-function massToggleArchiveState(lockState) {
-  strikeForceEntries.forEach(e => {
-    e.status = lockState ? "Archived" : "In Progress";
-  });
-  saveEntries();
-  renderDashboardTable();
-  addAuditLog(lockState ? "Admin Mass Force-Locked All Entries." : "Admin Mass Unlocked All Entries.");
-}
+  window.openNewModal = function() { document.getElementById('new-modal').style.display = 'flex'; };
+  window.closeNewModal = function() { document.getElementById('new-modal').style.display = 'none'; };
 
-function triggerFactoryResetSystem() {
-  let pin = prompt("TYPE ADMIN PIN (1234) TO CONFIRM MASTER FACTORY RESET:");
-  if (pin === "1234") {
-    localStorage.clear();
-    sessionStorage.clear();
-    alert("System completely wiped. Reloading...");
-    location.reload();
-  } else if (pin !== null) {
-    alert("Incorrect Admin PIN.");
+  window.saveNewEntry = function() {
+    let bName = document.getElementById('new-branch').value.trim();
+    let cDate = document.getElementById('new-cutoff-date').value.trim();
+
+    if (!bName) { alert("Please enter Branch Name"); return; }
+
+    let formattedBranch = bName.toUpperCase();
+
+    strikeForceEntries.push({
+      branch: formattedBranch,
+      cutoffDate: cDate || "Pending Upload",
+      status: "Pending"
+    });
+
+    saveEntries();
+    addAuditLog(`Created Branch Entry: ${formattedBranch}`);
+    window.closeNewModal();
+
+    localStorage.setItem('ml_activeBranch', formattedBranch);
+    window.location.href = 'reconciler.html';
+  };
+
+  window.launchBranchInventory = function(branchName, type) {
+    let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
+    localStorage.setItem('ml_activeBranch', activeB);
+    if (type === 'subasta_sr') {
+      window.location.href = 'subasta_sr.html';
+    } else if (type === 'qcl') {
+      window.location.href = 'qcl.html';
+    }
+  };
+
+  window.deleteEntry = function(index) {
+    let bName = strikeForceEntries[index].branch;
+    if (confirm(`Sigurado ka nga gusto nimo i-delete ang "${bName}"?`)) {
+      strikeForceEntries.splice(index, 1);
+      saveEntries();
+      addAuditLog(`Deleted Branch Entry: ${bName}`);
+      renderDashboardTable();
+    }
+  };
+
+  window.archiveEntry = function(index) {
+    let bName = strikeForceEntries[index].branch;
+    if (confirm(`I-archive ba ang "${bName}"?`)) {
+      strikeForceEntries[index].status = "Archived";
+      saveEntries();
+      addAuditLog(`Archived Branch Entry: ${bName}`);
+      renderDashboardTable();
+    }
+  };
+
+  window.launchReconciler = function(branchName) {
+    let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
+    localStorage.setItem('ml_activeBranch', activeB);
+    window.location.href = 'reconciler.html';
+  };
+
+  window.toggleAdminPanelUI = function() {
+    let panel = document.getElementById('admin-control-panel');
+    if (panel.style.display === 'none' || panel.style.display === '') {
+      panel.style.display = 'block';
+    } else {
+      panel.style.display = 'none';
+    }
+  };
+
+  window.exportMasterDatabaseJSON = function() {
+    let fullData = {
+      exportedAt: new Date().toISOString(),
+      user: localStorage.getItem('ml_activeUser'),
+      entries: strikeForceEntries,
+      enrolledUsers: enrolledUsers,
+      branchesStore: localStorage.getItem('ml_branchesStore'),
+      auditLogs: systemAuditLogs
+    };
+
+    let blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
+    let a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ML_Master_Database_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    addAuditLog("Exported Master Database Backup JSON.");
+  };
+
+  window.importMasterDatabaseJSON = function(evt) {
+    let file = evt.target.files[0];
+    if (!file) return;
+
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        let data = JSON.parse(e.target.result);
+        if (data.entries) {
+          strikeForceEntries = data.entries;
+          saveEntries();
+        }
+        if (data.enrolledUsers) {
+          enrolledUsers = data.enrolledUsers;
+          saveEnrolledUsers();
+        }
+        if (data.branchesStore) {
+          localStorage.setItem('ml_branchesStore', data.branchesStore);
+        }
+        alert("Master Database restored successfully!");
+        addAuditLog("Restored Master Database from JSON file.");
+        location.reload();
+      } catch(err) {
+        alert("Invalid Backup File Format.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  window.massToggleArchiveState = function(lockState) {
+    strikeForceEntries.forEach(e => {
+      e.status = lockState ? "Archived" : "In Progress";
+    });
+    saveEntries();
+    renderDashboardTable();
+    addAuditLog(lockState ? "Admin Mass Force-Locked All Entries." : "Admin Mass Unlocked All Entries.");
+  };
+
+  window.triggerFactoryResetSystem = function() {
+    let pin = prompt("TYPE ADMIN PIN (1234) TO CONFIRM MASTER FACTORY RESET:");
+    if (pin === "1234") {
+      syncToFirebase('strikeForceEntries', null);
+      syncToFirebase('enrolledUsers', null);
+      syncToFirebase('systemAuditLogs', null);
+      localStorage.clear();
+      sessionStorage.clear();
+      alert("System completely wiped. Reloading...");
+      location.reload();
+    } else if (pin !== null) {
+      alert("Incorrect Admin PIN.");
+    }
+  };
+
+  function updateUserInfoDisplay() {
+    let user = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+    let role = localStorage.getItem('ml_user_role') || 'admin';
+
+    document.getElementById('active-user-display').innerText = user;
+
+    if (role === 'admin') {
+      document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
+      document.getElementById('admin-control-panel').style.display = 'block';
+    } else {
+      document.getElementById('btn-admin-panel-toggle').style.display = 'none';
+      document.getElementById('admin-control-panel').style.display = 'none';
+    }
   }
-}
 
-function updateUserInfoDisplay() {
-  let user = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
-  let role = localStorage.getItem('ml_user_role') || 'admin';
+  window.doLogin = function() {
+    let userInput = document.getElementById('login-user').value.trim().toUpperCase() || 'ADMIN-MASTER';
+    
+    let foundUser = enrolledUsers.find(u => u.username.toUpperCase() === userInput);
+    let role = 'user';
 
-  document.getElementById('active-user-display').innerText = user;
+    if (foundUser && foundUser.username.toUpperCase().includes('ADMIN')) {
+      role = 'admin';
+    } else if (userInput.includes('ADMIN')) {
+      role = 'admin';
+    }
 
-  if (role === 'admin') {
-    document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
-    document.getElementById('admin-control-panel').style.display = 'block';
-  } else {
-    document.getElementById('btn-admin-panel-toggle').style.display = 'none';
-    document.getElementById('admin-control-panel').style.display = 'none';
-  }
-}
+    sessionStorage.setItem('ml_logged_in', 'true');
+    localStorage.setItem('ml_activeUser', userInput);
+    localStorage.setItem('ml_user_role', role);
 
-function doLogin() {
-  let userInput = document.getElementById('login-user').value.trim().toUpperCase() || 'ADMIN-MASTER';
-  
-  let foundUser = enrolledUsers.find(u => u.username.toUpperCase() === userInput);
-  let role = 'user';
-
-  if (foundUser && foundUser.username.toUpperCase().includes('ADMIN')) {
-    role = 'admin';
-  } else if (userInput.includes('ADMIN')) {
-    role = 'admin';
-  }
-
-  sessionStorage.setItem('ml_logged_in', 'true');
-  localStorage.setItem('ml_activeUser', userInput);
-  localStorage.setItem('ml_user_role', role);
-
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('dashboard-view').style.display = 'block';
-  
-  addAuditLog(`User Logged In: ${userInput} [Role: ${role}]`);
-  updateUserInfoDisplay();
-  loadEntries();
-  renderEnrolledUsersTable();
-  renderDashboardTable();
-}
-
-function doLogout() {
-  sessionStorage.removeItem('ml_logged_in');
-  document.getElementById('dashboard-view').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  let isLogged = sessionStorage.getItem('ml_logged_in');
-  if (isLogged === 'true') {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'block';
+    
+    addAuditLog(`User Logged In: ${userInput} [Role: ${role}]`);
     updateUserInfoDisplay();
-    loadEntries();
     renderEnrolledUsersTable();
     renderDashboardTable();
-  }
-});
+  };
+
+  window.doLogout = function() {
+    sessionStorage.removeItem('ml_logged_in');
+    document.getElementById('dashboard-view').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    let isLogged = sessionStorage.getItem('ml_logged_in');
+    if (isLogged === 'true') {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'block';
+      updateUserInfoDisplay();
+      renderEnrolledUsersTable();
+      renderDashboardTable();
+    }
+  });
 </script>
 </body>
 </html>
