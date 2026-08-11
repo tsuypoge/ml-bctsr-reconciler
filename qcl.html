@@ -80,6 +80,12 @@
     gap: 14px;
   }
 
+  .header-logo-img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+  }
+
   .logo-badge {
     background: var(--primary);
     color: #ffffff;
@@ -316,11 +322,12 @@
 </head>
 <body>
 
-<!-- HEADER BAR -->
+<!-- HEADER BAR WITH LOGO -->
 <header>
   <div class="header-content">
     <div class="header-title-box">
-      <div class="logo-badge">ML</div>
+      <img src="logo.png" class="header-logo-img" alt="M Lhuillier Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="logo-badge" style="display:none;">ML</div>
       <div>
         <h1>QCL Physical Inventory Check</h1>
         <div class="header-sub">Automated Pawn Ticket Verification & Audit Engine</div>
