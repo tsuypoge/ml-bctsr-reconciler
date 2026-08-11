@@ -323,11 +323,11 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* 🎯 ENROLL USER MODAL DESIGN MATCHING SCREENSHOT */
+  /* MODAL DESIGN */
   .enroll-modal-card {
     width: 440px;
     border-radius: 20px;
-    padding: 28px 28px 24px 28px;
+    padding: 28px;
     background: #ffffff;
     box-shadow: 0 20px 30px rgba(0,0,0,0.25);
   }
@@ -349,7 +349,7 @@
   }
 
   .modal-header-title span {
-    color: #7c3aed;
+    color: var(--primary);
     font-size: 20px;
     font-weight: 900;
   }
@@ -490,7 +490,10 @@
         <span>⚡ MASTER ADMIN CONTROL CENTER</span>
         <span style="font-size:11px; background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:12px; border:1px solid #fcd34d;">Super Admin Mode Active</span>
       </div>
-      <button class="btn-action btn-archive" onclick="toggleAdminPanelUI()">Hide Panel</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-action btn-archive" style="background:#e0e7ff; color:#3730a3;" onclick="openProfileModal()">✏️ Update Admin Profile</button>
+        <button class="btn-action btn-archive" onclick="toggleAdminPanelUI()">Hide Panel</button>
+      </div>
     </div>
 
     <div class="admin-grid">
@@ -559,7 +562,8 @@
     <div class="user-badge-bar">
       <span class="db-status-badge" id="firebase-status">🔥 Cloud Sync Active</span>
       <span>👤 Logged in as: <strong id="active-user-display">ADMIN-MASTER</strong></span>
-      <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:6px;">Logout</button>
+      <button onclick="openProfileModal()" style="background:rgba(255,255,255,0.25); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;" title="Edit Admin Profile">✏️ Profile</button>
+      <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;">Logout</button>
     </div>
   </div>
 
@@ -650,6 +654,53 @@
   </div>
 </div>
 
+<!-- 👤 UPDATE ADMIN PROFILE MODAL -->
+<div class="modal-overlay" id="profile-modal">
+  <div class="modal-card enroll-modal-card">
+    <div class="modal-header-custom">
+      <div class="modal-header-title">
+        <span>👤</span> Update Admin Profile
+      </div>
+      <button class="btn-close-x" onclick="closeProfileModal()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label>USERNAME / USER ID</label>
+      <input type="text" id="profile-username" class="form-input bg-soft" readonly>
+    </div>
+
+    <div class="form-group">
+      <label>FULL NAME</label>
+      <input type="text" id="profile-fullname" class="form-input" placeholder="Full Name">
+    </div>
+
+    <div class="form-group">
+      <label>DESIGNATION / POSITION</label>
+      <input type="text" id="profile-position" class="form-input" placeholder="Designation / Position">
+    </div>
+
+    <div class="form-group">
+      <label>DEPARTMENT</label>
+      <input type="text" id="profile-department" class="form-input" placeholder="Department">
+    </div>
+
+    <div class="form-group">
+      <label>EMAIL ADDRESS</label>
+      <input type="email" id="profile-email" class="form-input" placeholder="Email Address">
+    </div>
+
+    <div class="form-group">
+      <label>NEW PASSWORD (OPTIONAL)</label>
+      <input type="password" id="profile-password" class="form-input" placeholder="Leave blank to keep current password">
+    </div>
+
+    <div class="enroll-modal-footer">
+      <button class="btn-enroll-cancel" onclick="closeProfileModal()">Cancel</button>
+      <button class="btn-enroll-submit" style="background:var(--primary);" onclick="submitUpdateProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- 🔥 FIREBASE REALTIME DATABASE SDK PERSISTENCE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -678,13 +729,13 @@
   ];
 
   let enrolledUsers = [
-    { username: "admin", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" },
+    { username: "ADMIN-MASTER", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz" },
     { username: "AUDITOR-516", name: "Lead Auditor", position: "Senior Auditor", department: "Internal Audit", email: "auditor516@mlhuillier.biz" }
   ];
 
   let systemAuditLogs = [];
 
-  // 🔥 Firebase Listeners (Real-Time Synchronization across browsers)
+  // 🔥 Firebase Listeners
   onValue(ref(db, 'strikeForceEntries'), (snapshot) => {
     const val = snapshot.val();
     if (val) {
@@ -799,7 +850,7 @@
     });
   }
 
-  // Attach functions to window scope for onclick handlers
+  // Attach functions to window scope for HTML inline handlers
   window.openEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'flex'; };
   window.closeEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'none'; };
 
@@ -827,6 +878,67 @@
     renderEnrolledUsersTable();
     addAuditLog(`Enrolled User: ${uname} (${fname})`);
     window.closeEnrollModal();
+  };
+
+  /* 👤 PROFILE UPDATE LOGIC */
+  window.openProfileModal = function() {
+    let currentUser = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+    let userObj = enrolledUsers.find(u => u.username.toUpperCase() === currentUser.toUpperCase()) || {
+      username: currentUser,
+      name: "Master Admin",
+      position: "Lead Audit Head",
+      department: "StrikeForce/Fraud Audit-IAD",
+      email: "admin@mlhuillier.biz"
+    };
+
+    document.getElementById('profile-username').value = userObj.username;
+    document.getElementById('profile-fullname').value = userObj.name || '';
+    document.getElementById('profile-position').value = userObj.position || '';
+    document.getElementById('profile-department').value = userObj.department || '';
+    document.getElementById('profile-email').value = userObj.email || '';
+    document.getElementById('profile-password').value = '';
+
+    document.getElementById('profile-modal').style.display = 'flex';
+  };
+
+  window.closeProfileModal = function() {
+    document.getElementById('profile-modal').style.display = 'none';
+  };
+
+  window.submitUpdateProfile = function() {
+    let uname = document.getElementById('profile-username').value;
+    let fname = document.getElementById('profile-fullname').value.trim();
+    let pos = document.getElementById('profile-position').value.trim();
+    let dept = document.getElementById('profile-department').value.trim();
+    let email = document.getElementById('profile-email').value.trim();
+    let newPass = document.getElementById('profile-password').value.trim();
+
+    if (!fname) {
+      alert("Full Name cannot be empty.");
+      return;
+    }
+
+    let userIdx = enrolledUsers.findIndex(u => u.username.toUpperCase() === uname.toUpperCase());
+    if (userIdx !== -1) {
+      enrolledUsers[userIdx].name = fname;
+      enrolledUsers[userIdx].position = pos;
+      enrolledUsers[userIdx].department = dept;
+      enrolledUsers[userIdx].email = email;
+    } else {
+      enrolledUsers.push({
+        username: uname,
+        name: fname,
+        position: pos,
+        department: dept,
+        email: email
+      });
+    }
+
+    saveEnrolledUsers();
+    renderEnrolledUsersTable();
+    addAuditLog(`Admin Profile Updated for: ${uname} (${fname})`);
+    alert("Profile updated successfully!");
+    window.closeProfileModal();
   };
 
   window.deleteEnrolledUser = function(index) {
