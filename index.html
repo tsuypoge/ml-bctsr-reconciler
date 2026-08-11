@@ -146,8 +146,8 @@
      DASHBOARD (Strike Force Template)
   ---------------------------------------------------- */
   #dashboard-view {
-    max-width: 1700px;
-    margin: 20px auto;
+    max-width: 1100px;
+    margin: 30px auto;
     padding: 0 20px;
   }
 
@@ -162,20 +162,24 @@
 
   .dash-toolbar {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 16px;
+    align-items: center;
   }
 
   .btn-toolbar {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #334155;
-    padding: 6px 16px;
-    font-size: 12px;
+    padding: 8px 18px;
+    font-size: 12.5px;
     font-weight: 600;
     border-radius: var(--radius-sm);
     cursor: pointer;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .btn-toolbar:hover {
@@ -186,7 +190,7 @@
   .dash-table-container {
     background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     overflow-x: auto;
     box-shadow: var(--shadow-sm);
   }
@@ -194,7 +198,7 @@
   .dash-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .dash-table th {
@@ -202,10 +206,12 @@
     color: #0f172a;
     font-size: 11.5px;
     font-weight: 700;
-    padding: 12px 10px;
+    padding: 14px 16px;
     border-bottom: 2px solid var(--border);
     white-space: nowrap;
     text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .dash-table th .sort-icon {
@@ -215,7 +221,7 @@
   }
 
   .dash-table td {
-    padding: 12px 10px;
+    padding: 14px 16px;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
     vertical-align: middle;
@@ -225,27 +231,20 @@
     background: #f8fafc;
   }
 
-  /* Status and Action Buttons in Table */
-  .btn-tbl-action {
+  .btn-tbl-red {
+    background: #dc2626;
     border: none;
-    padding: 5px 12px;
+    padding: 7px 18px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     color: #ffffff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .btn-tbl-green {
-    background: #15803d;
-  }
-  .btn-tbl-green:hover { background: #166534; }
-
-  .btn-tbl-red {
-    background: #dc2626;
+    gap: 6px;
+    transition: background 0.2s;
   }
   .btn-tbl-red:hover { background: #b91c1c; }
 
@@ -345,6 +344,34 @@
   .btn-archive { background: #0f172a; color: #ffffff; border: 1px solid #0f172a; }
   .btn-archive:hover { background: #1e293b; }
 
+  .branch-display-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--gold);
+    padding: 0 14px;
+    border-radius: var(--radius-md);
+    height: 40px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .branch-display-wrapper .branch-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  .branch-display-wrapper .branch-name-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    white-space: nowrap;
+  }
+
   .currency-tabs-bar {
     display: flex;
     gap: 6px;
@@ -441,7 +468,7 @@
     z-index: 10000;
   }
   .modal-card {
-    background: #ffffff; padding: 24px; border-radius: var(--radius-lg); width: 480px;
+    background: #ffffff; padding: 24px; border-radius: var(--radius-lg); width: 440px;
   }
 </style>
 </head>
@@ -477,25 +504,18 @@
   <h2 class="dash-header-title">Strike Force Template</h2>
 
   <div class="dash-toolbar">
-    <button class="btn-toolbar" onclick="openNewModal()">New</button>
+    <button class="btn-toolbar" onclick="openNewModal()"><span>➕</span> New Entry</button>
+    <button class="btn-toolbar" style="background:var(--primary); color:#fff; border:none;" onclick="document.getElementById('dash-master-file-input').click()"><span>📄</span> Upload Master BCTSR File(s)</button>
+    <input type="file" id="dash-master-file-input" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleDashMasterUpload(event)">
   </div>
 
   <div class="dash-table-container">
     <table class="dash-table">
       <thead>
         <tr>
-          <th>Regionname <span class="sort-icon">▲▼</span></th>
           <th>Branchname <span class="sort-icon">▲▼</span></th>
-          <th>Branch Code <span class="sort-icon">▲▼</span></th>
-          <th>Audit Date <span class="sort-icon">▲▼</span></th>
           <th>Cut-off Date <span class="sort-icon">▲▼</span></th>
-          <th>Auditors <span class="sort-icon">▲▼</span></th>
-          <th>OnEcon Entry <span class="sort-icon">▲▼</span></th>
-          <th>Minutes <span class="sort-icon">▲▼</span></th>
-          <th>Findings</th>
-          <th>Upload</th>
-          <th>Checklist</th>
-          <th>Status</th>
+          <th style="text-align:center;">Upload</th>
         </tr>
       </thead>
       <tbody id="dash-tbody">
@@ -634,33 +654,17 @@
 
 </div>
 
-<!-- NEW ASSIGNMENT MODAL -->
+<!-- NEW ENTRY MODAL -->
 <div class="modal-overlay" id="new-modal">
   <div class="modal-card">
-    <h3 style="font-size:16px; font-weight:700; color:var(--primary); margin-bottom:14px;">Create New Strike Force Entry</h3>
-    <div class="form-group">
-      <label>Region Name</label>
-      <input type="text" id="new-region" class="form-input" value="CebuNorth B">
-    </div>
+    <h3 style="font-size:16px; font-weight:700; color:var(--primary); margin-bottom:14px;">Create New Branch Recon Entry</h3>
     <div class="form-group">
       <label>Branch Name</label>
       <input type="text" id="new-branch" class="form-input" placeholder="e.g. ML Catarman">
     </div>
     <div class="form-group">
-      <label>Branch Code</label>
-      <input type="text" id="new-code" class="form-input" placeholder="e.g. 516">
-    </div>
-    <div class="form-group">
-      <label>Audit Date</label>
-      <input type="text" id="new-audit-date" class="form-input" value="07/27/2026 - 07/27/2026">
-    </div>
-    <div class="form-group">
-      <label>Cut-off Date</label>
-      <input type="text" id="new-cutoff-date" class="form-input" value="06/11/2026 - 07/26/2026">
-    </div>
-    <div class="form-group">
-      <label>Auditors</label>
-      <input type="text" id="new-auditors" class="form-input" placeholder="e.g. Rey John A. Duero / Le Cris O. Ugay">
+      <label>Cut-off Date / Date Covered</label>
+      <input type="text" id="new-cutoff-date" class="form-input" placeholder="e.g. 06/11/2026 - 07/26/2026">
     </div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
       <button class="btn-toolbar" onclick="closeNewModal()">Cancel</button>
@@ -672,37 +676,19 @@
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// DEFAULT DASHBOARD DATA STORE (MATCHES SCREENSHOT EXACTLY)
+// DEFAULT DASHBOARD DATA STORE (SIMPLIFIED COLUMNS ONLY)
 let strikeForceEntries = [
   {
-    region: "CebuNorth B",
     branch: "ML Catarman",
-    code: "516",
-    auditDate: "07/27/2026 - 07/27/2026",
-    cutoffDate: "06/11/2026 - 07/26/2026",
-    auditors: "Rey John A. Duero / Le Cris O. Ugay / Calasang, Neil Erick",
-    entryStatus: "Closed",
-    status: "For Acknowledgment"
+    cutoffDate: "06/11/2026 - 07/26/2026"
   },
   {
-    region: "CebuNorth B",
     branch: "ML Liloan 3",
-    code: "829",
-    auditDate: "07/27/2026 - 07/27/2026",
-    cutoffDate: "07/21/2026 - 07/26/2026",
-    auditors: "Hendrix Entienza / Ricardo Cenera / Edgardo T. Interone",
-    entryStatus: "Closed",
-    status: "For Acknowledgment"
+    cutoffDate: "07/21/2026 - 07/26/2026"
   },
   {
-    region: "CebuNorth B",
     branch: "ML Compostela",
-    code: "090",
-    auditDate: "07/27/2026 - 07/27/2026",
-    cutoffDate: "06/15/2026 - 07/26/2026",
-    auditors: "Michaelfel T. Aca-ac",
-    entryStatus: "Closed",
-    status: "For Acknowledgment"
+    cutoffDate: "06/15/2026 - 07/26/2026"
   }
 ];
 
@@ -723,18 +709,13 @@ function renderDashboardTable() {
   strikeForceEntries.forEach((row, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${row.region}</td>
-      <td style="font-weight:700;">${row.branch}</td>
-      <td>${row.code}</td>
-      <td>${row.auditDate}</td>
-      <td>${row.cutoffDate}</td>
-      <td style="max-width:220px; font-size:11px; line-height:1.3;">${row.auditors}</td>
-      <td>${row.entryStatus}</td>
-      <td><button class="btn-tbl-action btn-tbl-green">View</button></td>
-      <td><button class="btn-tbl-action btn-tbl-green">AEF</button></td>
-      <td><button class="btn-tbl-action btn-tbl-red" onclick="launchReconciler('${row.branch.replace(/'/g, "\\'")}')">Upload</button></td>
-      <td><button class="btn-tbl-action btn-tbl-green">View</button></td>
-      <td style="font-weight:600; font-size:11px; color:#475569;">${row.status}</td>
+      <td style="font-weight:700; font-size:13.5px; color:var(--text-main);">${row.branch}</td>
+      <td style="font-family:var(--font-mono); color:#475569;">${row.cutoffDate}</td>
+      <td style="text-align:center;">
+        <button class="btn-tbl-red" onclick="launchReconciler('${row.branch.replace(/'/g, "\\'")}')">
+          <span>📤</span> Upload
+        </button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
@@ -745,27 +726,58 @@ function closeNewModal() { document.getElementById('new-modal').style.display = 
 
 function saveNewEntry() {
   let bName = document.getElementById('new-branch').value.trim();
-  let bCode = document.getElementById('new-code').value.trim();
-  let rName = document.getElementById('new-region').value.trim();
-  let aDate = document.getElementById('new-audit-date').value.trim();
   let cDate = document.getElementById('new-cutoff-date').value.trim();
-  let auds = document.getElementById('new-auditors').value.trim();
 
   if (!bName) { alert("Please enter Branch Name"); return; }
 
   strikeForceEntries.push({
-    region: rName || "CebuNorth B",
     branch: bName,
-    code: bCode || "000",
-    auditDate: aDate || "08/11/2026 - 08/11/2026",
-    cutoffDate: cDate || "07/01/2026 - 08/10/2026",
-    auditors: auds || "Auditor Team",
-    entryStatus: "Open",
-    status: "In Progress"
+    cutoffDate: cDate || "Pending Upload"
   });
 
   closeNewModal();
   renderDashboardTable();
+}
+
+async function handleDashMasterUpload(evt) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let parsedData = null;
+
+    if (fileName.endsWith('.pdf')) {
+      parsedData = await parsePdfFilePromise(file);
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
+      parsedData = await parseExcelFilePromise(file);
+    }
+
+    if (parsedData && parsedData.items && parsedData.items.length > 0) {
+      let targetBranch = (parsedData.branch && parsedData.branch !== '—') ? parsedData.branch.trim().toUpperCase() : "UPLOADED BRANCH";
+      let targetCutoff = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Date Covered";
+      let targetCurrency = parsedData.currency || 'PHP';
+
+      let existing = strikeForceEntries.find(e => e.branch.toUpperCase() === targetBranch);
+      if (existing) {
+        existing.cutoffDate = targetCutoff;
+      } else {
+        strikeForceEntries.push({
+          branch: targetBranch,
+          cutoffDate: targetCutoff
+        });
+      }
+
+      if (!branchesStore[targetBranch]) {
+        branchesStore[targetBranch] = createEmptyBranchStore();
+      }
+      let bData = branchesStore[targetBranch];
+      bData.bctsrDataStore[targetCurrency] = parsedData;
+    }
+  }
+
+  renderDashboardTable();
+  evt.target.value = '';
 }
 
 function launchReconciler(branchName) {
