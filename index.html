@@ -9,7 +9,7 @@
 <!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -471,6 +471,15 @@
     padding: 8px;
     border-bottom: 1px solid #e2e8f0;
   }
+
+  .user-tag {
+    font-size: 11px;
+    background: #e2e8f0;
+    color: #334155;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
@@ -864,21 +873,20 @@
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    let currentUser = (localStorage.getItem('ml_activeUser') || '').toUpperCase().trim();
+    let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
     // Non-admin enrolled users for Assign dropdown
-    let nonAdminEnrolled = enrolledUsers.filter(u => !u.username.toUpperCase().includes('ADMIN'));
+    let nonAdminEnrolled = enrolledUsers.filter(u => !u.username.toLowerCase().includes('admin'));
 
-    // Filter logic
+    // Strictly filter visible entries: Admin sees all; User sees ONLY created OR assigned companion entries
     let visibleEntries = strikeForceEntries.filter((row) => {
-      if (currentRole === 'admin' || currentUser.includes('ADMIN')) return true;
+      if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
-      let creator = (row.createdBy || '').toUpperCase().trim();
-      let companion = (row.companion || '').toUpperCase().trim();
+      let creator = (row.createdBy || '').toLowerCase().trim();
+      let companion = (row.companion || '').toLowerCase().trim();
 
-      return (creator && (currentUser === creator || currentUser.includes(creator))) ||
-             (companion && (currentUser === companion || currentUser.includes(companion)));
+      return (creator && creator === currentUser) || (companion && companion === currentUser);
     });
 
     if (visibleEntries.length === 0) {
@@ -893,10 +901,10 @@
       else if (row.status === "Pending") statusBg = "#64748b";
       else if (row.status === "Archived") statusBg = "#475569";
 
-      // Build Assign Dropdown HTML
+      // Build Assign Dropdown HTML (Excluding Admin)
       let assignOptions = `<option value="Unassigned">-- Select Companion --</option>`;
       nonAdminEnrolled.forEach(u => {
-        let isSelected = (row.companion === u.username || row.companion === `${u.username} (${u.name})`) ? 'selected' : '';
+        let isSelected = (row.companion && row.companion.toLowerCase() === u.username.toLowerCase()) ? 'selected' : '';
         assignOptions += `<option value="${u.username}" ${isSelected}>${u.name} (${u.username})</option>`;
       });
 
@@ -911,7 +919,7 @@
         <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
         <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
         
-        <!-- 🎯 ASSIGN COLUMN (DROPDOWN EXCLUDING ADMIN) -->
+        <!-- 🎯 ASSIGN COLUMN (DROPDOWN IN BETWEEN CUT-OFF DATE & INVENTORY) -->
         <td style="text-align:center;">
           ${assignCellHTML}
         </td>
