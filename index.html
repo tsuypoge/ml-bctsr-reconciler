@@ -4,7 +4,7 @@
 <link rel="icon" type="image/png" href="logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Strike Force Template — M Lhuillier</title>
+<title>Strike Force Template — M Lhuillier Audit Portal</title>
 
 <!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +21,7 @@
     --text-main: #1e293b;
     --text-muted: #64748b;
     --border: #e2e8f0;
+    --gold: #d4af37;
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
     --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
@@ -101,7 +102,7 @@
 
   /* Dashboard View */
   #dashboard-view {
-    max-width: 1200px;
+    max-width: 1250px;
     margin: 40px auto;
     padding: 0 20px;
   }
@@ -114,6 +115,56 @@
     margin-bottom: 24px;
     letter-spacing: -0.02em;
     text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+
+  /* Admin Control Panel Section */
+  .admin-panel-card {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+    margin-bottom: 24px;
+    border-top: 4px solid var(--gold);
+    display: none;
+  }
+
+  .admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  .admin-panel-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .admin-box {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+  }
+
+  .admin-box h4 {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    margin-bottom: 10px;
+    text-transform: uppercase;
   }
 
   .dash-toolbar {
@@ -183,8 +234,6 @@
     letter-spacing: 0.5px;
   }
 
-  .dash-table th .sort-icon { font-size: 9px; color: #94a3b8; margin-left: 4px; }
-
   .dash-table td {
     padding: 16px 16px;
     border-bottom: 1px solid #f8fafc;
@@ -192,7 +241,6 @@
     vertical-align: middle;
   }
   .dash-table tr:hover { background: #fffdfd; }
-  .dash-table tr:last-child td { border-bottom: none; }
 
   .companion-tag {
     display: inline-flex;
@@ -223,9 +271,7 @@
     font-family: var(--font-sans);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
-  .btn-tbl-status:hover { opacity: 0.9; transform: translateY(-1px); }
 
-  /* Inventory Buttons inside Table */
   .btn-inv {
     border: 1px solid var(--border);
     background: #f8fafc;
@@ -246,11 +292,8 @@
     background: var(--primary);
     color: #ffffff;
     border-color: var(--primary);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(204, 0, 0, 0.2);
   }
 
-  /* Action Buttons */
   .btn-action {
     border: none;
     padding: 6px 12px;
@@ -263,9 +306,9 @@
     margin: 0 2px;
   }
   .btn-archive { background: #f1f5f9; color: #334155; }
-  .btn-archive:hover { background: #e2e8f0; color: #0f172a; }
+  .btn-archive:hover { background: #e2e8f0; }
   .btn-delete { background: #fee2e2; color: #991b1b; }
-  .btn-delete:hover { background: #fca5a5; color: #7f1d1d; }
+  .btn-delete:hover { background: #fca5a5; }
 
   /* Modal */
   .modal-overlay {
@@ -282,6 +325,18 @@
     width: 480px;
     box-shadow: var(--shadow-card);
   }
+
+  .log-box {
+    max-height: 140px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: #0f172a;
+    color: #38bdf8;
+    padding: 10px;
+    border-radius: 6px;
+    line-height: 1.4;
+  }
 </style>
 </head>
 <body>
@@ -291,18 +346,19 @@
   <div class="login-card">
     <img src="logo.png" class="login-logo" alt="M Lhuillier" onerror="this.style.display='none';">
     <div class="login-title">M LHUILLIER AUDIT PORTAL</div>
-    <div class="login-sub">Strike Force Template Authentication</div>
+    <div class="login-sub">Strike Force Master Authentication</div>
     
     <div class="form-group">
       <label>User ID / Employee Code</label>
-      <input type="text" id="login-user" class="form-input" value="AUDITOR-516" placeholder="Enter User ID">
+      <input type="text" id="login-user" class="form-input" value="ADMIN-MASTER" placeholder="Enter User ID">
     </div>
     
     <div class="form-group">
       <label>Auditor Role</label>
       <select id="login-role" class="form-select">
-        <option value="lead">Lead Auditor (Full Edit Access)</option>
-        <option value="companion">Companion Auditor (QCL / Subasta Edit Only)</option>
+        <option value="admin">⚡ Master Administrator (Super Admin)</option>
+        <option value="lead">Lead Auditor (Full Access)</option>
+        <option value="companion">Companion Auditor (QCL/Subasta Edit Only)</option>
       </select>
     </div>
 
@@ -319,11 +375,55 @@
 <div id="dashboard-view" style="display:none;">
   <h2 class="dash-header-title">Strike Force Template</h2>
 
+  <!-- 👑 MASTER ADMIN CONTROL PANEL -->
+  <div class="admin-panel-card" id="admin-control-panel">
+    <div class="admin-panel-header">
+      <div class="admin-panel-title">
+        <span>⚡ MASTER ADMIN CONTROL CENTER</span>
+        <span style="font-size:11px; background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:12px; border:1px solid #fcd34d;">Super Admin Mode Active</span>
+      </div>
+      <button class="btn-action btn-archive" onclick="toggleAdminPanelUI()">Hide Panel</button>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Box 1: Backup & Disaster Recovery -->
+      <div class="admin-box">
+        <h4>💾 Master Vault Backup & Sync</h4>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="exportMasterDatabaseJSON()">📥 Export Full System Backup (JSON)</button>
+          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="document.getElementById('restore-db-file').click()">📂 Restore Master Database</button>
+          <input type="file" id="restore-db-file" accept=".json" style="display:none;" onchange="importMasterDatabaseJSON(event)">
+        </div>
+      </div>
+
+      <!-- Box 2: Emergency Override & Maintenance -->
+      <div class="admin-box">
+        <h4>⚡ System Overrides & Lock Control</h4>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="massToggleArchiveState(true)">🔒 Mass Force-Lock All Branches</button>
+          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="massToggleArchiveState(false)">🔓 Mass Unlock All Branches</button>
+          <button class="btn-inv" style="justify-content:center; padding:8px; background:#fee2e2; color:#991b1b; border-color:#fca5a5;" onclick="triggerFactoryResetSystem()">🗑️ Master Factory Wipe System</button>
+        </div>
+      </div>
+
+      <!-- Box 3: Audit Trail Logs -->
+      <div class="admin-box">
+        <h4>📜 Live Activity & Audit Trail Log</h4>
+        <div class="log-box" id="admin-log-display">
+          [System Ready] Master Admin logged in.
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="dash-toolbar">
-    <button class="btn-toolbar" onclick="openNewModal()"><span>➕</span> New Entry</button>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="btn-toolbar" onclick="openNewModal()"><span>➕</span> New Entry</button>
+      <button class="btn-toolbar" id="btn-admin-panel-toggle" style="display:none; background:#1e293b; color:#fff;" onclick="toggleAdminPanelUI()">⚡ Admin Controls</button>
+    </div>
 
     <div class="user-badge-bar">
-      <span>👤 Logged in as: <strong id="active-user-display">AUDITOR-516</strong></span>
+      <span>👤 Logged in as: <strong id="active-user-display">ADMIN-MASTER</strong></span>
       <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:6px;">Logout</button>
     </div>
   </div>
@@ -332,8 +432,8 @@
     <table class="dash-table">
       <thead>
         <tr>
-          <th>Branchname <span class="sort-icon">▲▼</span></th>
-          <th>Cut-off Date <span class="sort-icon">▲▼</span></th>
+          <th>Branchname</th>
+          <th>Cut-off Date</th>
           <th>Companion Auditor</th>
           <th style="text-align:center;">Inventory</th>
           <th style="text-align:center;">Status</th>
@@ -385,10 +485,27 @@ let strikeForceEntries = [
   { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companion: "AUDITOR-412", status: "In Progress" }
 ];
 
+let systemAuditLogs = [];
+
+function addAuditLog(msg) {
+  let time = new Date().toLocaleTimeString();
+  systemAuditLogs.unshift(`[${time}] ${msg}`);
+  if (systemAuditLogs.length > 20) systemAuditLogs.pop();
+  
+  let logBox = document.getElementById('admin-log-display');
+  if (logBox) logBox.innerHTML = systemAuditLogs.join('<br>');
+  
+  localStorage.setItem('ml_audit_logs', JSON.stringify(systemAuditLogs));
+}
+
 function loadEntries() {
   let saved = localStorage.getItem('ml_strikeForceEntries');
   if (saved) {
     try { strikeForceEntries = JSON.parse(saved); } catch(e){}
+  }
+  let savedLogs = localStorage.getItem('ml_audit_logs');
+  if (savedLogs) {
+    try { systemAuditLogs = JSON.parse(savedLogs); } catch(e){}
   }
 }
 
@@ -431,7 +548,7 @@ function renderDashboardTable() {
 
       <!-- ACTION COLUMN -->
       <td style="text-align:center;">
-        ${currentRole === 'lead' ? `
+        ${(currentRole === 'lead' || currentRole === 'admin') ? `
           <button class="btn-action btn-archive" title="Archive" onclick="archiveEntry(${index})">📁 Archive</button>
           <button class="btn-action btn-delete" title="Delete" onclick="deleteEntry(${index})">🗑️ Delete</button>
         ` : `<span style="font-size:11px; color:#94a3b8; font-weight:600;">Read-Only</span>`}
@@ -461,6 +578,7 @@ function saveNewEntry() {
   });
 
   saveEntries();
+  addAuditLog(`Created Branch Entry: ${formattedBranch} (Assigned: ${cCompanion || 'None'})`);
   closeNewModal();
 
   localStorage.setItem('ml_activeBranch', formattedBranch);
@@ -478,17 +596,21 @@ function launchBranchInventory(branchName, type) {
 }
 
 function deleteEntry(index) {
-  if (confirm(`Sigurado ka nga gusto nimo i-delete ang "${strikeForceEntries[index].branch}"?`)) {
+  let bName = strikeForceEntries[index].branch;
+  if (confirm(`Sigurado ka nga gusto nimo i-delete ang "${bName}"?`)) {
     strikeForceEntries.splice(index, 1);
     saveEntries();
+    addAuditLog(`Deleted Branch Entry: ${bName}`);
     renderDashboardTable();
   }
 }
 
 function archiveEntry(index) {
-  if (confirm(`I-archive ba ang "${strikeForceEntries[index].branch}"?`)) {
+  let bName = strikeForceEntries[index].branch;
+  if (confirm(`I-archive ba ang "${bName}"?`)) {
     strikeForceEntries[index].status = "Archived";
     saveEntries();
+    addAuditLog(`Archived Branch Entry: ${bName}`);
     renderDashboardTable();
   }
 }
@@ -505,13 +627,96 @@ function launchReconciler(branchName) {
   window.location.href = 'reconciler.html';
 }
 
+/* ⚡ MASTER ADMIN FUNCTIONS */
+function toggleAdminPanelUI() {
+  let panel = document.getElementById('admin-control-panel');
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    panel.style.display = 'block';
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function exportMasterDatabaseJSON() {
+  let fullData = {
+    exportedAt: new Date().toISOString(),
+    user: localStorage.getItem('ml_activeUser'),
+    entries: strikeForceEntries,
+    branchesStore: localStorage.getItem('ml_branchesStore'),
+    auditLogs: systemAuditLogs
+  };
+
+  let blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ML_Master_Database_Backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  addAuditLog("Exported Master Database Backup JSON.");
+}
+
+function importMasterDatabaseJSON(evt) {
+  let file = evt.target.files[0];
+  if (!file) return;
+
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      let data = JSON.parse(e.target.result);
+      if (data.entries) {
+        strikeForceEntries = data.entries;
+        saveEntries();
+      }
+      if (data.branchesStore) {
+        localStorage.setItem('ml_branchesStore', data.branchesStore);
+      }
+      alert("Master Database restored successfully!");
+      addAuditLog("Restored Master Database from JSON file.");
+      location.reload();
+    } catch(err) {
+      alert("Invalid Backup File Format.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function massToggleArchiveState(lockState) {
+  strikeForceEntries.forEach(e => {
+    e.status = lockState ? "Archived" : "In Progress";
+  });
+  saveEntries();
+  renderDashboardTable();
+  addAuditLog(lockState ? "Admin Mass Force-Locked All Entries." : "Admin Mass Unlocked All Entries.");
+}
+
+function triggerFactoryResetSystem() {
+  let pin = prompt("TYPE ADMIN PIN (1234) TO CONFIRM MASTER FACTORY RESET:");
+  if (pin === "1234") {
+    localStorage.clear();
+    sessionStorage.clear();
+    alert("System completely wiped. Reloading...");
+    location.reload();
+  } else if (pin !== null) {
+    alert("Incorrect Admin PIN.");
+  }
+}
+
 function updateUserInfoDisplay() {
-  let user = localStorage.getItem('ml_activeUser') || 'AUDITOR-516';
-  document.getElementById('active-user-display').innerText = user;
+  let user = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+  let role = localStorage.getItem('ml_user_role') || 'admin';
+
+  document.getElementById('active-user-display').innerText = `${user} (${role.toUpperCase()})`;
+
+  if (role === 'admin') {
+    document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
+    document.getElementById('admin-control-panel').style.display = 'block';
+  } else {
+    document.getElementById('btn-admin-panel-toggle').style.display = 'none';
+    document.getElementById('admin-control-panel').style.display = 'none';
+  }
 }
 
 function doLogin() {
-  let user = document.getElementById('login-user').value.trim() || 'AUDITOR-516';
+  let user = document.getElementById('login-user').value.trim() || 'ADMIN-MASTER';
   let role = document.getElementById('login-role').value;
 
   sessionStorage.setItem('ml_logged_in', 'true');
@@ -521,6 +726,7 @@ function doLogin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('dashboard-view').style.display = 'block';
   
+  addAuditLog(`User Logged In: ${user} [Role: ${role}]`);
   updateUserInfoDisplay();
   loadEntries();
   renderDashboardTable();
