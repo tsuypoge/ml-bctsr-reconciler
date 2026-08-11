@@ -9,7 +9,7 @@
 <!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -59,7 +59,7 @@
     padding: 40px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
-    width: 420px;
+    width: 400px;
     text-align: center;
   }
 
@@ -70,7 +70,7 @@
   .form-group { text-align: left; margin-bottom: 18px; }
   .form-group label { display: block; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  .form-input, .form-select {
+  .form-input {
     width: 100%;
     padding: 12px 14px;
     border: 1.5px solid var(--border);
@@ -81,7 +81,7 @@
     transition: all 0.2s;
     background: #ffffff;
   }
-  .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
+  .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
 
   .btn-login {
     width: 100%;
@@ -346,20 +346,11 @@
   <div class="login-card">
     <img src="logo.png" class="login-logo" alt="M Lhuillier" onerror="this.style.display='none';">
     <div class="login-title">M LHUILLIER AUDIT PORTAL</div>
-    <div class="login-sub">Strike Force Master Authentication</div>
+    <div class="login-sub">Strike Force Authentication</div>
     
     <div class="form-group">
       <label>User ID / Employee Code</label>
       <input type="text" id="login-user" class="form-input" value="ADMIN-MASTER" placeholder="Enter User ID">
-    </div>
-    
-    <div class="form-group">
-      <label>Auditor Role</label>
-      <select id="login-role" class="form-select">
-        <option value="admin">⚡ Master Administrator (Super Admin)</option>
-        <option value="lead">Lead Auditor (Full Access)</option>
-        <option value="companion">Companion Auditor (QCL/Subasta Edit Only)</option>
-      </select>
     </div>
 
     <div class="form-group">
@@ -466,7 +457,7 @@
       <label>Assign Companion Auditor (Kauban Auditor)</label>
       <input type="text" id="new-companion" class="form-input" placeholder="e.g. AUDITOR-202 (John Doe)">
       <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-        * Companion can edit <strong>QCL</strong> and <strong>Subasta/SR</strong> inventory, but Reconciler remains Read-Only.
+        * Companion can edit <strong>QCL</strong> and <strong>Subasta/SR</strong> inventory.
       </div>
     </div>
 
@@ -618,12 +609,6 @@ function archiveEntry(index) {
 function launchReconciler(branchName) {
   let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
   localStorage.setItem('ml_activeBranch', activeB);
-  
-  let role = localStorage.getItem('ml_user_role') || 'lead';
-  if (role === 'companion') {
-    alert(`Auditor Mode: Companion (${localStorage.getItem('ml_activeUser') || 'Companion'}). Reconciler will open in Read-Only mode.`);
-  }
-  
   window.location.href = 'reconciler.html';
 }
 
@@ -704,7 +689,7 @@ function updateUserInfoDisplay() {
   let user = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
   let role = localStorage.getItem('ml_user_role') || 'admin';
 
-  document.getElementById('active-user-display').innerText = `${user} (${role.toUpperCase()})`;
+  document.getElementById('active-user-display').innerText = user;
 
   if (role === 'admin') {
     document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
@@ -717,7 +702,7 @@ function updateUserInfoDisplay() {
 
 function doLogin() {
   let user = document.getElementById('login-user').value.trim() || 'ADMIN-MASTER';
-  let role = document.getElementById('login-role').value;
+  let role = user.toUpperCase().includes('ADMIN') ? 'admin' : 'lead';
 
   sessionStorage.setItem('ml_logged_in', 'true');
   localStorage.setItem('ml_activeUser', user);
