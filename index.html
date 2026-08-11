@@ -4,7 +4,7 @@
 <link rel="icon" type="image/png" href="logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OnEcon Strike Force Template — M Lhuillier</title>
+<title>Strike Force Template — M Lhuillier</title>
 
 <!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -143,7 +143,7 @@
 
 
   /* ----------------------------------------------------
-     DASHBOARD (OnEcon Strike Force Template)
+     DASHBOARD (Strike Force Template)
   ---------------------------------------------------- */
   #dashboard-view {
     max-width: 1700px;
@@ -454,7 +454,7 @@
   <div class="login-card">
     <img src="logo.png" class="login-logo" alt="M Lhuillier" onerror="this.style.display='none';">
     <div class="login-title">M LHUILLIER AUDIT PORTAL</div>
-    <div class="login-sub">OnEcon Strike Force Template Authentication</div>
+    <div class="login-sub">Strike Force Template Authentication</div>
     
     <div class="form-group">
       <label>User ID / Employee Code</label>
@@ -471,15 +471,13 @@
 
 
 <!-- =================================-------------------
-     2. DASHBOARD VIEW (OnEcon Strike Force Template)
+     2. DASHBOARD VIEW (Strike Force Template)
 ========================================================= -->
 <div id="dashboard-view" style="display:none;">
-  <h2 class="dash-header-title">OnEcon Strike Force Template</h2>
+  <h2 class="dash-header-title">Strike Force Template</h2>
 
   <div class="dash-toolbar">
     <button class="btn-toolbar" onclick="openNewModal()">New</button>
-    <button class="btn-toolbar">Edit</button>
-    <button class="btn-toolbar">Assign Auditor</button>
   </div>
 
   <div class="dash-table-container">
@@ -1722,7 +1720,7 @@ const REPORT_RULES = {
 
   // MCASH RULES
   "MCash Cash In": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashCashIn(data), getQty: (data) => countMCashCashIn(data) },
-  "MCash Service Charge": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashServiceCharge(data), getQty: (data) => countMCashCashIn(data) },
+  "MCash Service Charge": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashServiceCharge(data), getQty: (data) => countMCashServiceCharge(data) },
   "MCash Payout": { sheet: "MCASH OUT", getSum: (data) => sumMCashPayout(data), getQty: (data) => countMCashPayout(data) },
 
   "ATM POS": { isManual: true },
