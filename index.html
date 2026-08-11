@@ -212,22 +212,6 @@
   .btn-archive:hover { background: #e2e8f0; color: #0f172a; }
   .btn-delete { background: #fee2e2; color: #991b1b; }
   .btn-delete:hover { background: #fca5a5; color: #7f1d1d; }
-
-  /* Modal */
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    display: none; align-items: center; justify-content: center;
-    z-index: 10000;
-  }
-  .modal-card {
-    background: #ffffff;
-    padding: 30px;
-    border-radius: var(--radius-lg);
-    width: 460px;
-    box-shadow: var(--shadow-card);
-  }
 </style>
 </head>
 <body>
@@ -274,25 +258,6 @@
         <!-- Rows dynamically rendered -->
       </tbody>
     </table>
-  </div>
-</div>
-
-<!-- NEW ENTRY MODAL -->
-<div class="modal-overlay" id="new-modal">
-  <div class="modal-card">
-    <h3 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:18px;">Create New Branch Recon Entry</h3>
-    <div class="form-group">
-      <label>Branch Name</label>
-      <input type="text" id="new-branch" class="form-input" placeholder="e.g. ML Catarman">
-    </div>
-    <div class="form-group">
-      <label>Cut-off Date / Date Covered</label>
-      <input type="text" id="new-cutoff-date" class="form-input" placeholder="e.g. 06/11/2026 - 07/26/2026">
-    </div>
-    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
-      <button class="btn-toolbar" style="background:#f1f5f9; color:#475569; box-shadow:none;" onclick="closeNewModal()">Cancel</button>
-      <button class="btn-toolbar" style="background:var(--primary); color:#fff;" onclick="saveNewEntry()">Save & Open Reconciler ➔</button>
-    </div>
   </div>
 </div>
 
@@ -343,31 +308,9 @@ function renderDashboardTable() {
   });
 }
 
+// 👉 INEG CLICK SA NEW ENTRY, DERETSO MODIRECT SA RECONCILER.HTML
 function createNewRecon() {
-  openNewModal();
-}
-
-function openNewModal() { document.getElementById('new-modal').style.display = 'flex'; }
-function closeNewModal() { document.getElementById('new-modal').style.display = 'none'; }
-
-function saveNewEntry() {
-  let bName = document.getElementById('new-branch').value.trim();
-  let cDate = document.getElementById('new-cutoff-date').value.trim();
-
-  if (!bName) { alert("Please enter Branch Name"); return; }
-
-  let formattedBranch = bName.toUpperCase();
-
-  strikeForceEntries.push({
-    branch: formattedBranch,
-    cutoffDate: cDate || "Pending Upload",
-    status: "Pending"
-  });
-
-  saveEntries();
-  closeNewModal();
-
-  localStorage.setItem('ml_activeBranch', formattedBranch);
+  localStorage.setItem('ml_activeBranch', 'NEW ENTRY');
   window.location.href = 'reconciler.html';
 }
 
