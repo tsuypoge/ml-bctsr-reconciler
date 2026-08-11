@@ -418,6 +418,95 @@ function countIntlSendout(sheetData, targetCurr = "PHP") {
   return count;
 }
 
+// SMART DYNAMIC CALCULATORS FOR MCASH CASH IN & SERVICE CHARGE
+function sumMCashCashIn(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let amountCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['amount', 'cash in amount', 'total amount'].includes(c_str)) {
+        amountCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (amountCol !== -1) break;
+  }
+
+  if (amountCol === -1) amountCol = (sheetData[0] && sheetData[0].length >= 9) ? 8 : 7;
+
+  let total = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > amountCol) {
+      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function sumMCashServiceCharge(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let chargeCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['charge', 'service charge', 'fee', 'charges'].includes(c_str)) {
+        chargeCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (chargeCol !== -1) break;
+  }
+
+  if (chargeCol === -1) chargeCol = (sheetData[0] && sheetData[0].length >= 9) ? 7 : 6;
+
+  let total = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > chargeCol) {
+      let valStr = String(row[chargeCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function countMCashCashIn(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['sender', 'kptn', 'amount', 'no'].includes(c_str)) {
+        headerIdx = i;
+        break;
+      }
+    }
+    if (headerIdx !== -1) break;
+  }
+
+  let count = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    if (isValidDataRow(sheetData[i])) count++;
+  }
+  return count;
+}
+
 // SMART DYNAMIC COLUMN CALCULATORS FOR JEWELRY SALES (SUBASTA)
 function sumJewelryNetSales(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
@@ -952,7 +1041,6 @@ const REPORT_RULES = {
 
   "International Money Transfer Payout": { sheet: "PAYOUT", getSum: (data, br, items, curr) => sumPayoutCSV(data, curr), getQty: (data, br, items, curr) => countPayoutCSV(data, curr) },
   
-  // INTL MONEY TRANSFER SENDOUT & CHARGES MAPPER
   "International Money Transfer Sendout": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutPrincipal(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
   "International Money Transfer Charges": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutCharges(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
 
@@ -964,7 +1052,9 @@ const REPORT_RULES = {
   "POS Dried Products": { sheet: "ISPD Sales", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
   "POS Telco Products": { sheet: "BRANCH-ELOAD", getSum: (data) => sumCol(data, 8), getQty: (data) => countRows(data) },
 
-  "MCash Cash In": { sheet: "MCASH IN", getSum: (data) => sumMCashCashIn(data), getQty: (data) => countMCashCashIn(data) },
+  // MCASH CASH IN, SERVICE CHARGE, AND PAYOUT RULES
+  "MCash Cash In": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashCashIn(data), getQty: (data) => countMCashCashIn(data) },
+  "MCash Service Charge": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashServiceCharge(data), getQty: (data) => countMCashCashIn(data) },
   "MCash Payout": { sheet: "MCASH OUT", getSum: (data) => sumMCashPayout(data), getQty: (data) => countMCashPayout(data) },
 
   "ATM POS": { isManual: true },
@@ -981,7 +1071,8 @@ function isValidDataRow(row) {
   if (!row || !Array.isArray(row) || row.length === 0) return false;
   let col0 = String(row[0] || '').trim();
   if (!col0) return false;
-  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp)/i.test(col0)) return false;
+  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp|generated|printed|run)/i.test(col0)) return false;
+  if (/report|philippines/i.test(col0)) return false;
   return true;
 }
 
@@ -1110,29 +1201,6 @@ function countPayoutCSV(sheetData, targetCurr = "PHP") {
       let curr = String(row[8] || '').trim().toUpperCase();
       if (curr === targetCurr.toUpperCase()) count++;
     }
-  }
-  return count;
-}
-
-function sumMCashCashIn(sheetData) {
-  let total = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row)) {
-      let amtIdx = row.length >= 9 ? 8 : (row.length === 8 ? 7 : 6);
-      if (row.length > amtIdx) {
-        let val = parseFloat(String(row[amtIdx] || '').replace(/,/g, '').trim());
-        if (!isNaN(val)) total += val;
-      }
-    }
-  }
-  return total;
-}
-
-function countMCashCashIn(sheetData) {
-  let count = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    if (isValidDataRow(sheetData[i])) count++;
   }
   return count;
 }
