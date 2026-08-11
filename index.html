@@ -27,30 +27,10 @@
   header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); color: #fff; padding: 18px 32px; border-bottom: 4px solid var(--gold); }
   .header-content { max-width: 1550px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
   .header-title-box { display: flex; align-items: center; gap: 16px; }
-  <!-- HEADER LOGO --> <img src="logo.png" class="header-logo-img" alt="Internal Audit Division Logo">
+  .header-logo-img { height: 40px; width: auto; }
   .logo-badge { background: #fff; color: var(--primary); font-weight: 800; font-size: 20px; padding: 8px 14px; border-radius: 8px; }
   h1 { font-size: 20px; font-weight: 700; }
   .header-sub { font-size: 13px; color: rgba(255,255,255,0.8); }
-
-  .user-status-bar { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.2); }
-  .btn-logout { background: #ffffff; color: var(--primary); border: none; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; }
-  .btn-logout:hover { background: #fee2e2; }
-
-  /* AUTHENTICATION OVERLAY & CARDS */
-  .auth-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, #2b0000 0%, #660000 100%); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
-  .auth-card { background: #ffffff; width: 100%; max-width: 440px; border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-top: 5px solid var(--gold); }
-  .auth-card h2 { color: var(--primary); font-size: 22px; font-weight: 800; margin-bottom: 6px; text-align: center; }
-  .auth-card p.sub { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 24px; }
-  .auth-group { margin-bottom: 16px; }
-  .auth-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
-  .auth-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; transition: 0.2s; }
-  .auth-input:focus { outline: none; border-color: var(--primary); }
-  .auth-input[readonly] { background: #f1f5f9; color: var(--primary); font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
-  .btn-auth-submit { width: 100%; background: var(--primary); color: #ffffff; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; margin-top: 8px; }
-  .btn-auth-submit:hover { background: var(--primary-dark); }
-  .auth-switch { text-align: center; margin-top: 18px; font-size: 12px; color: var(--text-muted); }
-  .auth-switch a { color: var(--primary); font-weight: 700; text-decoration: none; cursor: pointer; }
-  .auth-switch a:hover { text-decoration: underline; }
 
   .wrap { max-width: 1550px; margin: 24px auto; padding: 0 20px; }
 
@@ -138,89 +118,6 @@
 </head>
 <body>
 
-<!-- AUTHENTICATION OVERLAY (LOGIN / REGISTRATION / DEFAULT CODE VERIFICATION) -->
-<div id="auth-overlay" class="auth-overlay">
-  <!-- LOGIN FORM CARD -->
-  <div id="card-login" class="auth-card">
-    <h2>M Lhuillier Account</h2>
-    <p class="sub">Automated BCTSR Reconciler System</p>
-<!-- LOGIN MODAL LOGO -->
-<div style="text-align:center; margin-bottom:12px;">
-  <img src="logo.png" alt="Internal Audit Division" style="height:64px; width:auto; border-radius:50%;">
-</div>
-    <div class="auth-group">
-      <label>Username (lastname.firstnameinitial)</label>
-      <input type="text" id="login-username" class="auth-input" placeholder="e.g. camata.n">
-    </div>
-
-    <div class="auth-group">
-      <label>Password</label>
-      <input type="password" id="login-password" class="auth-input" placeholder="••••••••">
-    </div>
-
-    <button class="btn-auth-submit" onclick="handleLogin()">LOG IN</button>
-
-    <div class="auth-switch">
-      Don't have an account? <a onclick="showAuthCard('register')">Register here</a>
-    </div>
-  </div>
-
-  <!-- REGISTRATION FORM CARD -->
-  <div id="card-register" class="auth-card" style="display:none;">
-    <h2>Create Account</h2>
-    <p class="sub">Register to access BCTSR Reconciler</p>
-
-    <div style="display:flex; gap:10px;">
-      <div class="auth-group" style="flex:1;">
-        <label>First Name</label>
-        <input type="text" id="reg-firstname" class="auth-input" placeholder="e.g. Nhelyrose" oninput="updateGeneratedUsername()">
-      </div>
-      <div class="auth-group" style="flex:1;">
-        <label>Last Name</label>
-        <input type="text" id="reg-lastname" class="auth-input" placeholder="e.g. Camata" oninput="updateGeneratedUsername()">
-      </div>
-    </div>
-
-    <div class="auth-group">
-      <label>Email Address</label>
-      <input type="email" id="reg-email" class="auth-input" placeholder="e.g. user@mlhuillier.com">
-    </div>
-
-    <div class="auth-group">
-      <label>Generated Username</label>
-      <input type="text" id="reg-username" class="auth-input" readonly placeholder="lastname.firstnameinitial">
-    </div>
-
-    <div class="auth-group">
-      <label>Password</label>
-      <input type="password" id="reg-password" class="auth-input" placeholder="••••••••">
-    </div>
-
-    <button class="btn-auth-submit" onclick="handleRegisterRequest()">PROCEED TO VERIFICATION</button>
-
-    <div class="auth-switch">
-      Already have an account? <a onclick="showAuthCard('login')">Log In</a>
-    </div>
-  </div>
-
-  <!-- VERIFICATION CODE MODAL CARD (DEFAULT CODE 01091990) -->
-  <div id="card-verify" class="auth-card" style="display:none;">
-    <h2>Account Verification</h2>
-    <p class="sub">Enter the default verification code (<b>01091990</b>) to complete registration.</p>
-
-    <div class="auth-group">
-      <label>Verification Code</label>
-      <input type="text" id="verify-code-input" class="auth-input" style="text-align:center; font-size:18px; letter-spacing:4px;" placeholder="01091990" maxlength="8">
-    </div>
-
-    <button class="btn-auth-submit" onclick="handleVerifyCodeSubmit()">VERIFY & REGISTER</button>
-
-    <div class="auth-switch">
-      <a onclick="showAuthCard('register')">← Back to Registration</a>
-    </div>
-  </div>
-</div>
-
 <header id="app-header">
   <div class="header-content">
     <div class="header-title-box">
@@ -229,12 +126,6 @@
         <h1>Automated BCTSR Reconciler</h1>
         <div class="header-sub">Upload Master BCTSR File & Manual Adjustment Report (Multi-Branch & Multi-Currency)</div>
       </div>
-    </div>
-
-    <!-- LOGGED-IN USER DISPLAY -->
-    <div class="user-status-bar" id="user-status-bar">
-      <span>👤 User: <b id="user-display-name">—</b></span>
-      <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
     </div>
   </div>
 </header>
@@ -349,136 +240,6 @@
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// --- AUTHENTICATION & USER MANAGEMENT ---
-let accountsStore = {};
-let pendingRegistration = null;
-let loggedInUser = null;
-
-// FIXED DEFAULT CODE
-const DEFAULT_VERIFY_CODE = "01091990";
-
-function initAuth() {
-  const savedAccounts = localStorage.getItem('ml_accountsStore');
-  if (savedAccounts) {
-    accountsStore = JSON.parse(savedAccounts);
-  } else {
-    // Default Admin Account
-    accountsStore = {
-      "admin.m": {
-        firstName: "Admin",
-        lastName: "Master",
-        email: "tsuypoge20@gmail.com",
-        username: "admin.m",
-        password: "admin123"
-      }
-    };
-    saveAccountsToStorage();
-  }
-
-  const savedUser = localStorage.getItem('ml_loggedInUser');
-  if (savedUser && accountsStore[savedUser]) {
-    loggedInUser = accountsStore[savedUser];
-    document.getElementById('auth-overlay').style.display = 'none';
-    document.getElementById('user-display-name').innerText = `${loggedInUser.firstName} ${loggedInUser.lastName} (${loggedInUser.username})`;
-  } else {
-    document.getElementById('auth-overlay').style.display = 'flex';
-    showAuthCard('login');
-  }
-}
-
-function saveAccountsToStorage() {
-  localStorage.setItem('ml_accountsStore', JSON.stringify(accountsStore));
-}
-
-function showAuthCard(cardType) {
-  document.getElementById('card-login').style.display = cardType === 'login' ? 'block' : 'none';
-  document.getElementById('card-register').style.display = cardType === 'register' ? 'block' : 'none';
-  document.getElementById('card-verify').style.display = cardType === 'verify' ? 'block' : 'none';
-}
-
-function updateGeneratedUsername() {
-  const firstName = document.getElementById('reg-firstname').value.trim();
-  const lastName = document.getElementById('reg-lastname').value.trim();
-
-  if (firstName && lastName) {
-    let cleanLast = lastName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    let cleanFirstInit = firstName.toLowerCase().replace(/[^a-z0-9]/g, '').charAt(0);
-    document.getElementById('reg-username').value = `${cleanLast}.${cleanFirstInit}`;
-  } else {
-    document.getElementById('reg-username').value = '';
-  }
-}
-
-function handleLogin() {
-  const u = document.getElementById('login-username').value.trim().toLowerCase();
-  const p = document.getElementById('login-password').value;
-
-  if (!u || !p) {
-    alert("Please enter both Username and Password.");
-    return;
-  }
-
-  if (accountsStore[u] && accountsStore[u].password === p) {
-    loggedInUser = accountsStore[u];
-    localStorage.setItem('ml_loggedInUser', u);
-    document.getElementById('auth-overlay').style.display = 'none';
-    document.getElementById('user-display-name').innerText = `${loggedInUser.firstName} ${loggedInUser.lastName} (${loggedInUser.username})`;
-  } else {
-    alert("Invalid Username or Password. Please check your credentials.");
-  }
-}
-
-function handleRegisterRequest() {
-  const firstName = document.getElementById('reg-firstname').value.trim();
-  const lastName = document.getElementById('reg-lastname').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const username = document.getElementById('reg-username').value.trim();
-  const password = document.getElementById('reg-password').value;
-
-  if (!firstName || !lastName || !email || !username || !password) {
-    alert("Please fill in all registration fields.");
-    return;
-  }
-
-  if (accountsStore[username]) {
-    alert(`Username '${username}' is already registered. Please log in instead.`);
-    showAuthCard('login');
-    return;
-  }
-
-  pendingRegistration = { firstName, lastName, email, username, password };
-  document.getElementById('verify-code-input').value = '';
-  showAuthCard('verify');
-}
-
-function handleVerifyCodeSubmit() {
-  const inputCode = document.getElementById('verify-code-input').value.trim();
-
-  if (inputCode === DEFAULT_VERIFY_CODE) {
-    accountsStore[pendingRegistration.username] = pendingRegistration;
-    saveAccountsToStorage();
-    alert(`Account '${pendingRegistration.username}' registered successfully! You can now log in.`);
-    
-    document.getElementById('login-username').value = pendingRegistration.username;
-    document.getElementById('login-password').value = pendingRegistration.password;
-    pendingRegistration = null;
-    showAuthCard('login');
-  } else {
-    alert("Incorrect verification code. Please enter the default code: 01091990");
-  }
-}
-
-function handleLogout() {
-  if (confirm("Are you sure you want to log out?")) {
-    localStorage.removeItem('ml_loggedInUser');
-    loggedInUser = null;
-    document.getElementById('login-username').value = '';
-    document.getElementById('login-password').value = '';
-    document.getElementById('auth-overlay').style.display = 'flex';
-    showAuthCard('login');
-  }
-}
 
 // MULTI-BRANCH STATE MANAGEMENT
 let activeBranch = "Select Branch";
@@ -617,7 +378,6 @@ function countJewelrySales(sheetData) {
 }
 
 // SMART DYNAMIC COLUMN CALCULATORS FOR POS INSURANCE SALES
-// FORMULA: =SUM([August_04_2026.xlsx]Sheet1!$Q:$Q, 'personal_accident_report_08-04-2026.csv'!$G:$G, medicare_report.csv!$Y:$Y)
 function sumInsuranceSales(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let total = 0;
@@ -632,7 +392,6 @@ function sumInsuranceSales(sheetData) {
     }
     if (col0.includes('total') || col0.includes('summary')) continue;
 
-    // 1. Check Column Y (Index 24) =SUM(medicare_report.csv!$Y:$Y)
     if (row.length > 24) {
       let valY = parseFloat(String(row[24] || '').replace(/,/g, '').trim());
       if (!isNaN(valY) && valY > 0) {
@@ -641,7 +400,6 @@ function sumInsuranceSales(sheetData) {
       }
     }
 
-    // 2. Check Column Q (Index 16) =SUM([August_04_2026.xlsx]Sheet1!$Q:$Q)
     if (row.length > 16) {
       let valQ = parseFloat(String(row[16] || '').replace(/,/g, '').trim());
       if (!isNaN(valQ) && valQ > 0) {
@@ -650,7 +408,6 @@ function sumInsuranceSales(sheetData) {
       }
     }
 
-    // 3. Check Column G (Index 6) =SUM('personal_accident_report_08-04-2026.csv'!$G:$G)
     if (row.length > 6) {
       let valG = parseFloat(String(row[6] || '').replace(/,/g, '').trim());
       if (!isNaN(valG) && valG > 0) {
@@ -1082,10 +839,7 @@ const REPORT_RULES = {
   "International Money Transfer Payout": { sheet: "PAYOUT", getSum: (data, br, items, curr) => sumPayoutCSV(data, curr), getQty: (data, br, items, curr) => countPayoutCSV(data, curr) },
   "Payment Solutions": { sheet: "MLG PO", getSum: (data) => sumMLGPO(data), getQty: (data) => countMLGPO(data) },
   
-  // 1ST POS JEWELRY SALES = PDF UPLOAD
   "POS Jewelry Sales": { sheet: "SUBASTA", altSheet: "JEWELRY", getSum: (data) => sumJewelryNetSales(data), getQty: (data) => countJewelrySales(data) },
-
-  // POS INSURANCE SALES = MULTI-REPORT SUM FORMULA
   "POS Insurance Sales": { sheet: "CTPL", altSheet: "MEDICARE", getSum: (data) => sumInsuranceSales(data), getQty: (data) => countInsuranceSales(data) },
 
   "POS Dried Products": { sheet: "ISPD Sales", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
@@ -1420,8 +1174,6 @@ function saveStateToStorage() {
 
 function loadStateFromStorage() {
   try {
-    initAuth();
-
     const savedActiveBranch = localStorage.getItem('ml_activeBranch');
     if (savedActiveBranch) activeBranch = savedActiveBranch;
 
@@ -1938,12 +1690,12 @@ function handleManualAdjUpload(evt) {
        if (qty === 0) qty = 1; 
        
        let detail = {
-           date: row[dateIdx] || '—',
-           operator: row[opIdx] || '—',
-           cashIn: cashIn,
-           cashOut: cashOut,
-           ref: row[refIdx] || '—',
-           remarks: row[remarksIdx] || '—'
+          date: row[dateIdx] || '—',
+          operator: row[opIdx] || '—',
+          cashIn: cashIn,
+          cashOut: cashOut,
+          ref: row[refIdx] || '—',
+          remarks: row[remarksIdx] || '—'
        };
        
        if (!groupedByCurr[rowCurr][desc]) {
@@ -2241,7 +1993,6 @@ function renderReconciliationTable(data) {
     let itemKey = item.particular;
     let rule = REPORT_RULES[item.particular];
 
-    // Differentiate 1st POS Jewelry Sales (PDF Upload) vs 2nd POS Jewelry Sales (Manual Input)
     if (item.particular === 'POS Jewelry Sales') {
       posJewelrySeen++;
       if (posJewelrySeen > 1) {
@@ -2347,4 +2098,3 @@ function renderReconciliationTable(data) {
 </script>
 </body>
 </html>
-
