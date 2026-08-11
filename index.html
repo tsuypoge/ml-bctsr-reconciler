@@ -231,10 +231,9 @@
     background: #f8fafc;
   }
 
-  .btn-tbl-red {
-    background: #dc2626;
+  .btn-tbl-status {
     border: none;
-    padding: 7px 18px;
+    padding: 6px 16px;
     border-radius: 4px;
     font-size: 12px;
     font-weight: 700;
@@ -244,9 +243,9 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    transition: background 0.2s;
+    transition: opacity 0.2s;
   }
-  .btn-tbl-red:hover { background: #b91c1c; }
+  .btn-tbl-status:hover { opacity: 0.9; }
 
 
   /* ----------------------------------------------------
@@ -340,9 +339,6 @@
 
   .btn-export { background: var(--primary); color: #ffffff; border: 1px solid var(--primary-dark); }
   .btn-export:hover { background: var(--primary-dark); }
-
-  .btn-archive { background: #0f172a; color: #ffffff; border: 1px solid #0f172a; }
-  .btn-archive:hover { background: #1e293b; }
 
   .branch-display-wrapper {
     display: flex;
@@ -460,15 +456,13 @@
   .inner-table th { background: #f1f5f9; padding: 6px 10px; font-size: 9.5px; color: #475569; }
   .inner-table td { padding: 6px 10px; }
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.4);
-    display: none; align-items: center; justify-content: center;
-    z-index: 10000;
-  }
-  .modal-card {
-    background: #ffffff; padding: 24px; border-radius: var(--radius-lg); width: 440px;
+  @media print {
+    .upload-action-bar, .currency-tabs-bar, .btn-upload-sub, .btn-remove-sub, .btn-add-remark, .sub-upload-wrapper, .manual-input-wrapper, .remarks-input-wrapper, .hide-print { display: none !important; }
+    body { background: #fff; padding-bottom: 0; }
+    .wrap { margin: 0; padding: 0; max-width: 100%; }
+    .table-container { border: none; box-shadow: none; }
+    table th, table td { padding: 8px 10px; font-size: 10.5px; }
+    .expand-icon { display: none; }
   }
 </style>
 </head>
@@ -504,9 +498,7 @@
   <h2 class="dash-header-title">Strike Force Template</h2>
 
   <div class="dash-toolbar">
-    <button class="btn-toolbar" onclick="openNewModal()"><span>➕</span> New Entry</button>
-    <button class="btn-toolbar" style="background:var(--primary); color:#fff; border:none;" onclick="document.getElementById('dash-master-file-input').click()"><span>📄</span> Upload Master BCTSR File(s)</button>
-    <input type="file" id="dash-master-file-input" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleDashMasterUpload(event)">
+    <button class="btn-toolbar" onclick="createNewRecon()"><span>➕</span> New Entry</button>
   </div>
 
   <div class="dash-table-container">
@@ -515,7 +507,7 @@
         <tr>
           <th>Branchname <span class="sort-icon">▲▼</span></th>
           <th>Cut-off Date <span class="sort-icon">▲▼</span></th>
-          <th style="text-align:center;">Upload</th>
+          <th style="text-align:center;">Status</th>
         </tr>
       </thead>
       <tbody id="dash-tbody">
@@ -561,10 +553,6 @@
         <span>📄</span> Upload Master BCTSR File(s)
       </button>
       <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleFileUpload(event)">
-      
-      <button class="btn-action btn-archive" id="btn-toggle-archive" onclick="toggleArchiveState()">
-        <span>🔒</span> Save / Archive
-      </button>
 
       <button class="btn-action btn-export" onclick="exportToPDF()">
         <span>📥</span> Save as PDF
@@ -593,7 +581,6 @@
       <div class="info-item"><label>Branch Name</label><div class="val" id="val-branch">—</div></div>
       <div class="info-item"><label>Date Range</label><div class="val" id="val-date" style="color:var(--text-main);">—</div></div>
       <div class="info-item"><label>Active Currency Tab</label><div class="val" id="val-currency" style="color:#0284c7;">PHP</div></div>
-      <div class="info-item"><label>Status / Mode</label><div class="val" id="val-status-mode"><span class="archive-badge" id="archive-status-tag">🔓 EDITABLE</span></div></div>
       <div class="info-item"><label>Ending Balance (BCTSR)</label><div class="val" id="val-endbal">₱0.00</div></div>
     </div>
 
@@ -654,41 +641,25 @@
 
 </div>
 
-<!-- NEW ENTRY MODAL -->
-<div class="modal-overlay" id="new-modal">
-  <div class="modal-card">
-    <h3 style="font-size:16px; font-weight:700; color:var(--primary); margin-bottom:14px;">Create New Branch Recon Entry</h3>
-    <div class="form-group">
-      <label>Branch Name</label>
-      <input type="text" id="new-branch" class="form-input" placeholder="e.g. ML Catarman">
-    </div>
-    <div class="form-group">
-      <label>Cut-off Date / Date Covered</label>
-      <input type="text" id="new-cutoff-date" class="form-input" placeholder="e.g. 06/11/2026 - 07/26/2026">
-    </div>
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
-      <button class="btn-toolbar" onclick="closeNewModal()">Cancel</button>
-      <button class="btn-toolbar" style="background:var(--primary); color:#fff; border:none;" onclick="saveNewEntry()">Save Entry</button>
-    </div>
-  </div>
-</div>
-
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// DEFAULT DASHBOARD DATA STORE (SIMPLIFIED COLUMNS ONLY)
+// DEFAULT DASHBOARD DATA STORE
 let strikeForceEntries = [
   {
-    branch: "ML Catarman",
-    cutoffDate: "06/11/2026 - 07/26/2026"
+    branch: "ML CATARMAN",
+    cutoffDate: "06/11/2026 - 07/26/2026",
+    status: "In Progress"
   },
   {
-    branch: "ML Liloan 3",
-    cutoffDate: "07/21/2026 - 07/26/2026"
+    branch: "ML LILOAN 3",
+    cutoffDate: "07/21/2026 - 07/26/2026",
+    status: "Pending"
   },
   {
-    branch: "ML Compostela",
-    cutoffDate: "06/15/2026 - 07/26/2026"
+    branch: "ML COMPOSTELA",
+    cutoffDate: "06/15/2026 - 07/26/2026",
+    status: "Pending"
   }
 ];
 
@@ -707,13 +678,17 @@ function renderDashboardTable() {
   tbody.innerHTML = '';
 
   strikeForceEntries.forEach((row, idx) => {
+    let statusBg = "#15803d"; // Green for completed
+    if (row.status === "In Progress") statusBg = "#d97706"; // Amber
+    else if (row.status === "Pending") statusBg = "#475569"; // Slate
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-weight:700; font-size:13.5px; color:var(--text-main);">${row.branch}</td>
       <td style="font-family:var(--font-mono); color:#475569;">${row.cutoffDate}</td>
       <td style="text-align:center;">
-        <button class="btn-tbl-red" onclick="launchReconciler('${row.branch.replace(/'/g, "\\'")}')">
-          <span>📤</span> Upload
+        <button class="btn-tbl-status" style="background:${statusBg};" onclick="launchReconciler('${row.branch.replace(/'/g, "\\'")}')">
+          ${row.status} ➔
         </button>
       </td>
     `;
@@ -721,67 +696,12 @@ function renderDashboardTable() {
   });
 }
 
-function openNewModal() { document.getElementById('new-modal').style.display = 'flex'; }
-function closeNewModal() { document.getElementById('new-modal').style.display = 'none'; }
-
-function saveNewEntry() {
-  let bName = document.getElementById('new-branch').value.trim();
-  let cDate = document.getElementById('new-cutoff-date').value.trim();
-
-  if (!bName) { alert("Please enter Branch Name"); return; }
-
-  strikeForceEntries.push({
-    branch: bName,
-    cutoffDate: cDate || "Pending Upload"
-  });
-
-  closeNewModal();
-  renderDashboardTable();
-}
-
-async function handleDashMasterUpload(evt) {
-  const files = Array.from(evt.target.files);
-  if (!files || files.length === 0) return;
-
-  for (let file of files) {
-    const fileName = file.name.toLowerCase();
-    let parsedData = null;
-
-    if (fileName.endsWith('.pdf')) {
-      parsedData = await parsePdfFilePromise(file);
-    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
-      parsedData = await parseExcelFilePromise(file);
-    }
-
-    if (parsedData && parsedData.items && parsedData.items.length > 0) {
-      let targetBranch = (parsedData.branch && parsedData.branch !== '—') ? parsedData.branch.trim().toUpperCase() : "UPLOADED BRANCH";
-      let targetCutoff = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Date Covered";
-      let targetCurrency = parsedData.currency || 'PHP';
-
-      let existing = strikeForceEntries.find(e => e.branch.toUpperCase() === targetBranch);
-      if (existing) {
-        existing.cutoffDate = targetCutoff;
-      } else {
-        strikeForceEntries.push({
-          branch: targetBranch,
-          cutoffDate: targetCutoff
-        });
-      }
-
-      if (!branchesStore[targetBranch]) {
-        branchesStore[targetBranch] = createEmptyBranchStore();
-      }
-      let bData = branchesStore[targetBranch];
-      bData.bctsrDataStore[targetCurrency] = parsedData;
-    }
-  }
-
-  renderDashboardTable();
-  evt.target.value = '';
+function createNewRecon() {
+  launchReconciler("NEW BRANCH");
 }
 
 function launchReconciler(branchName) {
-  activeBranch = branchName.toUpperCase().trim();
+  activeBranch = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
   document.getElementById('dashboard-view').style.display = 'none';
   document.getElementById('reconciler-view').style.display = 'block';
 
@@ -792,6 +712,7 @@ function launchReconciler(branchName) {
 function backToDashboard() {
   document.getElementById('reconciler-view').style.display = 'none';
   document.getElementById('dashboard-view').style.display = 'block';
+  renderDashboardTable();
 }
 
 function createEmptyBranchStore() {
@@ -820,24 +741,6 @@ function getActiveBranchData() {
     bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
   }
   return bData;
-}
-
-function toggleArchiveState() {
-  let bData = getActiveBranchData();
-  let currentState = bData.isArchivedStore[activeCurrencyTab] || false;
-  
-  if (!currentState) {
-    if (confirm(`Save & Archive reconciliation for '${activeBranch}' (${activeCurrencyTab})? This will lock data from further editing.`)) {
-      bData.isArchivedStore[activeCurrencyTab] = true;
-    }
-  } else {
-    if (confirm(`Unlock & Edit reconciliation for '${activeBranch}' (${activeCurrencyTab})?`)) {
-      bData.isArchivedStore[activeCurrencyTab] = false;
-    }
-  }
-
-  saveStateToStorage();
-  renderActiveCurrencyData();
 }
 
 function getCurrencySymbol(curr) {
@@ -1965,6 +1868,7 @@ function saveStateToStorage() {
     localStorage.setItem('ml_activeBranch', activeBranch);
     localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
     localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
+    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(strikeForceEntries));
   } catch (e) {
     console.warn("Could not save to LocalStorage:", e);
   }
@@ -1980,6 +1884,9 @@ function loadStateFromStorage() {
 
     const savedBranches = localStorage.getItem('ml_branchesStore');
     if (savedBranches) branchesStore = JSON.parse(savedBranches);
+
+    const savedEntries = localStorage.getItem('ml_strikeForceEntries');
+    if (savedEntries) strikeForceEntries = JSON.parse(savedEntries);
 
     updateBranchDropdownUI();
     switchCurrencyTab(activeCurrencyTab);
@@ -2003,6 +1910,8 @@ function onBranchDropdownChange(newBranch) {
 function deleteActiveBranchData() {
   if (confirm(`Are you sure you want to delete all saved data for branch '${activeBranch}'?`)) {
     delete branchesStore[activeBranch];
+    strikeForceEntries = strikeForceEntries.filter(e => e.branch.toUpperCase() !== activeBranch.toUpperCase());
+    
     let remainingBranches = Object.keys(branchesStore);
     if (remainingBranches.length > 0) {
       activeBranch = remainingBranches[0];
@@ -2017,7 +1926,7 @@ function deleteActiveBranchData() {
 
 function resetAllData() {
   if (confirm("Are you sure you want to reset and clear all uploaded data across ALL branches and currencies?")) {
-    ['ml_activeBranch','ml_activeCurrencyTab','ml_branchesStore'].forEach(k => localStorage.removeItem(k));
+    ['ml_activeBranch','ml_activeCurrencyTab','ml_branchesStore','ml_strikeForceEntries'].forEach(k => localStorage.removeItem(k));
     
     branchesStore = {};
     activeBranch = "Select Branch";
@@ -2054,22 +1963,30 @@ function renderActiveCurrencyData() {
   if (uploadMasterBtn) uploadMasterBtn.style.display = 'inline-flex';
 
   if (isArchived) {
-    archiveBtn.className = "btn-action btn-unlock";
-    archiveBtn.innerHTML = "<span>✏️</span> Edit / Unlock";
-    archiveTag.innerText = "🔒 ARCHIVED / READ-ONLY";
-    archiveTag.style.background = "#fee2e2";
-    archiveTag.style.color = "#991b1b";
-    archiveTag.style.borderColor = "#f87171";
+    if (archiveBtn) {
+      archiveBtn.className = "btn-action btn-unlock";
+      archiveBtn.innerHTML = "<span>✏️</span> Edit / Unlock";
+    }
+    if (archiveTag) {
+      archiveTag.innerText = "🔒 ARCHIVED / READ-ONLY";
+      archiveTag.style.background = "#fee2e2";
+      archiveTag.style.color = "#991b1b";
+      archiveTag.style.borderColor = "#f87171";
+    }
 
     if (uploadManualAdjBtn) uploadManualAdjBtn.style.display = 'none';
     if (deleteBranchBtn) deleteBranchBtn.style.display = 'none';
   } else {
-    archiveBtn.className = "btn-action btn-archive";
-    archiveBtn.innerHTML = "<span>🔒</span> Save / Archive";
-    archiveTag.innerText = "🔓 EDITABLE";
-    archiveTag.style.background = "#f1f5f9";
-    archiveTag.style.color = "#334155";
-    archiveTag.style.borderColor = "#cbd5e1";
+    if (archiveBtn) {
+      archiveBtn.className = "btn-action btn-archive";
+      archiveBtn.innerHTML = "<span>🔒</span> Save / Archive";
+    }
+    if (archiveTag) {
+      archiveTag.innerText = "🔓 EDITABLE";
+      archiveTag.style.background = "#f1f5f9";
+      archiveTag.style.color = "#334155";
+      archiveTag.style.borderColor = "#cbd5e1";
+    }
 
     if (uploadManualAdjBtn) uploadManualAdjBtn.style.display = 'inline-flex';
     if (deleteBranchBtn) deleteBranchBtn.style.display = 'inline-flex';
@@ -2204,7 +2121,21 @@ async function handleFileUpload(evt) {
       let targetBranch = (parsedData.branch && parsedData.branch !== '—') ? parsedData.branch.trim().toUpperCase() : activeBranch;
       activeBranch = targetBranch;
 
+      let targetCutoff = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Date Covered";
       let targetCurrency = parsedData.currency || activeCurrencyTab;
+
+      // Update or add entry to dashboard entries store
+      let existing = strikeForceEntries.find(e => e.branch.toUpperCase() === targetBranch);
+      if (existing) {
+        existing.cutoffDate = targetCutoff;
+        existing.status = "In Progress";
+      } else {
+        strikeForceEntries.push({
+          branch: targetBranch,
+          cutoffDate: targetCutoff,
+          status: "In Progress"
+        });
+      }
 
       if (!branchesStore[activeBranch]) {
         branchesStore[activeBranch] = createEmptyBranchStore();
