@@ -15,8 +15,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- PDF.js (PDF Parsing Engine) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<!-- html2pdf.js (Vector/Canvas Export) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
   :root {
@@ -131,7 +129,6 @@
   .num-cell { font-family: var(--font-mono); text-align: right; font-weight: 600; }
   .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 700; display: inline-block; white-space: nowrap; }
   .status-badge.match { background: var(--match-bg); color: var(--match); border: 1px solid var(--match-border); font-size: 12px; }
-  .status-badge.mismatch { background: var(--mismatch-bg); color: var(--mismatch); border: 1px solid var(--mismatch-border); font-size: 12px; }
 
   .cloud-tag { background: #16a34a; color: #ffffff; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 800; }
   .archive-badge { font-size: 12px; padding: 3px 8px; border-radius: 6px; font-weight: 800; background: #e2e8f0; color: #334155; }
@@ -255,7 +252,7 @@
 
 </div>
 
-<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE + COMPLETE BCTSR PARSER -->
+<!-- 🔥 FIREBASE REALTIME DATABASE SDK PERSISTENCE & PARSER ENGINE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -279,11 +276,12 @@
   let activeCurrencyTab = localStorage.getItem('ml_activeCurrencyTab') || 'PHP';
   let branchesStore = {}; 
 
-  // Initialize display
-  document.getElementById('active-branch-name').innerText = activeBranch;
-  document.getElementById('val-branch').innerText = activeBranch;
+  try {
+    let savedStore = localStorage.getItem('ml_branchesStore');
+    if (savedStore) branchesStore = JSON.parse(savedStore);
+  } catch(e){}
 
-  // 🔥 Realtime Firebase Sync Listener for Master Reconciler
+  // 🔥 Realtime Firebase Sync Listener
   onValue(ref(db, 'branchesStore'), (snapshot) => {
     const val = snapshot.val();
     if (val) {
@@ -308,7 +306,34 @@
     }
   }
 
-  /* 📄 BCTSR FILE PARSING LOGIC */
+  /* 📄 ENHANCED PDF Y-COORDINATE TEXT EXTRACTION */
+  async function extractPDFLinesByYCoord(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const allLines = [];
+
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const rows = {};
+
+      content.items.forEach(it => {
+        const y = Math.round(it.transform[5]);
+        if (!rows[y]) rows[y] = [];
+        rows[y].push({ x: it.transform[4], text: it.str });
+      });
+
+      const ys = Object.keys(rows).map(Number).sort((a, b) => b - a);
+      ys.forEach(y => {
+        const rowItems = rows[y].sort((a, b) => a.x - b.x);
+        const line = rowItems.map(r => r.text).join(' ').replace(/\s+/g, ' ').trim();
+        if (line) allLines.push(line);
+      });
+    }
+    return allLines;
+  }
+
+  /* 📄 BCTSR FILE UPLOAD HANDLER */
   window.handleFileUpload = async function(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -318,10 +343,11 @@
     }
 
     for (let file of files) {
-      const extension = file.name.split('.').pop().toLowerCase();
-      if (extension === 'pdf') {
-        await parsePDFBCTSR(file);
-      } else if (['xlsx', 'xls', 'csv'].includes(extension)) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'pdf') {
+        const lines = await extractPDFLinesByYCoord(file);
+        processBCTSRTextLines(lines);
+      } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
         await parseExcelBCTSR(file);
       }
     }
@@ -331,29 +357,13 @@
     event.target.value = '';
   };
 
-  async function parsePDFBCTSR(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullTextLines = [];
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageLines = textContent.items.map(item => item.str.trim()).filter(Boolean);
-      fullTextLines.push(...pageLines);
-    }
-
-    processBCTSRTextLines(fullTextLines);
-  }
-
   async function parseExcelBCTSR(file) {
     const arrayBuffer = await file.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
-    let lines = jsonData.map(row => row.join(' ').trim()).filter(Boolean);
+    let lines = jsonData.map(row => row.filter(Boolean).join(' ').trim()).filter(Boolean);
     processBCTSRTextLines(lines);
   }
 
@@ -364,25 +374,25 @@
       rows: []
     };
 
-    let currency = activeCurrencyTab;
-
     lines.forEach((line) => {
-      if (line.includes("Period:") || line.includes("Date:")) {
-        currData.dateRange = line;
+      if (line.toLowerCase().includes("period") || line.toLowerCase().includes("date") || line.includes("-")) {
+        if (currData.dateRange === "N/A" && /\d{2}\/\d{2}\/\d{4}/.test(line)) {
+          currData.dateRange = line;
+        }
       }
 
-      // Parse BCTSR tabular line items
-      const numMatch = line.match(/(-?[\d,]+\.\d{2})/g);
-      if (numMatch && numMatch.length >= 2) {
-        const cashIn = parseFloat(numMatch[0].replace(/,/g, '')) || 0;
-        const cashOut = parseFloat(numMatch[1].replace(/,/g, '')) || 0;
-        const qty = parseInt(line.match(/\b\d+\b/)?.[0] || 1);
-        const particular = line.replace(/(-?[\d,]+\.\d{2})/g, '').trim();
+      // Match numbers with decimals for Cash In / Cash Out
+      const numbers = line.match(/(-?[\d,]+\.\d{2})/g);
+      if (numbers && numbers.length >= 1) {
+        const cashIn = parseFloat(numbers[0].replace(/,/g, '')) || 0;
+        const cashOut = numbers[1] ? (parseFloat(numbers[1].replace(/,/g, '')) || 0) : 0;
+        
+        let particular = line.replace(/(-?[\d,]+\.\d{2})/g, '').replace(/\b\d+\b/g, '').trim();
 
-        if (particular && !particular.toLowerCase().includes("total")) {
+        if (particular && !particular.toLowerCase().includes("total") && particular.length > 2) {
           currData.rows.push({
             particulars: particular,
-            qty: qty,
+            qty: 1,
             cashIn: cashIn,
             cashOut: cashOut
           });
@@ -390,11 +400,11 @@
       }
     });
 
-    if (!branchesStore[activeBranch][currency]) {
-      branchesStore[activeBranch][currency] = {};
+    if (!branchesStore[activeBranch][activeCurrencyTab]) {
+      branchesStore[activeBranch][activeCurrencyTab] = {};
     }
 
-    branchesStore[activeBranch][currency].masterData = currData;
+    branchesStore[activeBranch][activeCurrencyTab].masterData = currData;
   }
 
   /* 📊 MANUAL ADJUSTMENT PARSER */
@@ -405,12 +415,12 @@
     const arrayBuffer = await file.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
     let adjRows = [];
     jsonData.forEach((row, idx) => {
       if (idx === 0) return;
-      if (row.length >= 3) {
+      if (row.length >= 2) {
         adjRows.push({
           desc: String(row[0] || '').trim(),
           qty: parseInt(row[1]) || 1,
@@ -431,7 +441,7 @@
     event.target.value = '';
   };
 
-  /* 🎨 RENDER RECONCILER DATA */
+  /* 🎨 RENDER RECONCILER UI DATA */
   function renderActiveCurrencyData() {
     document.getElementById('active-branch-name').innerText = activeBranch;
     document.getElementById('val-branch').innerText = activeBranch;
@@ -442,16 +452,15 @@
     const masterData = branchCurrObj.masterData;
     const manualAdjData = branchCurrObj.manualAdjData || [];
 
-    // Summary bar values
     document.getElementById('val-date').innerText = masterData?.dateRange || "—";
-    document.getElementById('val-endbal').innerText = `₱${(masterData?.endingBalance || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 
-    // Render Master BCTSR Table
     const reconBody = document.getElementById('recon-body');
     reconBody.innerHTML = '';
 
     if (masterData && masterData.rows && masterData.rows.length > 0) {
+      let totalEndBal = 0;
       masterData.rows.forEach(r => {
+        totalEndBal += (r.cashIn - r.cashOut);
         const tr = document.createElement('tr');
         tr.className = 'hoverable';
         tr.innerHTML = `
@@ -466,11 +475,12 @@
         `;
         reconBody.appendChild(tr);
       });
+      document.getElementById('val-endbal').innerText = `₱${totalEndBal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     } else {
+      document.getElementById('val-endbal').innerText = "₱0.00";
       reconBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No file uploaded for this branch & currency tab yet. Please click 'Upload Master BCTSR File(s)' above.</td></tr>`;
     }
 
-    // Render Manual Adjustment Table
     const adjBody = document.getElementById('manual-adj-body');
     adjBody.innerHTML = '';
 
@@ -532,7 +542,6 @@
     }
   };
 
-  // Initial Render on Page Load
   window.addEventListener('DOMContentLoaded', () => {
     renderActiveCurrencyData();
   });
