@@ -252,9 +252,8 @@
   }
   .dash-table tr:hover { background: #fffdfd; }
 
-  /* Assign Select Dropdown Styling */
-  .assign-select {
-    padding: 6px 10px;
+  .btn-assign-multi {
+    padding: 6px 12px;
     border-radius: 8px;
     border: 1.5px solid var(--border);
     font-size: 12px;
@@ -262,12 +261,26 @@
     color: #1e293b;
     background: #f8fafc;
     cursor: pointer;
-    outline: none;
-    max-width: 180px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
-  .assign-select:focus {
+  .btn-assign-multi:hover {
     border-color: var(--primary);
     background: #ffffff;
+    color: var(--primary);
+  }
+
+  .companion-pill {
+    display: inline-block;
+    background: #e2e8f0;
+    color: #1e293b;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    margin: 2px;
   }
 
   .btn-tbl-status {
@@ -472,14 +485,27 @@
     border-bottom: 1px solid #e2e8f0;
   }
 
-  .user-tag {
-    font-size: 11px;
-    background: #e2e8f0;
-    color: #334155;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 600;
+  .checkbox-list {
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+    background: #f8fafc;
   }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .checkbox-item:last-child { border-bottom: none; }
+  .checkbox-item input { accent-color: var(--primary); width: 18px; height: 18px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -599,7 +625,7 @@
         <tr>
           <th>Branchname</th>
           <th>Cut-off Date</th>
-          <th style="text-align:center;">Assign</th>
+          <th style="text-align:center;">Assign Companions</th>
           <th style="text-align:center;">Inventory</th>
           <th style="text-align:center;">Status</th>
           <th style="text-align:center;">Action</th>
@@ -681,6 +707,31 @@
   </div>
 </div>
 
+<!-- 👥 MULTI-COMPANION ASSIGN MODAL -->
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal-card enroll-modal-card">
+    <div class="modal-header-custom">
+      <div class="modal-header-title">
+        <span>👥</span> Select Companion Auditors
+      </div>
+      <button class="btn-close-x" onclick="closeAssignModal()">✕</button>
+    </div>
+
+    <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px; font-weight:600;">
+      Select two, three, or more auditors to collaborate on this branch:
+    </p>
+
+    <div class="checkbox-list" id="assign-checkbox-container">
+      <!-- Dynamic checkboxes loaded here -->
+    </div>
+
+    <div class="enroll-modal-footer">
+      <button class="btn-enroll-cancel" onclick="closeAssignModal()">Cancel</button>
+      <button class="btn-enroll-submit" style="background:var(--primary);" onclick="saveAssignedCompanions()">Save Assignments</button>
+    </div>
+  </div>
+</div>
+
 <!-- 👤 UPDATE ADMIN PROFILE MODAL -->
 <div class="modal-overlay" id="profile-modal">
   <div class="modal-card enroll-modal-card">
@@ -746,15 +797,18 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
+  let activeAssignEntryIndex = null;
+
   let strikeForceEntries = [
-    { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companion: "r.duero", createdBy: "ADMIN-MASTER", status: "In Progress" },
-    { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companion: "j.doe", createdBy: "ADMIN-MASTER", status: "Pending" },
-    { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companion: "Unassigned", createdBy: "r.duero", status: "Pending" },
-    { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companion: "r.duero", createdBy: "ADMIN-MASTER", status: "In Progress" }
+    { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companions: ["r.duero", "auditor-516"], createdBy: "ADMIN-MASTER", status: "In Progress" },
+    { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companions: ["j.doe"], createdBy: "ADMIN-MASTER", status: "Pending" },
+    { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companions: [], createdBy: "r.duero", status: "Pending" },
+    { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companions: ["r.duero", "j.doe"], createdBy: "ADMIN-MASTER", status: "In Progress" }
   ];
 
   let enrolledUsers = [
     { username: "r.duero", name: "Rey John Duero", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "r.duero@sfcaliquidation.biz" },
+    { username: "auditor-516", name: "Auditor 516", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "auditor516@sfcaliquidation.biz" },
     { username: "j.doe", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" },
     { username: "ADMIN-MASTER", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz" }
   ];
@@ -857,17 +911,60 @@
     });
   }
 
-  /* 🎯 UPDATE COMPANION AUDITOR FROM ASSIGN DROPDOWN */
-  window.updateRowCompanion = function(entryIndex, newCompanion) {
-    if (strikeForceEntries[entryIndex]) {
-      strikeForceEntries[entryIndex].companion = newCompanion;
-      saveEntries();
-      addAuditLog(`Assigned Companion for ${strikeForceEntries[entryIndex].branch}: ${newCompanion}`);
-      renderDashboardTable();
+  /* 👥 MULTI-COMPANION MODAL FUNCTIONS */
+  window.openAssignModal = function(entryIndex) {
+    activeAssignEntryIndex = entryIndex;
+    let entry = strikeForceEntries[entryIndex];
+    let container = document.getElementById('assign-checkbox-container');
+    container.innerHTML = '';
+
+    let activeCompanions = Array.isArray(entry.companions) ? entry.companions : (entry.companion ? [entry.companion] : []);
+
+    // Filter out Admin accounts
+    let nonAdminUsers = enrolledUsers.filter(u => !u.username.toLowerCase().includes('admin'));
+
+    if (nonAdminUsers.length === 0) {
+      container.innerHTML = `<div style="text-align:center; padding:12px; color:var(--text-muted);">No enrolled auditors available. Enroll users first.</div>`;
+    } else {
+      nonAdminUsers.forEach(u => {
+        let isChecked = activeCompanions.map(c => c.toLowerCase()).includes(u.username.toLowerCase()) ? 'checked' : '';
+        let div = document.createElement('label');
+        div.className = 'checkbox-item';
+        div.innerHTML = `
+          <input type="checkbox" class="companion-check" value="${u.username}" ${isChecked}>
+          <div>
+            <div><strong>${u.name}</strong> (${u.username})</div>
+            <div style="font-size:11px; color:var(--text-muted);">${u.position}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
     }
+
+    document.getElementById('assign-modal').style.display = 'flex';
   };
 
-  /* 🔐 ROW-LEVEL USER FILTERED DASHBOARD RENDER WITH ASSIGN DROPDOWN */
+  window.closeAssignModal = function() {
+    document.getElementById('assign-modal').style.display = 'none';
+    activeAssignEntryIndex = null;
+  };
+
+  window.saveAssignedCompanions = function() {
+    if (activeAssignEntryIndex === null || !strikeForceEntries[activeAssignEntryIndex]) return;
+
+    let selected = [];
+    document.querySelectorAll('.companion-check:checked').forEach(chk => {
+      selected.push(chk.value);
+    });
+
+    strikeForceEntries[activeAssignEntryIndex].companions = selected;
+    saveEntries();
+    addAuditLog(`Assigned ${selected.length} Companions for ${strikeForceEntries[activeAssignEntryIndex].branch}: ${selected.join(', ')}`);
+    window.closeAssignModal();
+    renderDashboardTable();
+  };
+
+  /* 🔐 ROW-LEVEL USER FILTERED DASHBOARD RENDER WITH MULTI-COMPANIONS */
   function renderDashboardTable() {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
@@ -876,17 +973,16 @@
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
-    // Non-admin enrolled users for Assign dropdown
-    let nonAdminEnrolled = enrolledUsers.filter(u => !u.username.toLowerCase().includes('admin'));
-
-    // Strictly filter visible entries: Admin sees all; User sees ONLY created OR assigned companion entries
+    // Filter logic: Admin sees all; User sees ONLY created OR assigned in companions array
     let visibleEntries = strikeForceEntries.filter((row) => {
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
       let creator = (row.createdBy || '').toLowerCase().trim();
-      let companion = (row.companion || '').toLowerCase().trim();
+      let companionsList = Array.isArray(row.companions) 
+        ? row.companions.map(c => c.toLowerCase().trim()) 
+        : [(row.companion || '').toLowerCase().trim()];
 
-      return (creator && creator === currentUser) || (companion && companion === currentUser);
+      return (creator && creator === currentUser) || companionsList.includes(currentUser);
     });
 
     if (visibleEntries.length === 0) {
@@ -901,27 +997,25 @@
       else if (row.status === "Pending") statusBg = "#64748b";
       else if (row.status === "Archived") statusBg = "#475569";
 
-      // Build Assign Dropdown HTML (Excluding Admin)
-      let assignOptions = `<option value="Unassigned">-- Select Companion --</option>`;
-      nonAdminEnrolled.forEach(u => {
-        let isSelected = (row.companion && row.companion.toLowerCase() === u.username.toLowerCase()) ? 'selected' : '';
-        assignOptions += `<option value="${u.username}" ${isSelected}>${u.name} (${u.username})</option>`;
-      });
-
-      let assignCellHTML = `
-        <select class="assign-select" onchange="window.updateRowCompanion(${originalIndex}, this.value)">
-          ${assignOptions}
-        </select>
-      `;
+      let companionsArr = Array.isArray(row.companions) ? row.companions : (row.companion ? [row.companion] : []);
+      
+      let pillsHTML = companionsArr.length > 0 
+        ? companionsArr.map(c => `<span class="companion-pill">🤝 ${c}</span>`).join('') 
+        : `<span style="font-size:11px; color:#94a3b8;">None</span>`;
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
         <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
         
-        <!-- 🎯 ASSIGN COLUMN (DROPDOWN IN BETWEEN CUT-OFF DATE & INVENTORY) -->
+        <!-- 🎯 MULTI-COMPANION ASSIGN COLUMN -->
         <td style="text-align:center;">
-          ${assignCellHTML}
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <button class="btn-assign-multi" onclick="window.openAssignModal(${originalIndex})">
+              ⚙️ Assign (${companionsArr.length})
+            </button>
+            <div style="max-width:200px; display:flex; flex-wrap:wrap; justify-content:center;">${pillsHTML}</div>
+          </div>
         </td>
 
         <!-- INVENTORY COLUMN -->
@@ -1072,7 +1166,7 @@
     strikeForceEntries.push({
       branch: formattedBranch,
       cutoffDate: cDate || "Pending Upload",
-      companion: "Unassigned",
+      companions: [],
       createdBy: currentUser,
       status: "Pending"
     });
