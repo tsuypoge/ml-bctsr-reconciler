@@ -9,64 +9,68 @@
 <!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- SheetJS (Excel/CSV Parser) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- PDF.js (PDF Parsing Engine) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- html2pdf.js (Vector/Canvas Export) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
   :root {
-    --primary: #cc0000;
-    --primary-dark: #990000;
-    --bg-red: #bc0000;
-    --bg-gradient: linear-gradient(135deg, #d30000 0%, #900000 100%);
+    --primary: #7a1212;
+    --primary-dark: #4a0a0a;
+    --primary-light: #fef2f2;
     --gold: #d4af37;
+    --gold-hover: #b89628;
+    --gold-light: #fefce8;
     
+    --bg-main: #f1f5f9;
     --panel-bg: #ffffff;
-    --text-main: #1e293b;
+    --text-main: #0f172a;
     --text-muted: #64748b;
     --border: #e2e8f0;
     --border-subtle: #f1f5f9;
 
-    --match: #16a34a;
+    --match: #15803d;
     --match-bg: #f0fdf4;
     --match-border: #bbf7d0;
 
-    --mismatch: #dc2626;
+    --mismatch: #991b1b;
     --mismatch-bg: #fef2f2;
     --mismatch-border: #fecaca;
 
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
 
-    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.03);
     
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 18px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: var(--font-sans);
-    background: var(--bg-gradient);
-    background-attachment: fixed;
+    background: var(--bg-main);
     color: var(--text-main);
-    min-height: 100vh;
     padding-bottom: 60px;
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Header Bar */
   header {
-    background: #ffffff;
-    color: var(--text-main);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color: #ffffff;
     padding: 16px 32px;
     border-bottom: 3px solid var(--gold);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-md);
   }
 
   .header-content {
@@ -77,61 +81,443 @@
     justify-content: space-between;
   }
 
-  .header-title-box { display: flex; align-items: center; gap: 14px; }
-  .logo-badge { background: var(--primary); color: #ffffff; font-weight: 900; font-size: 18px; padding: 8px 14px; border-radius: var(--radius-sm); letter-spacing: -0.5px; box-shadow: var(--shadow-sm); }
-  h1 { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; }
-  .header-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
+  .header-title-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
 
-  .wrap { max-width: 1600px; margin: 28px auto; padding: 0 24px; }
+  .logo-badge {
+    background: #ffffff;
+    color: var(--primary);
+    font-weight: 900;
+    font-size: 18px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    letter-spacing: -0.5px;
+    box-shadow: var(--shadow-sm);
+  }
 
-  .upload-action-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+  h1 {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  .header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  }
+
+  /* Main Container */
+  .wrap {
+    max-width: 1600px;
+    margin: 24px auto;
+    padding: 0 24px;
+  }
+
+  /* Upload & Action Controls Bar */
+  .upload-action-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
 
   .btn-action {
-    background: var(--panel-bg); color: var(--primary); border: none; border-radius: var(--radius-sm);
-    padding: 0 18px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;
-    display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 42px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: var(--font-sans);
+    background: var(--panel-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0 16px;
+    font-weight: 600;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    height: 40px;
+    box-shadow: var(--shadow-sm);
   }
-  .btn-action:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 
-  .btn-dashboard { background: #1e293b; color: #ffffff; }
-  .btn-dashboard:hover { background: #0f172a; color: #ffffff; }
+  .btn-action:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-action:active {
+    transform: translateY(0);
+  }
+
+  .btn-dashboard {
+    background: #1e293b;
+    color: #ffffff;
+    border: 1px solid #0f172a;
+  }
+
+  .btn-dashboard:hover {
+    background: #0f172a;
+    color: #ffffff;
+  }
+
+  .btn-export {
+    background: var(--primary);
+    color: #ffffff;
+    border: 1px solid var(--primary-dark);
+  }
+
+  .btn-export:hover {
+    background: var(--primary-dark);
+    color: #ffffff;
+    border-color: var(--primary-dark);
+  }
+
+  .btn-archive {
+    background: #0f172a;
+    color: #ffffff;
+    border: 1px solid #0f172a;
+  }
+
+  .btn-archive:hover {
+    background: #1e293b;
+    border-color: #1e293b;
+  }
+
+  .btn-unlock {
+    background: #d97706;
+    color: #ffffff;
+    border: 1px solid #b45309;
+  }
+
+  .btn-unlock:hover {
+    background: #b45309;
+  }
 
   .branch-display-wrapper {
-    display: flex; align-items: center; gap: 8px; background: var(--panel-bg);
-    border: 2px solid var(--gold); padding: 0 16px; border-radius: var(--radius-sm); height: 42px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--gold);
+    padding: 0 14px;
+    border-radius: var(--radius-md);
+    height: 40px;
+    box-shadow: var(--shadow-sm);
   }
-  .branch-display-wrapper .branch-label { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
-  .branch-display-wrapper .branch-name-val { font-size: 13.5px; font-weight: 800; color: var(--text-main); }
 
+  .branch-display-wrapper .branch-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  .branch-display-wrapper .branch-name-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    white-space: nowrap;
+  }
+
+  /* Currency Tabs */
   .currency-tabs-bar {
-    display: flex; gap: 8px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.15);
-    padding: 6px; border-radius: var(--radius-md); backdrop-filter: blur(8px);
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    border-bottom: 1.5px solid var(--border);
+    padding-bottom: 10px;
   }
+
   .tab-btn {
-    background: rgba(255, 255, 255, 0.8); color: #334155; border: none; padding: 10px 20px;
-    border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; font-size: 13px; transition: all 0.2s ease;
-    display: flex; align-items: center; gap: 6px; font-family: var(--font-sans);
+    background: #e2e8f0;
+    color: var(--text-muted);
+    border: none;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12.5px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .tab-btn.active { background: #ffffff; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
 
-  .summary-bar { background: var(--panel-bg); border-radius: var(--radius-lg); padding: 20px 28px; display: flex; gap: 20px; margin-bottom: 24px; box-shadow: var(--shadow-card); }
-  .info-item { flex: 1; border-right: 1px solid var(--border-subtle); padding-right: 12px; }
-  .info-item:last-child { border-right: none; padding-right: 0; }
-  .info-item label { display: block; font-size: 10.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px; }
-  .info-item .val { font-size: 16px; font-weight: 800; margin-top: 4px; color: var(--primary); font-family: var(--font-mono); }
+  .tab-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: var(--shadow-sm);
+  }
 
-  .table-container { background: var(--panel-bg); border-radius: var(--radius-lg); overflow-x: auto; box-shadow: var(--shadow-card); padding: 8px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-  th { background: #ffffff; color: var(--primary); font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.6px; padding: 16px 14px; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10; }
-  td { padding: 12px 14px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
-  tr.hoverable:hover { background: #fffdfd; }
-  .num-cell { font-family: var(--font-mono); text-align: right; font-weight: 600; }
-  .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 700; display: inline-block; white-space: nowrap; }
-  .status-badge.match { background: var(--match-bg); color: var(--match); border: 1px solid var(--match-border); font-size: 12px; }
+  .tab-btn:hover:not(.active) {
+    background: #cbd5e1;
+    color: var(--text-main);
+  }
 
-  .cloud-tag { background: #16a34a; color: #ffffff; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 800; }
-  .archive-badge { font-size: 12px; padding: 3px 8px; border-radius: 6px; font-weight: 800; background: #e2e8f0; color: #334155; }
+  /* Summary Dashboard Metrics */
+  .summary-bar {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 24px;
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .info-item {
+    flex: 1;
+    border-right: 1px solid var(--border-subtle);
+    padding-right: 12px;
+  }
+
+  .info-item:last-child {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .info-item label {
+    display: block;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .info-item .val {
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: var(--primary);
+    font-family: var(--font-mono);
+  }
+
+  .archive-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  /* Modernized Tables */
+  .table-container {
+    background: var(--panel-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    box-shadow: var(--shadow-sm);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+
+  th {
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    padding: 12px 14px;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tr.hoverable {
+    transition: background-color 0.15s ease;
+  }
+
+  tr.hoverable:hover {
+    background: #f8fafc;
+  }
+  
+  tr { page-break-inside: avoid; break-inside: avoid; }
+  
+  .num-cell {
+    font-family: var(--font-mono);
+    text-align: right;
+    font-weight: 600;
+  }
+
+  .light-num {
+    color: #64748b;
+    font-weight: 400;
+  }
+  
+  .status-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    display: inline-block;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+
+  .status-badge.match {
+    background: var(--match-bg);
+    color: var(--match);
+    border: 1px solid var(--match-border);
+    font-size: 12px;
+    padding: 2px 6px;
+    line-height: 1;
+  }
+
+  .status-badge.mismatch {
+    background: var(--mismatch-bg);
+    color: var(--mismatch);
+    border: 1px solid var(--mismatch-border);
+    font-size: 12px;
+    padding: 2px 6px;
+    line-height: 1;
+  }
+
+  .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
+
+  /* STRICT SIDE-BY-SIDE FLEX CONTAINER FOR ACTION CELL */
+  .action-cell-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+
+  /* COMPACT ICON-ONLY CIRCULAR BUTTONS */
+  .btn-upload-sub, .btn-remove-sub, .btn-add-remark {
+    font-size: 11px;
+    font-family: var(--font-sans);
+    background: #ffffff;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 50%;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+  }
+
+  .btn-upload-sub { color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-upload-sub:hover { background: var(--primary); color: #ffffff; transform: scale(1.1); box-shadow: var(--shadow-md); }
+
+  .btn-remove-sub { color: var(--mismatch); border: 1.5px solid var(--mismatch); }
+  .btn-remove-sub:hover { background: var(--mismatch); color: #ffffff; transform: scale(1.1); box-shadow: var(--shadow-md); }
+
+  .btn-add-remark { color: #475569; border: 1.5px solid #cbd5e1; }
+  .btn-add-remark:hover { background: #475569; color: #ffffff; border-color: #475569; transform: scale(1.1); box-shadow: var(--shadow-md); }
+
+  .manual-input {
+    width: 90px;
+    padding: 3px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    text-align: right;
+    transition: border 0.2s;
+  }
+  .manual-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(122, 18, 18, 0.15); }
+
+  .remarks-input {
+    width: 120px;
+    padding: 3px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+  }
+  .remarks-input:focus { outline: none; border-color: var(--primary); }
+
+  .remark-tag-display {
+    font-size: 10.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    font-style: italic;
+    word-break: break-word;
+  }
+
+  .recon-details { font-size: 10.5px; color: #94a3b8; font-family: var(--font-mono); display: inline-block; }
+  .section-tag { font-size: 9.5px; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-right: 4px; text-transform: uppercase; }
+
+  .inner-table { width: 100%; border-collapse: collapse; font-size: 11px; background: #ffffff; margin-top: 4px; border: 1px solid #cbd5e1; }
+  .inner-table th { background: #f1f5f9; padding: 6px 10px; font-size: 9.5px; color: #475569; border-bottom: 1px solid #cbd5e1; }
+  .inner-table td { padding: 6px 10px; font-size: 11px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+  .expand-icon { font-size: 10px; color: var(--primary); display: inline-block; width: 14px; cursor: pointer; user-select: none; }
+
+  @media print {
+    .upload-action-bar, .currency-tabs-bar, .btn-upload-sub, .btn-remove-sub, .btn-add-remark, .sub-upload-wrapper, .manual-input-wrapper, .remarks-input-wrapper, .hide-print { display: none !important; }
+    body { background: #fff; padding-bottom: 0; }
+    .wrap { margin: 0; padding: 0; max-width: 100%; }
+    .table-container { border: none; box-shadow: none; }
+    table th, table td { padding: 8px 10px; font-size: 10.5px; }
+    .expand-icon { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -145,53 +531,59 @@
         <div class="header-sub">Master Reconciliation & Sub-Report Audit Engine</div>
       </div>
     </div>
-    <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
+    <div class="header-tag hide-print">
+      <div class="pulse-dot"></div> Live Cloud Sync
+    </div>
   </div>
 </header>
 
 <div class="wrap" id="export-container">
   
+  <!-- CONTROLS TOOLBAR & BRANCH DISPLAY -->
   <div class="upload-action-bar hide-print">
+    <!-- ⬅️ BACK TO DASHBOARD BUTTON -->
     <button class="btn-action btn-dashboard" onclick="window.location.href='index.html'" title="Return to Dashboard">
       <span>⬅️</span> Back to Dashboard
     </button>
 
     <div class="branch-display-wrapper">
       <span class="branch-label">🏢 Branch:</span>
-      <span id="active-branch-name" class="branch-name-val">SELECT BRANCH</span>
+      <span id="active-branch-name" class="branch-name-val"></span>
     </div>
 
-    <button class="btn-action" id="btn-upload-master" style="background:#ffffff; color:var(--primary);" onclick="document.getElementById('file-upload').click()">
+    <button class="btn-action btn-export" id="btn-upload-master" onclick="document.getElementById('file-upload').click()">
       <span>📄</span> Upload Master BCTSR File(s)
     </button>
-    <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv" multiple style="display:none;" onchange="window.handleFileUpload(event)">
+    <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleFileUpload(event)">
     
-    <button class="btn-action" id="btn-toggle-archive" style="background:#1e293b; color:#ffffff;" onclick="window.toggleArchiveState()">
+    <button class="btn-action btn-archive" id="btn-toggle-archive" onclick="toggleArchiveState()">
       <span>🔒</span> Save / Archive
     </button>
 
-    <button class="btn-action" style="background:#ffffff; color:var(--primary);" onclick="window.exportToPDF()">
+    <button class="btn-action btn-export" onclick="exportToPDF()">
       <span>📥</span> Save as PDF
     </button>
 
-    <button class="btn-action" id="btn-delete-branch" onclick="window.deleteActiveBranchData()" title="Delete data for active branch">
+    <button class="btn-action" id="btn-delete-branch" onclick="deleteActiveBranchData()" title="Delete data for active branch">
       <span>🗑️</span> Delete Active Branch
     </button>
 
-    <button class="btn-action" onclick="window.resetAllData()" title="Clear all stored branches data">
+    <button class="btn-action" onclick="resetAllData()" title="Clear all stored branches data">
       <span>🔄</span> Reset All Data
     </button>
   </div>
 
+  <!-- CURRENCY SELECTOR TABS -->
   <div class="currency-tabs-bar hide-print">
-    <button class="tab-btn active" id="tab-PHP" onclick="window.switchCurrencyTab('PHP')">🇵🇭 PHP</button>
-    <button class="tab-btn" id="tab-USD" onclick="window.switchCurrencyTab('USD')">🇺🇸 USD</button>
-    <button class="tab-btn" id="tab-EUR" onclick="window.switchCurrencyTab('EUR')">🇪🇺 EUR</button>
-    <button class="tab-btn" id="tab-JPY" onclick="window.switchCurrencyTab('JPY')">🇯🇵 JPY</button>
-    <button class="tab-btn" id="tab-GBP" onclick="window.switchCurrencyTab('GBP')">🇬🇧 GBP</button>
+    <button class="tab-btn active" id="tab-PHP" onclick="switchCurrencyTab('PHP')">🇵🇭 PHP</button>
+    <button class="tab-btn" id="tab-USD" onclick="switchCurrencyTab('USD')">🇺🇸 USD</button>
+    <button class="tab-btn" id="tab-EUR" onclick="switchCurrencyTab('EUR')">🇪🇺 EUR</button>
+    <button class="tab-btn" id="tab-JPY" onclick="switchCurrencyTab('JPY')">🇯🇵 JPY</button>
+    <button class="tab-btn" id="tab-GBP" onclick="switchCurrencyTab('GBP')">🇬🇧 GBP</button>
   </div>
 
-  <div class="summary-bar" id="summary-bar" style="display:flex;">
+  <!-- EXECUTIVE KPI SUMMARY BAR -->
+  <div class="summary-bar" id="summary-bar" style="display:none;">
     <div class="info-item"><label>Branch Name</label><div class="val" id="val-branch">—</div></div>
     <div class="info-item"><label>Date Range</label><div class="val" id="val-date" style="color:var(--text-main);">—</div></div>
     <div class="info-item"><label>Active Currency Tab</label><div class="val" id="val-currency" style="color:#0284c7;">PHP</div></div>
@@ -199,6 +591,7 @@
     <div class="info-item"><label>Ending Balance (BCTSR)</label><div class="val" id="val-endbal">₱0.00</div></div>
   </div>
 
+  <!-- MAIN RECONCILIATION DATA GRID -->
   <div class="table-container" id="main-recon-container">
     <table>
       <thead>
@@ -210,7 +603,7 @@
           <th style="text-align:center;">Report Quantity</th>
           <th style="text-align:right;" id="th-reportamt">Report Amount</th>
           <th style="text-align:right;">Variance / Remarks</th>
-          <th style="text-align:center;">Status</th>
+          <th style="text-align:center;">Status / Sub-Report</th>
         </tr>
       </thead>
       <tbody id="recon-body">
@@ -219,17 +612,18 @@
     </table>
   </div>
 
-  <div id="manual-adj-section" style="margin-top: 36px; padding-top: 24px;">
+  <!-- MANUAL ADJUSTMENT PIVOT SECTION -->
+  <div id="manual-adj-section" style="margin-top: 40px; padding-top: 24px; border-top: 2px dashed #cbd5e1;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <div>
-        <h2 style="font-size:18px; font-weight:800; color:#ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">Manual Adjustment Pivot Summary (<span id="manual-adj-curr-title">PHP</span>)</h2>
-        <div style="font-size:12px; color:rgba(255,255,255,0.8); margin-top:2px;">Upload the Manual Adjustment Report. Rows automatically aggregate into their designated currency tab.</div>
+        <h2 style="font-size:17px; font-weight:700; color:var(--primary-dark);">Manual Adjustment Pivot Summary (<span id="manual-adj-curr-title">PHP</span>)</h2>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Upload the Manual Adjustment Report. Rows automatically aggregate into their designated currency tab.</div>
       </div>
       
-      <button class="btn-action hide-print" id="btn-upload-manual-adj" style="border:none; background:#ffffff; color:var(--primary);" onclick="document.getElementById('manual-adj-upload').click()">
+      <button class="btn-action hide-print" id="btn-upload-manual-adj" style="border-color:var(--primary); background:#fff; color:var(--primary);" onclick="document.getElementById('manual-adj-upload').click()">
         <span>📊</span> Upload Manual Adjustment
       </button>
-      <input type="file" id="manual-adj-upload" accept=".csv, .xlsx, .xls" style="display:none;" onchange="window.handleManualAdjUpload(event)">
+      <input type="file" id="manual-adj-upload" accept=".csv, .xlsx, .xls" style="display:none;" onchange="handleManualAdjUpload(event)">
     </div>
 
     <div class="table-container" id="manual-adj-container">
@@ -252,7 +646,7 @@
 
 </div>
 
-<!-- 🔥 FIREBASE REALTIME DATABASE SDK PERSISTENCE & PARSER ENGINE -->
+<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE ENGINE & AUTO-DASHBOARD CUTOFF SYNC -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -270,18 +664,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-  let activeBranch = localStorage.getItem('ml_activeBranch') || "SELECT BRANCH";
-  let activeCurrencyTab = localStorage.getItem('ml_activeCurrencyTab') || 'PHP';
-  let branchesStore = {}; 
-
-  try {
-    let savedStore = localStorage.getItem('ml_branchesStore');
-    if (savedStore) branchesStore = JSON.parse(savedStore);
-  } catch(e){}
-
-  // 🔥 Realtime Firebase Sync Listener
+  // Sync branchesStore Realtime Listener
   onValue(ref(db, 'branchesStore'), (snapshot) => {
     const val = snapshot.val();
     if (val) {
@@ -291,260 +674,2200 @@
     }
   });
 
-  function syncBranchesToFirebase() {
-    set(ref(db, 'branchesStore'), branchesStore).catch(e => console.warn("Firebase sync fallback local:", e));
-  }
-
-  function saveStateToStorage() {
-    try {
-      localStorage.setItem('ml_activeBranch', activeBranch);
-      localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
-      localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
-      syncBranchesToFirebase();
-    } catch (e) {
-      console.warn("Could not save to LocalStorage:", e);
-    }
-  }
-
-  /* 📄 ENHANCED PDF Y-COORDINATE TEXT EXTRACTION */
-  async function extractPDFLinesByYCoord(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const allLines = [];
-
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      const rows = {};
-
-      content.items.forEach(it => {
-        const y = Math.round(it.transform[5]);
-        if (!rows[y]) rows[y] = [];
-        rows[y].push({ x: it.transform[4], text: it.str });
-      });
-
-      const ys = Object.keys(rows).map(Number).sort((a, b) => b - a);
-      ys.forEach(y => {
-        const rowItems = rows[y].sort((a, b) => a.x - b.x);
-        const line = rowItems.map(r => r.text).join(' ').replace(/\s+/g, ' ').trim();
-        if (line) allLines.push(line);
-      });
-    }
-    return allLines;
-  }
-
-  /* 📄 BCTSR FILE UPLOAD HANDLER */
-  window.handleFileUpload = async function(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    if (!branchesStore[activeBranch]) {
-      branchesStore[activeBranch] = {};
-    }
-
-    for (let file of files) {
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (ext === 'pdf') {
-        const lines = await extractPDFLinesByYCoord(file);
-        processBCTSRTextLines(lines);
-      } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
-        await parseExcelBCTSR(file);
-      }
-    }
-
-    saveStateToStorage();
-    renderActiveCurrencyData();
-    event.target.value = '';
+  window.syncBranchesToFirebase = function() {
+    set(ref(db, 'branchesStore'), branchesStore).catch(e => console.warn(e));
   };
 
-  async function parseExcelBCTSR(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+  // Sync StrikeForceEntries (Dashboard Table Updates)
+  window.syncStrikeForceEntriesToFirebase = function(entries) {
+    set(ref(db, 'strikeForceEntries'), entries).catch(e => console.warn(e));
+  };
+</script>
 
-    let lines = jsonData.map(row => row.filter(Boolean).join(' ').trim()).filter(Boolean);
-    processBCTSRTextLines(lines);
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let activeBranch = localStorage.getItem('ml_activeBranch') || "Select Branch";
+let activeCurrencyTab = localStorage.getItem('ml_activeCurrencyTab') || 'PHP';
+let branchesStore = {}; 
+
+function createEmptyBranchStore() {
+  return {
+    bctsrDataStore: { PHP: null, USD: null, EUR: null, JPY: null, GBP: null },
+    manualInputsStore: { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} },
+    manualRemarksStore: { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} },
+    openRemarksInputStore: { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} },
+    manualAdjDataStore: { PHP: null, USD: null, EUR: null, JPY: null, GBP: null },
+    manualAdjRemarksStore: { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} },
+    openManualAdjRemarksStore: { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} },
+    isArchivedStore: { PHP: false, USD: false, EUR: false, JPY: false, GBP: false },
+    parsedSheetsStore: { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} }
+  };
+}
+
+function getActiveBranchData() {
+  if (!branchesStore[activeBranch]) {
+    branchesStore[activeBranch] = createEmptyBranchStore();
+  }
+  let bData = branchesStore[activeBranch];
+  if (!bData.isArchivedStore) {
+    bData.isArchivedStore = { PHP: false, USD: false, EUR: false, JPY: false, GBP: false };
+  }
+  if (!bData.parsedSheetsStore || Array.isArray(bData.parsedSheetsStore) || !bData.parsedSheetsStore.PHP) {
+    bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+  }
+  return bData;
+}
+
+function toggleArchiveState() {
+  let bData = getActiveBranchData();
+  let currentState = bData.isArchivedStore[activeCurrencyTab] || false;
+  
+  if (!currentState) {
+    if (confirm(`Save & Archive reconciliation for '${activeBranch}' (${activeCurrencyTab})? This will lock data from further editing.`)) {
+      bData.isArchivedStore[activeCurrencyTab] = true;
+    }
+  } else {
+    if (confirm(`Unlock & Edit reconciliation for '${activeBranch}' (${activeCurrencyTab})?`)) {
+      bData.isArchivedStore[activeCurrencyTab] = false;
+    }
   }
 
-  function processBCTSRTextLines(lines) {
-    let currData = {
-      dateRange: "N/A",
-      endingBalance: 0,
-      rows: []
-    };
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
 
-    lines.forEach((line) => {
-      if (line.toLowerCase().includes("period") || line.toLowerCase().includes("date") || line.includes("-")) {
-        if (currData.dateRange === "N/A" && /\d{2}\/\d{2}\/\d{4}/.test(line)) {
-          currData.dateRange = line;
-        }
+function getCurrencySymbol(curr) {
+  let c = String(curr || 'PHP').toUpperCase().trim();
+  switch(c) {
+    case 'USD': return '$';
+    case 'EUR': return '€';
+    case 'JPY': return '¥';
+    case 'GBP': return '£';
+    case 'PHP': default: return '₱';
+  }
+}
+
+// AUTOMATIC SHEET TYPE DETECTOR (B2B vs B2FD)
+function detectSheetType(rows, defaultTarget) {
+  if (!rows || !Array.isArray(rows) || rows.length === 0) return defaultTarget;
+  
+  let fullStr = "";
+  for (let i = 0; i < Math.min(15, rows.length); i++) {
+    if (rows[i] && Array.isArray(rows[i])) {
+      fullStr += " " + rows[i].join(" ").toLowerCase();
+    }
+  }
+
+  if (fullStr.includes("ccbranch") || fullStr.includes("recvd. from") || fullStr.includes("given to") || fullStr.includes("ref no.")) {
+    return "B2B";
+  } else if (fullStr.includes("bank") && fullStr.includes("account")) {
+    return "B2FD";
+  }
+  
+  return defaultTarget;
+}
+
+/* 🔄 AUTOMATICALLY SYNC CUTOFF DATE & BRANCH TO DASHBOARD (index.html) */
+function updateDashboardBranchAndCutoff(branchName, dateRange) {
+  if (!branchName || branchName === "SELECT BRANCH" || branchName === "—") return;
+  
+  let entries = [];
+  try {
+    let saved = localStorage.getItem('ml_strikeForceEntries');
+    if (saved) entries = JSON.parse(saved);
+  } catch(e){}
+
+  let bUpper = branchName.toUpperCase().trim();
+  let foundEntry = entries.find(e => e.branch.toUpperCase().trim() === bUpper);
+
+  if (foundEntry) {
+    if (dateRange && dateRange !== "—" && dateRange !== "N/A") {
+      foundEntry.cutoffDate = dateRange;
+    }
+    if (foundEntry.status === "Pending") {
+      foundEntry.status = "In Progress";
+    }
+  } else {
+    let currentUser = localStorage.getItem('ml_activeUser') || 'ANONYMOUS';
+    entries.push({
+      branch: bUpper,
+      cutoffDate: (dateRange && dateRange !== "—" && dateRange !== "N/A") ? dateRange : "Pending Upload",
+      companions: [],
+      createdBy: currentUser,
+      status: "In Progress"
+    });
+  }
+
+  localStorage.setItem('ml_strikeForceEntries', JSON.stringify(entries));
+  if (window.syncStrikeForceEntriesToFirebase) {
+    window.syncStrikeForceEntriesToFirebase(entries);
+  }
+}
+
+// INTL MONEY TRANSFER SENDOUT & CHARGES CALCULATORS
+function sumIntlSendoutPrincipal(sheetData, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let principalCol = -1, currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toUpperCase();
+      if (['PRINCIPAL', 'AMOUNT', 'SENDOUT AMOUNT'].includes(c_str)) {
+        principalCol = c_i;
+        headerIdx = i;
+      } else if (['CURRENCY', 'CURR'].includes(c_str)) {
+        currCol = c_i;
       }
+    }
+    if (principalCol !== -1) break;
+  }
 
-      // Match numbers with decimals for Cash In / Cash Out
-      const numbers = line.match(/(-?[\d,]+\.\d{2})/g);
-      if (numbers && numbers.length >= 1) {
-        const cashIn = parseFloat(numbers[0].replace(/,/g, '')) || 0;
-        const cashOut = numbers[1] ? (parseFloat(numbers[1].replace(/,/g, '')) || 0) : 0;
-        
-        let particular = line.replace(/(-?[\d,]+\.\d{2})/g, '').replace(/\b\d+\b/g, '').trim();
+  if (principalCol === -1) principalCol = 9;
+  if (currCol === -1) currCol = 8;
 
-        if (particular && !particular.toLowerCase().includes("total") && particular.length > 2) {
-          currData.rows.push({
-            particulars: particular,
-            qty: 1,
-            cashIn: cashIn,
-            cashOut: cashOut
+  let total = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > principalCol) {
+      let rowCurr = (currCol !== -1 && row.length > currCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      if (!rowCurr) rowCurr = targetC;
+      if (rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === targetC) {
+        let valStr = String(row[principalCol] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function sumIntlSendoutCharges(sheetData, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let ctcCol = -1, currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toUpperCase();
+      if (['CTC', 'CHARGE', 'CHARGES', 'FEE', 'FEES'].includes(c_str)) {
+        ctcCol = c_i;
+        headerIdx = i;
+      } else if (['CURRENCY', 'CURR'].includes(c_str)) {
+        currCol = c_i;
+      }
+    }
+    if (ctcCol !== -1) break;
+  }
+
+  if (ctcCol === -1) ctcCol = 10;
+  if (currCol === -1) currCol = 8;
+
+  let total = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > ctcCol) {
+      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      if (!rowCurr) rowCurr = targetC;
+      if (rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === targetC) {
+        let valStr = String(row[ctcCol] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countIntlSendout(sheetData, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toUpperCase();
+      if (['CONTROL NO', 'REFERENCE NO', 'SENDER NAME', 'PARTNER'].includes(c_str)) {
+        headerIdx = i;
+      } else if (['CURRENCY', 'CURR'].includes(c_str)) {
+        currCol = c_i;
+      }
+    }
+    if (headerIdx !== -1) break;
+  }
+
+  if (currCol === -1) currCol = 8;
+  let count = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row)) {
+      let rowCurr = (currCol !== -1 && row.length > currCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      if (!rowCurr) rowCurr = targetC;
+      if (rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === targetC) count++;
+    }
+  }
+  return count;
+}
+
+// MCASH CASH IN & SERVICE CHARGE CALCULATORS
+function sumMCashCashIn(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let amountCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['amount', 'cash in amount', 'total amount'].includes(c_str)) {
+        amountCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (amountCol !== -1) break;
+  }
+
+  if (amountCol === -1) amountCol = (sheetData[0] && sheetData[0].length >= 9) ? 8 : 7;
+
+  let total = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > amountCol) {
+      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function sumMCashServiceCharge(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let chargeCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['charge', 'service charge', 'fee', 'charges'].includes(c_str)) {
+        chargeCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (chargeCol !== -1) break;
+  }
+
+  if (chargeCol === -1) chargeCol = (sheetData[0] && sheetData[0].length >= 9) ? 7 : 6;
+
+  let total = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > chargeCol) {
+      let valStr = String(row[chargeCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function countMCashCashIn(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['sender', 'kptn', 'amount', 'no'].includes(c_str)) {
+        headerIdx = i;
+        break;
+      }
+    }
+    if (headerIdx !== -1) break;
+  }
+
+  let count = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    if (isValidDataRow(sheetData[i])) count++;
+  }
+  return count;
+}
+
+// JEWELRY SALES CALCULATORS
+function sumJewelryNetSales(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  for (let i = sheetData.length - 1; i >= 0; i--) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    let lineStr = row.join(" ").toLowerCase();
+    if (lineStr.includes("grand total") || lineStr.includes("subtotal")) {
+      let nums = [];
+      for (let cell of row) {
+        let matches = String(cell).match(/[\d,]+\.\d{2}/g);
+        if (matches) {
+          matches.forEach(m => {
+            let val = parseFloat(m.replace(/,/g, ''));
+            if (!isNaN(val) && val > 0) nums.push(val);
           });
         }
       }
-    });
-
-    if (!branchesStore[activeBranch][activeCurrencyTab]) {
-      branchesStore[activeBranch][activeCurrencyTab] = {};
+      if (nums.length > 0) return nums[nums.length - 1];
     }
-
-    branchesStore[activeBranch][activeCurrencyTab].masterData = currData;
   }
 
-  /* 📊 MANUAL ADJUSTMENT PARSER */
-  window.handleManualAdjUpload = async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+  let netCol = -1, headerIdx = -1;
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (c_str.includes('net')) {
+        netCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (netCol !== -1) break;
+  }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+  if (netCol !== -1) {
+    let total = 0;
+    for (let i = headerIdx + 1; i < sheetData.length; i++) {
+      let row = sheetData[i];
+      if (isValidDataRow(row) && row.length > netCol) {
+        let valStr = String(row[netCol] || '').replace(/,/g, '').trim().replace(/\.$/, '');
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+    return total;
+  }
+  return 0;
+}
 
-    let adjRows = [];
-    jsonData.forEach((row, idx) => {
-      if (idx === 0) return;
-      if (row.length >= 2) {
-        adjRows.push({
-          desc: String(row[0] || '').trim(),
-          qty: parseInt(row[1]) || 1,
-          cashIn: parseFloat(row[2]) || 0,
-          cashOut: parseFloat(row[3]) || 0,
-          remarks: String(row[4] || '').trim()
-        });
+function countJewelrySales(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  for (let i = sheetData.length - 1; i >= 0; i--) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    let lineStr = row.join(" ").toLowerCase();
+    if (lineStr.includes("grand total") || lineStr.includes("subtotal")) {
+      for (let cell of row) {
+        let matches = String(cell).match(/\b\d+\b/g);
+        if (matches) {
+          for (let m of matches) {
+            let n = parseInt(m);
+            if (n > 0 && n < 10000) return n;
+          }
+        }
+      }
+    }
+  }
+  return countRows(sheetData);
+}
+
+// POS INSURANCE SALES CALCULATORS
+function sumInsuranceSales(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let total = 0;
+
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row) || row.length === 0) continue;
+
+    let col0 = String(row[0] || '').trim().toLowerCase();
+    if (!col0 || ['region', 'date & time generated', 'branch', 'date covered', 'employee', 'insurance provider', 'insurance product', 'coi_number', 'reference number', '#', 'no', 'particulars', 'total', 'summary'].includes(col0)) {
+      continue;
+    }
+    if (col0.includes('total') || col0.includes('summary')) continue;
+
+    if (row.length > 24) {
+      let valY = parseFloat(String(row[24] || '').replace(/,/g, '').trim());
+      if (!isNaN(valY) && valY > 0) { total += valY; continue; }
+    }
+    if (row.length > 16) {
+      let valQ = parseFloat(String(row[16] || '').replace(/,/g, '').trim());
+      if (!isNaN(valQ) && valQ > 0) { total += valQ; continue; }
+    }
+    if (row.length > 6) {
+      let valG = parseFloat(String(row[6] || '').replace(/,/g, '').trim());
+      if (!isNaN(valG) && valG > 0) { total += valG; continue; }
+    }
+  }
+  return total;
+}
+
+function countInsuranceSales(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let count = 0;
+
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row) || row.length === 0) continue;
+
+    let col0 = String(row[0] || '').trim().toLowerCase();
+    if (!col0 || ['region', 'date & time generated', 'branch', 'date covered', 'employee', 'insurance provider', 'insurance product', 'coi_number', 'reference number', '#', 'no', 'particulars', 'total', 'summary'].includes(col0)) {
+      continue;
+    }
+    if (col0.includes('total') || col0.includes('summary')) continue;
+
+    if (row.length > 24) {
+      let valY = parseFloat(String(row[24] || '').replace(/,/g, '').trim());
+      if (!isNaN(valY) && valY > 0) { count++; continue; }
+    }
+    if (row.length > 16) {
+      let valQ = parseFloat(String(row[16] || '').replace(/,/g, '').trim());
+      if (!isNaN(valQ) && valQ > 0) { count++; continue; }
+    }
+    if (row.length > 6) {
+      let valG = parseFloat(String(row[6] || '').replace(/,/g, '').trim());
+      if (!isNaN(valG) && valG > 0) { count++; continue; }
+    }
+  }
+  return count;
+}
+
+// KPPO CALCULATORS
+function sumKPPOAmount(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let amountCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['po amount', 'payout amount', 'principal', 'amount'].includes(c_str)) {
+        amountCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (amountCol !== -1) break;
+  }
+
+  if (amountCol === -1) {
+    amountCol = (sheetData[0] && sheetData[0].length > 12) ? 12 : ((sheetData[0] && sheetData[0].length > 11) ? 11 : 10);
+  }
+
+  let totalAmt = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > amountCol) {
+      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) totalAmt += val;
+    }
+  }
+  return totalAmt;
+}
+
+function countKPPOQty(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let amountCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['po amount', 'payout amount', 'principal', 'amount'].includes(c_str)) {
+        amountCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (amountCol !== -1) break;
+  }
+
+  if (amountCol === -1) {
+    amountCol = (sheetData[0] && sheetData[0].length > 12) ? 12 : ((sheetData[0] && sheetData[0].length > 11) ? 11 : 10);
+  }
+
+  let qty = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > amountCol) {
+      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val) && val > 0) qty++;
+    }
+  }
+  return qty;
+}
+
+// MLG PO CALCULATORS
+function sumMLGPO(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let amountCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['po amount', 'payout amount', 'amount', 'principal'].includes(c_str)) {
+        if (['po amount', 'payout amount'].includes(c_str)) {
+          amountCol = c_i;
+          headerIdx = i;
+          break;
+        } else if (amountCol === -1) {
+          amountCol = c_i;
+          headerIdx = i;
+        }
+      }
+    }
+    if (amountCol !== -1 && ['po amount', 'payout amount'].includes(String(sheetData[headerIdx][amountCol] || '').trim().toLowerCase())) break;
+  }
+
+  if (amountCol === -1) amountCol = 15;
+
+  let totalAmt = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > amountCol) {
+      let col0 = String(row[0] || '').trim().toLowerCase();
+      if (col0 === 'total' || col0.includes('total')) continue;
+      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) totalAmt += val;
+    }
+  }
+  return totalAmt;
+}
+
+function countMLGPO(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let amountCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['po amount', 'payout amount', 'amount', 'principal'].includes(c_str)) {
+        if (['po amount', 'payout amount'].includes(c_str)) {
+          amountCol = c_i;
+          headerIdx = i;
+          break;
+        } else if (amountCol === -1) {
+          amountCol = c_i;
+          headerIdx = i;
+        }
+      }
+    }
+    if (amountCol !== -1 && ['po amount', 'payout amount'].includes(String(sheetData[headerIdx][amountCol] || '').trim().toLowerCase())) break;
+  }
+
+  if (amountCol === -1) amountCol = 15;
+
+  let count = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > amountCol) {
+      let col0 = String(row[0] || '').trim().toLowerCase();
+      if (col0 === 'total' || col0.includes('total')) continue;
+      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val) && val > 0) count++;
+    }
+  }
+  return count;
+}
+
+// B2FD CALCULATORS
+function sumB2FD(sheetData, branchName, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let total = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+  if (targetC === 'PESO') targetC = 'PHP';
+
+  let amountCol = -1, branchCol = -1, currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['branch', 'branch name', 'outlet'].includes(c_str)) {
+        branchCol = c_i;
+      } else if (['amount', 'total amount', 'trans amount', 'cash amount'].includes(c_str)) {
+        amountCol = c_i;
+        headerIdx = i;
+      } else if (['currency', 'curr'].includes(c_str)) {
+        currCol = c_i;
+      }
+    }
+    if (amountCol !== -1) break;
+  }
+
+  if (amountCol === -1) amountCol = (sheetData[0] && sheetData[0].length > 4) ? 4 : 3;
+  if (branchCol === -1) branchCol = (sheetData[0] && sheetData[0].length > 1) ? 1 : 0;
+  if (currCol === -1) currCol = (sheetData[0] && sheetData[0].length > 5) ? 5 : -1;
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row) || row.length <= Math.max(amountCol, branchCol)) continue;
+
+    let col0 = String(row[0] || '').trim().toLowerCase();
+    if (col0 === 'total' || col0.includes('total')) continue;
+
+    let rowBranch = String(row[branchCol] || '').trim();
+
+    let amtStr = String(row[amountCol] || '').replace(/,/g, '').replace(/[$₱]/g, '').trim();
+    amtStr = amtStr.replace(/^[A-Z]{3}\s*/i, '');
+    let amt = parseFloat(amtStr);
+    if (isNaN(amt) || amt <= 0) continue;
+
+    let currency = "";
+    if (currCol !== -1 && row.length > currCol) {
+      let cStr = String(row[currCol] || '').trim().toUpperCase();
+      if (cStr === 'PESO') cStr = 'PHP';
+      if (['PHP','USD','EUR','JPY','GBP'].includes(cStr)) currency = cStr;
+    }
+
+    if (!currency) {
+      let rowStr = row.join(" ").toUpperCase();
+      if (rowStr.includes('USD') || rowStr.includes('$')) currency = 'USD';
+      else if (rowStr.includes('EUR') || rowStr.includes('€')) currency = 'EUR';
+      else if (rowStr.includes('GBP') || rowStr.includes('£')) currency = 'GBP';
+      else if (rowStr.includes('JPY') || rowStr.includes('¥')) currency = 'JPY';
+      else if (rowStr.includes('PHP') || rowStr.includes('₱') || rowStr.includes('PESO')) currency = 'PHP';
+      else currency = targetC;
+    }
+
+    if (currency === targetC) {
+      if (isBranchMatch(rowBranch, branchName)) {
+        total += amt;
+      }
+    }
+  }
+  return total;
+}
+
+function countB2FD(sheetData, branchName, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let count = 0;
+  let targetC = targetCurr.toUpperCase().trim();
+  if (targetC === 'PESO') targetC = 'PHP';
+
+  let amountCol = -1, branchCol = -1, currCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['branch', 'branch name', 'outlet'].includes(c_str)) {
+        branchCol = c_i;
+      } else if (['amount', 'total amount', 'trans amount', 'cash amount'].includes(c_str)) {
+        amountCol = c_i;
+        headerIdx = i;
+      } else if (['currency', 'curr'].includes(c_str)) {
+        currCol = c_i;
+      }
+    }
+    if (amountCol !== -1) break;
+  }
+
+  if (amountCol === -1) amountCol = (sheetData[0] && sheetData[0].length > 4) ? 4 : 3;
+  if (branchCol === -1) branchCol = (sheetData[0] && sheetData[0].length > 1) ? 1 : 0;
+  if (currCol === -1) currCol = (sheetData[0] && sheetData[0].length > 5) ? 5 : -1;
+
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row) || row.length <= Math.max(amountCol, branchCol)) continue;
+
+    let col0 = String(row[0] || '').trim().toLowerCase();
+    if (col0 === 'total' || col0.includes('total')) continue;
+
+    let rowBranch = String(row[branchCol] || '').trim();
+
+    let amtStr = String(row[amountCol] || '').replace(/,/g, '').replace(/[$₱]/g, '').trim();
+    amtStr = amtStr.replace(/^[A-Z]{3}\s*/i, '');
+    let amt = parseFloat(amtStr);
+    if (isNaN(amt) || amt <= 0) continue;
+
+    let currency = "";
+    if (currCol !== -1 && row.length > currCol) {
+      let cStr = String(row[currCol] || '').trim().toUpperCase();
+      if (cStr === 'PESO') cStr = 'PHP';
+      if (['PHP','USD','EUR','JPY','GBP'].includes(cStr)) currency = cStr;
+    }
+
+    if (!currency) {
+      let rowStr = row.join(" ").toUpperCase();
+      if (rowStr.includes('USD') || rowStr.includes('$')) currency = 'USD';
+      else if (rowStr.includes('EUR') || rowStr.includes('€')) currency = 'EUR';
+      else if (rowStr.includes('GBP') || rowStr.includes('£')) currency = 'GBP';
+      else if (rowStr.includes('JPY') || rowStr.includes('¥')) currency = 'JPY';
+      else if (rowStr.includes('PHP') || rowStr.includes('₱') || rowStr.includes('PESO')) currency = 'PHP';
+      else currency = targetC;
+    }
+
+    if (currency === targetC) {
+      if (isBranchMatch(rowBranch, branchName)) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+// ROBUST B2B CALCULATORS
+function sumB2B(sheetData, keyword, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let searchKey = keyword.toLowerCase().trim();
+  let targetC = targetCurr.toUpperCase().trim();
+
+  let summaryTotal = 0;
+  let foundSummary = false;
+
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    let colA = String(row[0] || '').trim().toLowerCase();
+
+    let rowCurr = "";
+    row.forEach(cell => {
+      let s = String(cell || '').trim().toUpperCase();
+      if (['PHP','USD','EUR','JPY','GBP','PESO'].includes(s)) {
+        rowCurr = s === 'PESO' ? 'PHP' : s;
       }
     });
+    if (rowCurr && rowCurr !== targetC) continue;
 
-    if (!branchesStore[activeBranch][activeCurrencyTab]) {
-      branchesStore[activeBranch][activeCurrencyTab] = {};
-    }
-
-    branchesStore[activeBranch][activeCurrencyTab].manualAdjData = adjRows;
-    saveStateToStorage();
-    renderActiveCurrencyData();
-    event.target.value = '';
-  };
-
-  /* 🎨 RENDER RECONCILER UI DATA */
-  function renderActiveCurrencyData() {
-    document.getElementById('active-branch-name').innerText = activeBranch;
-    document.getElementById('val-branch').innerText = activeBranch;
-    document.getElementById('val-currency').innerText = activeCurrencyTab;
-    document.getElementById('manual-adj-curr-title').innerText = activeCurrencyTab;
-
-    const branchCurrObj = branchesStore[activeBranch]?.[activeCurrencyTab] || {};
-    const masterData = branchCurrObj.masterData;
-    const manualAdjData = branchCurrObj.manualAdjData || [];
-
-    document.getElementById('val-date').innerText = masterData?.dateRange || "—";
-
-    const reconBody = document.getElementById('recon-body');
-    reconBody.innerHTML = '';
-
-    if (masterData && masterData.rows && masterData.rows.length > 0) {
-      let totalEndBal = 0;
-      masterData.rows.forEach(r => {
-        totalEndBal += (r.cashIn - r.cashOut);
-        const tr = document.createElement('tr');
-        tr.className = 'hoverable';
-        tr.innerHTML = `
-          <td style="font-weight:700;">${r.particulars}</td>
-          <td style="text-align:center; font-family:var(--font-mono);">${r.qty}</td>
-          <td class="num-cell">₱${r.cashIn.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-          <td class="num-cell">₱${r.cashOut.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-          <td style="text-align:center; font-family:var(--font-mono);">${r.qty}</td>
-          <td class="num-cell">₱${(r.cashIn - r.cashOut).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-          <td class="num-cell" style="color:var(--match); font-weight:700;">₱0.00</td>
-          <td style="text-align:center;"><span class="status-badge match">✓ MATCHED</span></td>
-        `;
-        reconBody.appendChild(tr);
-      });
-      document.getElementById('val-endbal').innerText = `₱${totalEndBal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    let isMatch = false;
+    if (searchKey.includes("received") || searchKey.includes("recvd")) {
+      isMatch = colA.includes("total received") || colA.includes("total recvd");
+    } else if (searchKey.includes("given")) {
+      isMatch = colA.includes("total given");
     } else {
-      document.getElementById('val-endbal').innerText = "₱0.00";
-      reconBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No file uploaded for this branch & currency tab yet. Please click 'Upload Master BCTSR File(s)' above.</td></tr>`;
+      isMatch = (colA === searchKey);
     }
-
-    const adjBody = document.getElementById('manual-adj-body');
-    adjBody.innerHTML = '';
-
-    if (manualAdjData.length > 0) {
-      manualAdjData.forEach(adj => {
-        const tr = document.createElement('tr');
-        tr.className = 'hoverable';
-        tr.innerHTML = `
-          <td style="font-weight:700;">${adj.desc}</td>
-          <td style="text-align:center; font-family:var(--font-mono);">${adj.qty}</td>
-          <td class="num-cell">₱${adj.cashIn.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-          <td class="num-cell">₱${adj.cashOut.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-          <td style="text-align:center; font-size:12px; color:var(--text-muted);">${adj.remarks || '—'}</td>
-        `;
-        adjBody.appendChild(tr);
-      });
-    } else {
-      adjBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment file uploaded for this currency.</td></tr>`;
+    if (isMatch && row.length > 1 && row[1]) {
+      let val = parseFloat(String(row[1] || '').replace(/,/g, '').trim());
+      if (!isNaN(val)) {
+        summaryTotal += val;
+        foundSummary = true;
+      }
     }
   }
 
-  /* 🛠️ NAVIGATION & ACTION CONTROLS */
-  window.switchCurrencyTab = function(curr) {
-    activeCurrencyTab = curr;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    const targetTab = document.getElementById(`tab-${curr}`);
-    if (targetTab) targetTab.classList.add('active');
+  if (foundSummary && summaryTotal > 0) return summaryTotal;
 
-    saveStateToStorage();
-    renderActiveCurrencyData();
-  };
+  // Fallback: sum transaction rows directly
+  let isGiven = searchKey.includes("given");
+  let headerIdx = -1, transCol = -1, amtCol = -1, currCol = -1;
 
-  window.toggleArchiveState = function() {
-    if (!branchesStore[activeBranch]) branchesStore[activeBranch] = {};
-    const currState = branchesStore[activeBranch].isArchived || false;
-    branchesStore[activeBranch].isArchived = !currState;
-
-    saveStateToStorage();
-    alert(branchesStore[activeBranch].isArchived ? "Branch archived & locked!" : "Branch unlocked!");
-  };
-
-  window.exportToPDF = function() {
-    window.print();
-  };
-
-  window.deleteActiveBranchData = function() {
-    if (confirm(`Delete all reconciler data for "${activeBranch}"?`)) {
-      delete branchesStore[activeBranch];
-      saveStateToStorage();
-      renderActiveCurrencyData();
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let r = sheetData[i];
+    if (!r || !Array.isArray(r)) continue;
+    for (let c_i = 0; c_i < r.length; c_i++) {
+      let c_str = String(r[c_i] || '').trim().toLowerCase();
+      if (['transaction', 'trans type', 'type'].includes(c_str)) transCol = c_i;
+      else if (['amount', 'trans amount', 'total amount'].includes(c_str)) amtCol = c_i;
+      else if (['currency', 'curr'].includes(c_str)) currCol = c_i;
     }
-  };
+    if (transCol !== -1 && amtCol !== -1) { headerIdx = i; break; }
+  }
 
-  window.resetAllData = function() {
-    if (confirm("Master reset: Clear all reconciler branch data?")) {
-      branchesStore = {};
-      saveStateToStorage();
-      renderActiveCurrencyData();
+  let rowTotal = 0;
+  if (headerIdx !== -1 && transCol !== -1 && amtCol !== -1) {
+    for (let i = headerIdx + 1; i < sheetData.length; i++) {
+      let r = sheetData[i];
+      if (!r || !Array.isArray(r) || r.length <= Math.max(transCol, amtCol)) continue;
+      let colA = String(r[0] || '').trim().toLowerCase();
+      if (colA.includes('total')) continue;
+
+      let rCurr = (currCol !== -1 && r.length > currCol) ? String(r[currCol] || '').trim().toUpperCase() : targetC;
+      if (rCurr === 'PESO') rCurr = 'PHP';
+      if (rCurr && rCurr !== targetC) continue;
+
+      let trans = String(r[transCol] || '').trim().toLowerCase();
+      if ((isGiven && trans.includes('given')) || (!isGiven && (trans.includes('recvd') || trans.includes('received')))) {
+        let val = parseFloat(String(r[amtCol] || '').replace(/,/g, '').trim());
+        if (!isNaN(val)) rowTotal += val;
+      }
     }
-  };
+  }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    renderActiveCurrencyData();
+  return summaryTotal > 0 ? summaryTotal : rowTotal;
+}
+
+function countB2B(sheetData, keyword, targetCurr = "PHP") {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let isGiven = keyword.toLowerCase().includes("given");
+  let targetC = targetCurr.toUpperCase().trim();
+
+  let headerIdx = -1, transCol = -1, currCol = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let r = sheetData[i];
+    if (!r || !Array.isArray(r)) continue;
+    for (let c_i = 0; c_i < r.length; c_i++) {
+      let c_str = String(r[c_i] || '').trim().toLowerCase();
+      if (['transaction', 'trans type', 'type'].includes(c_str)) transCol = c_i;
+      else if (['currency', 'curr'].includes(c_str)) currCol = c_i;
+    }
+    if (transCol !== -1) { headerIdx = i; break; }
+  }
+
+  let count = 0;
+  if (headerIdx !== -1 && transCol !== -1) {
+    for (let i = headerIdx + 1; i < sheetData.length; i++) {
+      let r = sheetData[i];
+      if (!r || !Array.isArray(r) || r.length <= transCol) continue;
+      let colA = String(r[0] || '').trim().toLowerCase();
+      if (colA.includes('total')) continue;
+
+      let rCurr = (currCol !== -1 && r.length > currCol) ? String(r[currCol] || '').trim().toUpperCase() : targetC;
+      if (rCurr === 'PESO') rCurr = 'PHP';
+      if (rCurr && rCurr !== targetC) continue;
+
+      let trans = String(r[transCol] || '').trim().toLowerCase();
+      if ((isGiven && trans.includes('given')) || (!isGiven && (trans.includes('recvd') || trans.includes('received')))) {
+        count++;
+      }
+    }
+  } else {
+    for (let i = 0; i < sheetData.length; i++) {
+      let r = sheetData[i];
+      if (!r || !Array.isArray(r)) continue;
+      let colA = String(r[0] || '').trim().toLowerCase();
+      if (colA.includes('total')) continue;
+      let trans = String(r[3] || '').trim().toLowerCase();
+      if ((isGiven && trans.includes('given')) || (!isGiven && (trans.includes('recvd') || trans.includes('received')))) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+const REPORT_RULES = {
+  "Fund Transfer Received From BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Received :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Received :", curr) },
+  "Fund Transfer Given to BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Given :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Given :", curr) },
+  
+  // FUND TRANSFER RECEIVED FROM BC/HO -> B2B RECEIVED ONLY (ALL CURRENCIES)
+  "Fund Transfer Received From BC/HO": { 
+    sheet: "B2B", 
+    altSheet: "B2B PHP",
+    getSum: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      return sumB2B(b2bData, "Total Received :", curr);
+    }, 
+    getQty: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      return countB2B(b2bData, "Total Received :", curr);
+    } 
+  },
+
+  // FUND TRANSFER GIVEN TO BC/HO -> B2B GIVEN + B2FD GIVEN (ALL CURRENCIES: PHP, USD, EUR, JPY, GBP)
+  "Fund Transfer Given to BC/HO": { 
+    sheet: "B2B", 
+    altSheet: "B2FD",
+    getSum: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      let b2fdData = sheets["B2FD"] || [];
+      let b2bSum = sumB2B(b2bData, "Total Given :", curr);
+      let b2fdSum = sumB2FD(b2fdData, branch, curr);
+      return b2bSum + b2fdSum;
+    }, 
+    getQty: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      let b2fdData = sheets["B2FD"] || [];
+      let b2bQty = countB2B(b2bData, "Total Given :", curr);
+      let b2fdQty = countB2FD(b2fdData, branch, curr);
+      return b2bQty + b2fdQty;
+    } 
+  },
+
+  "Fund Transfer Given to Head Office": { 
+    sheet: "B2FD", 
+    getSum: (data, branch, items, curr) => sumB2FD(data, branch, curr), 
+    getQty: (data, branch, items, curr) => countB2FD(data, branch, curr) 
+  },
+
+  "QCL Lukat Principal": { sheet: "TSR", getSum: (data) => sumCol(data, 16), getQty: (data) => Math.round(sumCol(data, 15)) },
+  "QCL Prenda Principal": { sheet: "TSR", getSum: (data) => sumCol(data, 2), getQty: (data) => Math.round(sumCol(data, 1)) },
+  "QCL Interest and other Income": { sheet: "TSR", getSum: (data, branch, bctsrItems) => sumTSRInterest(data, bctsrItems), getQty: () => "—" },
+
+  "Renewal Anywhere Request": { sheet: "RA Request", getSum: (data) => sumCol(data, 5), getQty: (data) => countRows(data) },
+  "Renewal Anywhere Process": { sheet: "RA Process", getSum: (data) => sumCol(data, 5), getQty: (data) => countRows(data) },
+
+  "Kwarta Padala Sendout": { sheet: "KP SO", getSum: (data) => sumCol(data, 9), getQty: (data) => countRows(data) },
+  "Kwarta Padala Sendout Charges": { sheet: "KP SO", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
+  
+  "KP Domestic Payout": { sheet: "KPPO", getSum: (data) => sumKPPOAmount(data), getQty: (data) => countKPPOQty(data) },
+
+  "Bills Payment Principal": { sheet: "BP", getSum: (data) => sumCol(data, 9), getQty: (data) => countRows(data) },
+  "Bills Payment Charges": { sheet: "BP", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
+
+  "Remit to Account": { sheet: "QRPH", getSum: (data) => sumCol(data, 11), getQty: (data) => countRows(data) },
+  "Remit to Account Charges": { sheet: "QRPH", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
+
+  "Local Money Transfer Sendout": { sheet: "GCASH IN", getSum: (data) => sumCol(data, 4), getQty: (data) => countRows(data) },
+  "Local Money Transfer Payout": { sheet: "GCASH OUT", getSum: (data) => sumCol(data, 4), getQty: (data) => countRows(data) },
+
+  "Money Changer Transactions Cash In": { 
+    sheet: "MC", 
+    getSum: (data, br, items, curr) => sumMCCashIn(data, curr), 
+    getQty: (data, br, items, curr) => countMCCashIn(data, curr) 
+  },
+  "Money Changer Transactions Cash Out": { 
+    sheet: "MC", 
+    getSum: (data, br, items, curr) => sumMCCashOut(data, curr), 
+    getQty: (data, br, items, curr) => countMCCashOut(data, curr) 
+  },
+
+  "International Money Transfer Payout": { sheet: "PAYOUT", getSum: (data, br, items, curr) => sumPayoutCSV(data, curr), getQty: (data, br, items, curr) => countPayoutCSV(data, curr) },
+  
+  "International Money Transfer Sendout": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutPrincipal(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
+  "International Money Transfer Charges": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutCharges(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
+
+  "Payment Solutions": { sheet: "MLG PO", getSum: (data) => sumMLGPO(data), getQty: (data) => countMLGPO(data) },
+  
+  "POS Jewelry Sales": { sheet: "SUBASTA", altSheet: "JEWELRY", getSum: (data) => sumJewelryNetSales(data), getQty: (data) => countJewelrySales(data) },
+  "POS Insurance Sales": { sheet: "CTPL", altSheet: "MEDICARE", getSum: (data) => sumInsuranceSales(data), getQty: (data) => countInsuranceSales(data) },
+
+  "POS Dried Products": { sheet: "ISPD Sales", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
+  "POS Telco Products": { sheet: "BRANCH-ELOAD", getSum: (data) => sumCol(data, 8), getQty: (data) => countRows(data) },
+
+  // MCASH RULES
+  "MCash Cash In": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashCashIn(data), getQty: (data) => countMCashCashIn(data) },
+  "MCash Service Charge": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashServiceCharge(data), getQty: (data) => countMCashCashIn(data) },
+  "MCash Payout": { sheet: "MCASH OUT", getSum: (data) => sumMCashPayout(data), getQty: (data) => countMCashPayout(data) },
+
+  "ATM POS": { isManual: true },
+  "ATM POS Charge": { isManual: true },
+
+  "Expenses": { isRemarks: true },
+  "Other Income": { isRemarks: true },
+  "Transactions For Verification": { isRemarks: true },
+  "Adjustment +(-)": { isRemarks: true },
+  "Overage": { isRemarks: true }
+};
+
+function isValidDataRow(row) {
+  if (!row || !Array.isArray(row) || row.length === 0) return false;
+  let col0 = String(row[0] || '').trim();
+  if (!col0) return false;
+  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp|generated|printed|run)/i.test(col0)) return false;
+  if (/report|philippines/i.test(col0)) return false;
+  return true;
+}
+
+function sumCol(sheetData, colIndex, startRow = 0) {
+  let total = 0;
+  for (let i = startRow; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > colIndex) {
+      let valStr = String(row[colIndex] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function countRows(sheetData, startRow = 0) {
+  let count = 0;
+  for (let i = startRow; i < sheetData.length; i++) {
+    if (isValidDataRow(sheetData[i])) count++;
+  }
+  return count;
+}
+
+function sumMCCashIn(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return sumCol(sheetData, 14);
+  }
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 15) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[15] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countMCCashIn(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return countRows(sheetData);
+  }
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 15) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[15] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val) && val > 0) count++;
+      }
+    }
+  }
+  return count;
+}
+
+function sumMCCashOut(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return sumCol(sheetData, 16);
+  }
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 13) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[13] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countMCCashOut(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return countRows(sheetData);
+  }
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 13) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[13] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val) && val > 0) count++;
+      }
+    }
+  }
+  return count;
+}
+
+function sumPayoutCSV(sheetData, targetCurr = "PHP") {
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 9) {
+      let curr = String(row[8] || '').trim().toUpperCase();
+      if (curr === targetCurr.toUpperCase()) {
+        let valStr = String(row[9] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countPayoutCSV(sheetData, targetCurr = "PHP") {
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 8) {
+      let curr = String(row[8] || '').trim().toUpperCase();
+      if (curr === targetCurr.toUpperCase()) count++;
+    }
+  }
+  return count;
+}
+
+function sumMCashPayout(sheetData) {
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row)) {
+      let amtIdx = row.length >= 9 ? 8 : (row.length === 8 ? 7 : 6);
+      if (row.length > amtIdx) {
+        let val = parseFloat(String(row[amtIdx] || '').replace(/,/g, '').trim());
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countMCashPayout(sheetData) {
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    if (isValidDataRow(sheetData[i])) count++;
+  }
+  return count;
+}
+
+function sumTSRInterest(sheetData, bctsrItems) {
+  let tsrTotal = 0;
+  const targetCols = [3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21];
+  for (let i = 1; i < sheetData.length; i++) {
+    targetCols.forEach(colIdx => {
+      let val = parseFloat(sheetData[i][colIdx]);
+      if (!isNaN(val)) tsrTotal += val;
+    });
+  }
+  let d73_raProcess = 0, e17_interestCashOut = 0;
+  if (bctsrItems && Array.isArray(bctsrItems)) {
+    let raItem = bctsrItems.find(item => item.particular === 'Renewal Anywhere Process');
+    if (raItem) d73_raProcess = raItem.amount || raItem.cashIn || 0;
+    let qclItem = bctsrItems.find(item => item.particular === 'QCL Interest and other Income');
+    if (qclItem) e17_interestCashOut = qclItem.cashOut || 0;
+  }
+  return tsrTotal - d73_raProcess + e17_interestCashOut;
+}
+
+function isBranchMatch(rowBranch, headerBranch) {
+  if (!rowBranch || !headerBranch) return false;
+  let rb = String(rowBranch).toLowerCase().replace(/ml\-/, 'ml ').trim();
+  let hb = String(headerBranch).toLowerCase().replace(/ml\-/, 'ml ').trim();
+  
+  if (rb === "branch" || rb === "" || hb === "") return false;
+  if (rb === hb) return true;
+
+  let rbClean = rb.replace(/^ml\s*/, '').trim();
+  let hbClean = hb.replace(/^ml\s*/, '').trim();
+  if (rbClean === hbClean) return true;
+
+  if (rbClean.includes(hbClean) || hbClean.includes(rbClean)) {
+    let rbNums = rbClean.match(/\d+/g) || [];
+    let hbNums = hbClean.match(/\d+/g) || [];
+    if (rbNums.length > 0 || hbNums.length > 0) {
+      return rbNums.join('-') === hbNums.join('-');
+    }
+    return true;
+  }
+  return false;
+}
+
+function parseNum(val) {
+  if (!val && val !== 0) return 0;
+  let n = parseFloat(String(val).replace(/,/g, '').trim());
+  return isNaN(n) ? 0 : n;
+}
+
+function formatMoney(val, symbol = '') {
+  if (val === 0 || !val) return '—';
+  let formatted = parseFloat(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return symbol ? `${symbol}${formatted}` : formatted;
+}
+
+function saveStateToStorage() {
+  try {
+    localStorage.setItem('ml_activeBranch', activeBranch);
+    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
+    localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
+    if (window.syncBranchesToFirebase) {
+      window.syncBranchesToFirebase();
+    }
+  } catch (e) {
+    console.warn("Could not save to LocalStorage:", e);
+  }
+}
+
+function loadStateFromStorage() {
+  try {
+    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
+    if (savedActiveBranch) activeBranch = savedActiveBranch;
+
+    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
+    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
+
+    const savedBranches = localStorage.getItem('ml_branchesStore');
+    if (savedBranches) branchesStore = JSON.parse(savedBranches);
+
+    updateBranchDropdownUI();
+    switchCurrencyTab(activeCurrencyTab);
+  } catch (e) {
+    console.error("Error loading saved state:", e);
+  }
+}
+
+function updateBranchDropdownUI() {
+  const el = document.getElementById('active-branch-name');
+  if (el) {
+    el.innerText = activeBranch || "Select Branch";
+  }
+}
+
+function deleteActiveBranchData() {
+  if (confirm(`Are you sure you want to delete all saved data for branch '${activeBranch}'?`)) {
+    delete branchesStore[activeBranch];
+    let remainingBranches = Object.keys(branchesStore);
+    if (remainingBranches.length > 0) {
+      activeBranch = remainingBranches[0];
+    } else {
+      activeBranch = "Select Branch";
+    }
+    updateBranchDropdownUI();
+    switchCurrencyTab(activeCurrencyTab);
+    saveStateToStorage();
+  }
+}
+
+function resetAllData() {
+  if (confirm("Are you sure you want to reset and clear all uploaded data across ALL branches and currencies?")) {
+    ['ml_activeBranch','ml_activeCurrencyTab','ml_branchesStore'].forEach(k => localStorage.removeItem(k));
+    
+    branchesStore = {};
+    activeBranch = "Select Branch";
+
+    updateBranchDropdownUI();
+    switchCurrencyTab('PHP');
+  }
+}
+
+function switchCurrencyTab(curr) {
+  activeCurrencyTab = curr;
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  let activeBtn = document.getElementById(`tab-${curr}`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  document.getElementById('manual-adj-curr-title').innerText = curr;
+
+  renderActiveCurrencyData();
+  saveStateToStorage();
+}
+
+function renderActiveCurrencyData() {
+  let bData = getActiveBranchData();
+  let data = bData.bctsrDataStore[activeCurrencyTab];
+  let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
+  let currSym = getCurrencySymbol(activeCurrencyTab);
+
+  const archiveBtn = document.getElementById('btn-toggle-archive');
+  const archiveTag = document.getElementById('archive-status-tag');
+  const uploadMasterBtn = document.getElementById('btn-upload-master');
+  const uploadManualAdjBtn = document.getElementById('btn-upload-manual-adj');
+  const deleteBranchBtn = document.getElementById('btn-delete-branch');
+
+  if (uploadMasterBtn) uploadMasterBtn.style.display = 'inline-flex';
+
+  if (isArchived) {
+    archiveBtn.className = "btn-action btn-unlock";
+    archiveBtn.innerHTML = "<span>✏️</span> Edit / Unlock";
+    archiveTag.innerText = "🔒 ARCHIVED / READ-ONLY";
+    archiveTag.style.background = "#fee2e2";
+    archiveTag.style.color = "#991b1b";
+    archiveTag.style.borderColor = "#f87171";
+
+    if (uploadManualAdjBtn) uploadManualAdjBtn.style.display = 'none';
+    if (deleteBranchBtn) deleteBranchBtn.style.display = 'none';
+  } else {
+    archiveBtn.className = "btn-action btn-archive";
+    archiveBtn.innerHTML = "<span>🔒</span> Save / Archive";
+    archiveTag.innerText = "🔓 EDITABLE";
+    archiveTag.style.background = "#f1f5f9";
+    archiveTag.style.color = "#334155";
+    archiveTag.style.borderColor = "#cbd5e1";
+
+    if (uploadManualAdjBtn) uploadManualAdjBtn.style.display = 'inline-flex';
+    if (deleteBranchBtn) deleteBranchBtn.style.display = 'inline-flex';
+  }
+
+  document.getElementById('th-cashin').innerText = `Cash In (${currSym})`;
+  document.getElementById('th-cashout').innerText = `Cash Out (${currSym})`;
+  document.getElementById('th-reportamt').innerText = `Report Amount (${currSym})`;
+
+  document.getElementById('th-adj-cashin').innerText = `Total Cash In (${currSym})`;
+  document.getElementById('th-adj-cashout').innerText = `Total Cash Out (${currSym})`;
+
+  if (data) {
+    renderReconciliationTable(data);
+  } else {
+    document.getElementById('summary-bar').style.display = 'none';
+    document.getElementById('recon-body').innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No BCTSR file uploaded for branch '${activeBranch}' on the ${activeCurrencyTab} tab yet. Please click 'Upload Master BCTSR File(s)' above.</td></tr>`;
+  }
+
+  let adjData = bData.manualAdjDataStore[activeCurrencyTab];
+  if (adjData) {
+    renderManualAdjustmentPivot(adjData);
+  } else {
+    document.getElementById('manual-adj-body').innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment file uploaded for this currency.</td></tr>`;
+  }
+}
+
+function exportToPDF() {
+  let bData = getActiveBranchData();
+  let data = bData.bctsrDataStore[activeCurrencyTab];
+  if (!data) {
+    alert(`No BCTSR data available to export for '${activeBranch}' on the '${activeCurrencyTab}' tab. Please upload the BCTSR file first.`);
+    return;
+  }
+
+  let currSym = getCurrencySymbol(activeCurrencyTab);
+
+  const manualWrappers = document.querySelectorAll('.manual-input-wrapper');
+  manualWrappers.forEach(wrap => {
+    let input = wrap.querySelector('input');
+    let val = input.value || '0';
+    let textSpan = document.createElement('span');
+    textSpan.className = 'print-manual-val num-cell';
+    textSpan.innerText = `${formatMoney(parseNum(val), currSym)}`;
+    wrap.parentElement.appendChild(textSpan);
+    wrap.style.display = 'none';
   });
+
+  const remarksWrappers = document.querySelectorAll('.remarks-input-wrapper');
+  remarksWrappers.forEach(wrap => {
+    let input = wrap.querySelector('input');
+    let val = input.value || '';
+    let textSpan = document.createElement('span');
+    textSpan.className = 'print-remarks-val';
+    textSpan.style.fontSize = '11px';
+    textSpan.style.color = '#475569';
+    textSpan.innerText = val ? `(${val})` : '';
+    wrap.parentElement.appendChild(textSpan);
+    wrap.style.display = 'none';
+  });
+
+  const branchName = document.getElementById('val-branch').innerText.replace(/[^a-zA-Z0-9]/g, '_');
+  
+  let manualAdjExportHtml = '';
+  let adjData = bData.manualAdjDataStore[activeCurrencyTab];
+  if (adjData && Object.keys(adjData).length > 0) {
+      let clonedAdjContainer = document.getElementById('manual-adj-container').cloneNode(true);
+      let detailRows = clonedAdjContainer.querySelectorAll('tr[id^="det-"]');
+      detailRows.forEach(row => { row.style.display = 'table-row'; });
+      let expandIcons = clonedAdjContainer.querySelectorAll('.expand-icon');
+      expandIcons.forEach(icon => { icon.style.display = 'none'; });
+
+      manualAdjExportHtml = `
+      <div style="margin-top:30px;">
+          <h3 style="font-size:15px; color:#a3241c; margin-bottom:10px; border-bottom: 2px solid #d4af37; padding-bottom: 4px;">Manual Adjustment Pivot Summary (${activeCurrencyTab})</h3>
+          ${clonedAdjContainer.outerHTML}
+      </div>`;
+  }
+
+  const element = document.createElement('div');
+  element.style.padding = '20px';
+  element.style.background = '#ffffff';
+  element.innerHTML = `
+    <div style="font-family: var(--font-sans); color:#1f2937;">
+      <div style="background: #7a1212; color: #fff; padding: 16px 24px; border-bottom: 4px solid #d4af37; margin-bottom: 20px; border-radius: 8px;">
+        <h2 style="margin:0; font-size:18px;">M LHUILLIER — BCTSR RECONCILIATION SUMMARY REPORT (${activeCurrencyTab})</h2>
+        <div style="font-size:12px; opacity:0.8;">Generated automatically via Automated BCTSR Reconciler</div>
+      </div>
+      ${document.getElementById('summary-bar').outerHTML}
+      <div style="margin-top:20px;">
+        ${document.getElementById('main-recon-container').outerHTML}
+      </div>
+      ${manualAdjExportHtml}
+    </div>
+  `;
+
+  const opt = {
+    margin:       [8, 8, 8, 8],
+    filename:     `BCTSR_Reconciliation_${branchName}_${activeCurrencyTab}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    manualWrappers.forEach(wrap => wrap.style.display = 'block');
+    remarksWrappers.forEach(wrap => wrap.style.display = 'block');
+    document.querySelectorAll('.print-manual-val, .print-remarks-val').forEach(el => el.remove());
+  });
+}
+
+window.addEventListener('DOMContentLoaded', loadStateFromStorage);
+
+async function handleFileUpload(evt) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
+
+  let lastParsedBranch = activeBranch;
+  let lastParsedCurr = activeCurrencyTab;
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let parsedData = null;
+
+    if (fileName.endsWith('.pdf')) {
+      parsedData = await parsePdfFilePromise(file);
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
+      parsedData = await parseExcelFilePromise(file);
+    }
+
+    if (parsedData && parsedData.items && parsedData.items.length > 0) {
+      let targetBranch = (parsedData.branch && parsedData.branch !== '—') ? parsedData.branch.trim().toUpperCase() : activeBranch;
+      activeBranch = targetBranch;
+
+      let targetCurrency = parsedData.currency || activeCurrencyTab;
+
+      if (!branchesStore[activeBranch]) {
+        branchesStore[activeBranch] = createEmptyBranchStore();
+      }
+      let bData = branchesStore[activeBranch];
+      bData.bctsrDataStore[targetCurrency] = parsedData;
+      bData.manualInputsStore[targetCurrency] = {};
+      bData.manualRemarksStore[targetCurrency] = {};
+      bData.openRemarksInputStore[targetCurrency] = {};
+      bData.manualAdjDataStore[targetCurrency] = null;
+      bData.manualAdjRemarksStore[targetCurrency] = {};
+      bData.openManualAdjRemarksStore[targetCurrency] = {};
+      bData.isArchivedStore[targetCurrency] = false;
+      if (!bData.parsedSheetsStore) {
+        bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+      }
+      bData.parsedSheetsStore[targetCurrency] = {};
+
+      lastParsedBranch = targetBranch;
+      lastParsedCurr = targetCurrency;
+
+      // 🎯 AUTO-SYNC BRANCH AND CUTOFF DATE TO DASHBOARD (index.html)
+      updateDashboardBranchAndCutoff(targetBranch, parsedData.dateRange);
+    }
+  }
+
+  activeBranch = lastParsedBranch;
+  updateBranchDropdownUI();
+  switchCurrencyTab(lastParsedCurr);
+  saveStateToStorage();
+  evt.target.value = '';
+}
+
+function parseExcelFilePromise(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        let tempSheets = {};
+        workbook.SheetNames.forEach(sheetName => {
+          tempSheets[sheetName.trim()] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
+        });
+        const sheetKeys = Object.keys(tempSheets);
+        let targetSheetName = sheetKeys.find(k => k === 'BC PESO' || k === 'Table 1' || k.toLowerCase().includes('bctsr')) || sheetKeys[0];
+        let rows = tempSheets[targetSheetName] || [];
+        let parsedData = extractDataFromRows(rows);
+        resolve(parsedData);
+      } catch (err) {
+        console.error("Excel Parsing Error:", err);
+        resolve(null);
+      }
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parsePdfFilePromise(file) {
+  return new Promise(async (resolve) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let extractedRows = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let items = textContent.items;
+        items.sort((a, b) => {
+          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
+          if (yDiff < 4) return a.transform[4] - b.transform[4];
+          return b.transform[5] - a.transform[5];
+        });
+
+        let lines = [];
+        let currentY = null;
+        let currentLine = [];
+        items.forEach(item => {
+          if (!item.str.trim()) return;
+          let y = item.transform[5];
+          if (currentY === null || Math.abs(y - currentY) > 4) {
+            if (currentLine.length > 0) lines.push(currentLine);
+            currentLine = [item];
+            currentY = y;
+          } else {
+            currentLine.push(item);
+          }
+        });
+        if (currentLine.length > 0) lines.push(currentLine);
+        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
+      }
+
+      let parsedData = parsePdfLines(extractedRows);
+      resolve(parsedData);
+    } catch (err) {
+      console.error("PDF Parsing Error:", err);
+      resolve(null);
+    }
+  });
+}
+
+function parseExcelRowsPromise(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        let firstSheet = workbook.SheetNames[0];
+        let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '' });
+        resolve(sheetData);
+      } catch (err) {
+        console.error("Excel Sub-Report Parsing Error:", err);
+        resolve([]);
+      }
+    };
+    reader.onerror = () => resolve([]);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parsePdfRowsPromise(file) {
+  return new Promise(async (resolve) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let extractedRows = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let items = textContent.items;
+        items.sort((a, b) => {
+          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
+          if (yDiff < 4) return a.transform[4] - b.transform[4];
+          return b.transform[5] - a.transform[5];
+        });
+
+        let lines = [];
+        let currentY = null;
+        let currentLine = [];
+        items.forEach(item => {
+          if (!item.str.trim()) return;
+          let y = item.transform[5];
+          if (currentY === null || Math.abs(y - currentY) > 4) {
+            if (currentLine.length > 0) lines.push(currentLine);
+            currentLine = [item];
+            currentY = y;
+          } else {
+            currentLine.push(item);
+          }
+        });
+        if (currentLine.length > 0) lines.push(currentLine);
+        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
+      }
+
+      resolve(extractedRows);
+    } catch (err) {
+      console.error("PDF Sub-Report Parsing Error:", err);
+      resolve([]);
+    }
+  });
+}
+
+async function handleSubReportUpload(evt, itemKey) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
+  
+  let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
+  let defaultSheetTarget = rule ? rule.sheet : itemKey;
+  
+  let bData = getActiveBranchData();
+  if (!bData.parsedSheetsStore[activeCurrencyTab]) {
+    bData.parsedSheetsStore[activeCurrencyTab] = {};
+  }
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let newSheetData = [];
+
+    if (fileName.endsWith('.pdf')) {
+      newSheetData = await parsePdfRowsPromise(file);
+    } else {
+      newSheetData = await parseExcelRowsPromise(file);
+    }
+
+    if (newSheetData && newSheetData.length > 0) {
+      let sheetTarget = detectSheetType(newSheetData, defaultSheetTarget);
+
+      if (!bData.parsedSheetsStore[activeCurrencyTab][sheetTarget]) {
+        bData.parsedSheetsStore[activeCurrencyTab][sheetTarget] = [];
+      }
+
+      bData.parsedSheetsStore[activeCurrencyTab][sheetTarget] = bData.parsedSheetsStore[activeCurrencyTab][sheetTarget].concat(newSheetData);
+    }
+  }
+
+  saveStateToStorage();
+  renderActiveCurrencyData();
+  evt.target.value = '';
+}
+
+function removeSubReport(itemKey) {
+  let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
+  let sheetTarget = rule ? rule.sheet : itemKey;
+  if (confirm(`Are you sure you want to remove the uploaded report?`)) {
+    let bData = getActiveBranchData();
+    if (bData.parsedSheetsStore[activeCurrencyTab]) {
+      delete bData.parsedSheetsStore[activeCurrencyTab][sheetTarget];
+      if (rule && rule.altSheet) {
+        delete bData.parsedSheetsStore[activeCurrencyTab][rule.altSheet];
+      }
+    }
+    saveStateToStorage();
+    renderActiveCurrencyData();
+  }
+}
+
+function handleManualAdjUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    let sheetName = workbook.SheetNames[0];
+    let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
+    
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(25, sheetData.length); i++) {
+       let row = sheetData[i];
+       if (row && row.includes('Description') && row.includes('Cash In Amount')) {
+          headerRowIdx = i;
+          break;
+       }
+    }
+    
+    if (headerRowIdx === -1) {
+       alert("Invalid format for Manual Adjustment Report. Please check your uploaded file.");
+       return;
+    }
+    
+    let headers = sheetData[headerRowIdx];
+    let descIdx = headers.indexOf('Description');
+    let cashInIdx = headers.indexOf('Cash In Amount');
+    let cashOutIdx = headers.indexOf('Cash Out Amount');
+    let qtyIdx = headers.indexOf('Quantity');
+    let currIdx = headers.indexOf('Currency');
+    let dateIdx = headers.indexOf('Date & Time');
+    let opIdx = headers.indexOf('Operator');
+    let refIdx = headers.indexOf('Reference Number');
+    let remarksIdx = headers.indexOf('Remarks');
+    
+    let groupedByCurr = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+    
+    for (let i = headerRowIdx + 1; i < sheetData.length; i++) {
+       let row = sheetData[i];
+       if (!row || row.length === 0) continue;
+       
+       let desc = String(row[descIdx] || '').trim();
+       if (!desc || desc.toLowerCase() === 'description' || desc.toLowerCase().includes('total')) continue;
+       
+       let rowCurr = (currIdx !== -1 && row[currIdx]) ? String(row[currIdx]).trim().toUpperCase() : activeCurrencyTab;
+       if (!groupedByCurr[rowCurr]) groupedByCurr[rowCurr] = {};
+
+       let cashIn = parseNum(row[cashInIdx]);
+       let cashOut = parseNum(row[cashOutIdx]);
+       let qty = parseNum(row[qtyIdx]);
+       if (qty === 0) qty = 1; 
+       
+       let detail = {
+         date: row[dateIdx] || '—',
+         operator: row[opIdx] || '—',
+         cashIn: cashIn,
+         cashOut: cashOut,
+         ref: row[refIdx] || '—',
+         remarks: row[remarksIdx] || '—'
+       };
+       
+       if (!groupedByCurr[rowCurr][desc]) {
+          groupedByCurr[rowCurr][desc] = { totalCashIn: 0, totalCashOut: 0, totalQty: 0, details: [] };
+       }
+       
+       groupedByCurr[rowCurr][desc].totalCashIn += cashIn;
+       groupedByCurr[rowCurr][desc].totalCashOut += cashOut;
+       groupedByCurr[rowCurr][desc].totalQty += qty;
+       groupedByCurr[rowCurr][desc].details.push(detail);
+    }
+    
+    let bData = getActiveBranchData();
+    Object.keys(groupedByCurr).forEach(c => {
+       if (Object.keys(groupedByCurr[c]).length > 0) {
+          bData.manualAdjDataStore[c] = groupedByCurr[c];
+       }
+    });
+
+    saveStateToStorage();
+    renderActiveCurrencyData();
+    evt.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function toggleManualAdjRemarksBox(descKey) {
+  let bData = getActiveBranchData();
+  let store = bData.openManualAdjRemarksStore[activeCurrencyTab];
+  store[descKey] = !store[descKey];
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function handleManualAdjRemarksInput(evt, descKey) {
+  let bData = getActiveBranchData();
+  let val = evt.target.value.trim();
+  bData.manualAdjRemarksStore[activeCurrencyTab][descKey] = val;
+  bData.openManualAdjRemarksStore[activeCurrencyTab][descKey] = false;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+window.toggleManualAdjDetails = function(idxStr) {
+  const trDetails = document.getElementById('det-' + idxStr);
+  const icon = document.getElementById('icon-det-' + idxStr);
+  if (trDetails.style.display === 'none' || trDetails.style.display === '') {
+     trDetails.style.display = 'table-row';
+     icon.innerText = '▼';
+  } else {
+     trDetails.style.display = 'none';
+     icon.innerText = '▶';
+  }
+};
+
+function renderManualAdjustmentPivot(groupedData) {
+  const tbody = document.getElementById('manual-adj-body');
+  tbody.innerHTML = '';
+  
+  const keys = Object.keys(groupedData).sort();
+  let currSym = getCurrencySymbol(activeCurrencyTab);
+
+  if (keys.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment data found for the ${activeCurrencyTab} tab.</td></tr>`;
+    return;
+  }
+  
+  let bData = getActiveBranchData();
+  let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
+
+  keys.forEach((desc, idx) => {
+    let data = groupedData[desc];
+    let currentRemark = bData.manualAdjRemarksStore[activeCurrencyTab][desc] || '';
+    let isBoxOpen = !!bData.openManualAdjRemarksStore[activeCurrencyTab][desc];
+
+    let remarkHtml = '';
+    if (!isArchived) {
+      if (isBoxOpen) {
+        remarkHtml = `
+          <div class="remarks-input-wrapper hide-print">
+            <input type="text" class="remarks-input" placeholder="Add Remarks..." value="${currentRemark}" autofocus onblur="handleManualAdjRemarksInput(event, '${desc.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+          </div>
+        `;
+      } else {
+        remarkHtml = `<button class="btn-add-remark hide-print" onclick="toggleManualAdjRemarksBox('${desc.replace(/'/g, "\\'")}')" title="Add Remarks">💬</button>`;
+      }
+    }
+
+    let isNoteVerified = currentRemark.trim().toLowerCase().includes('verified');
+    let noteStyle = isNoteVerified 
+      ? 'color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; font-weight:600;' 
+      : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
+
+    let remarkTagDisplay = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
+
+    let trSum = document.createElement('tr');
+    trSum.className = "hoverable";
+    trSum.style.cursor = 'pointer';
+    trSum.style.background = '#f8fafc';
+    trSum.style.borderLeft = '3px solid transparent';
+    trSum.ondblclick = () => toggleManualAdjDetails(idx);
+    trSum.title = "Double-click to view complete details for this Description";
+    
+    trSum.onmouseover = function() { this.style.borderLeft = '3px solid var(--primary)'; this.style.background = '#f1f5f9'; };
+    trSum.onmouseout = function() { this.style.borderLeft = '3px solid transparent'; this.style.background = '#f8fafc'; };
+    
+    trSum.innerHTML = `
+      <td style="font-weight:700; color:var(--text-main);">
+         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+           <span id="icon-det-${idx}" class="expand-icon" onclick="toggleManualAdjDetails('${idx}'); event.stopPropagation();">▶</span>
+           <span>${desc}</span>
+           ${remarkTagDisplay}
+         </div>
+      </td>
+      <td class="num-cell" style="text-align:center;">${data.totalQty}</td>
+      <td class="num-cell" style="color:var(--match);">${formatMoney(data.totalCashIn, currSym)}</td>
+      <td class="num-cell" style="color:var(--mismatch);">${formatMoney(data.totalCashOut, currSym)}</td>
+      <td style="text-align:center;" onclick="event.stopPropagation();">${remarkHtml}</td>
+    `;
+    tbody.appendChild(trSum);
+    
+    let trDet = document.createElement('tr');
+    trDet.id = 'det-' + idx;
+    trDet.style.display = 'none';
+    
+    let detailsHtml = `
+      <td colspan="5" style="padding: 0; background: #ffffff;">
+        <div style="padding: 12px 20px 16px 32px; border-left: 3px solid var(--primary); background: #fafafa;">
+          <div style="font-size:11px; font-weight:700; margin-bottom:6px; color:#475569;">Detailed Transactions:</div>
+          <table class="inner-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Operator</th>
+                <th>Ref Number</th>
+                <th style="text-align:right;">Cash In</th>
+                <th style="text-align:right;">Cash Out</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    data.details.forEach(det => {
+       detailsHtml += `
+         <tr>
+           <td>${det.date}</td>
+           <td>${det.operator}</td>
+           <td style="font-family:var(--font-mono);">${det.ref}</td>
+           <td class="num-cell">${formatMoney(det.cashIn, currSym)}</td>
+           <td class="num-cell">${formatMoney(det.cashOut, currSym)}</td>
+           <td style="max-width:250px; word-break:break-word;">${det.remarks}</td>
+         </tr>
+       `;
+    });
+    
+    detailsHtml += `</tbody></table></div></td>`;
+    trDet.innerHTML = detailsHtml;
+    tbody.appendChild(trDet);
+  });
+}
+
+function extractDataFromRows(rows) {
+  let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
+  let items = [];
+  let currentCategory = "Cash";
+
+  rows.forEach(row => {
+    let particular = String(row[0] || '').trim();
+
+    if (particular.includes('Branch Name:')) branch = row[1] || '—';
+    if (particular.includes('Date Range:')) dateRange = row[1] || '—';
+    if (particular.includes('Ending Balance')) endBal = parseNum(row[3] || row[2]);
+
+    if (/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i.test(particular)) {
+       let m = particular.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
+       if (m) currency = m[1].toUpperCase();
+    }
+
+    if (particular === 'Cash Transactions') { currentCategory = "Cash"; return; }
+    if (particular === 'Non-Cash Transactions') { currentCategory = "Non-Cash"; return; }
+
+    if (particular.toLowerCase() === 'particulars' || particular === '' || particular.includes('M LHUILLIER') || particular.includes('BC TRANSACTION') || particular.includes('(BCTSR)') || particular.startsWith('•') || particular === 'Legend') {
+      return;
+    }
+
+    let qtyVal = row[2];
+    let qtyDisplay = (qtyVal !== '' && qtyVal !== null && qtyVal !== undefined && !isNaN(qtyVal)) ? parseInt(qtyVal) : '—';
+    let valIn = parseNum(row[3]);
+    let valOut = parseNum(row[4]);
+    let amount = Math.max(valIn, valOut);
+
+    if (amount > 0 && !particular.includes('Ending Balance') && !particular.includes('Beginning Balance')) {
+      items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn: valIn, cashOut: valOut, amount });
+    }
+  });
+  return { branch, dateRange, endBal, currency, items };
+}
+
+function parsePdfLines(pdfRows) {
+  let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
+  let items = [];
+  let currentCategory = "Cash";
+
+  pdfRows.forEach(rowItems => {
+    let lineStr = rowItems.join(" ");
+
+    if (lineStr.includes("Branch Name:")) branch = lineStr.substring(lineStr.indexOf("Branch Name:") + 12).trim();
+    if (lineStr.includes("Date Range:")) dateRange = lineStr.substring(lineStr.indexOf("Date Range:") + 11).trim();
+    if (lineStr.includes("Ending Balance")) {
+      let nums = lineStr.match(/[\d,]+\.\d{2}/g);
+      if (nums) endBal = parseNum(nums[nums.length - 1]);
+    }
+
+    if (/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i.test(lineStr)) {
+       let m = lineStr.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
+       if (m) currency = m[1].toUpperCase();
+    } else if (/\b(USD|EUR|JPY|GBP)\b/i.test(lineStr) && currency === "PHP") {
+       let m = lineStr.match(/\b(USD|EUR|JPY|GBP)\b/i);
+       if (m) currency = m[1].toUpperCase();
+    }
+
+    if (lineStr.includes('Cash Transactions')) { currentCategory = "Cash"; return; }
+    if (lineStr.includes('Non-Cash Transactions')) { currentCategory = "Non-Cash"; return; }
+
+    let numbers = rowItems.filter(str => /^[\d,]+(\.\d+)?$/.test(str.replace(/,/g, '')));
+    if (numbers.length > 0) {
+      let firstNumIdx = rowItems.findIndex(str => /^[\d,]+(\.\d+)?$/.test(str.replace(/,/g, '')));
+      let particular = rowItems.slice(0, firstNumIdx).join(" ").trim();
+      if (particular && !particular.includes("Ending Balance") && !particular.includes("Beginning Balance") && !particular.includes("Particulars") && !particular.startsWith("•")) {
+        let qtyDisplay = '—';
+        let amount = 0, cashIn = 0, cashOut = 0;
+        if (numbers.length >= 3) {
+           qtyDisplay = parseInt(numbers[0]); cashIn = parseNum(numbers[1]); cashOut = parseNum(numbers[2]);
+        } else if (numbers.length === 2) {
+           if (!numbers[0].includes('.')) {
+             qtyDisplay = parseInt(numbers[0]); cashIn = parseNum(numbers[1]); 
+           } else {
+             cashIn = parseNum(numbers[0]); cashOut = parseNum(numbers[1]);
+           }
+        } else if (numbers.length === 1) { cashIn = parseNum(numbers[0]); }
+        amount = Math.max(cashIn, cashOut);
+        if (amount > 0) items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn, cashOut, amount });
+      }
+    }
+  });
+  return { branch, dateRange, endBal, currency, items };
+}
+
+function handleManualInput(evt, itemKey) {
+  const val = parseNum(evt.target.value);
+  let bData = getActiveBranchData();
+  bData.manualInputsStore[activeCurrencyTab][itemKey] = val;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function toggleRemarksBox(itemKey) {
+  let bData = getActiveBranchData();
+  let store = bData.openRemarksInputStore[activeCurrencyTab];
+  store[itemKey] = !store[itemKey];
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function handleRemarksInput(evt, itemKey) {
+  let bData = getActiveBranchData();
+  let val = evt.target.value.trim();
+  bData.manualRemarksStore[activeCurrencyTab][itemKey] = val;
+  bData.openRemarksInputStore[activeCurrencyTab][itemKey] = false;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function renderReconciliationTable(data) {
+  let curr = data.currency || activeCurrencyTab;
+  let currSym = getCurrencySymbol(curr);
+
+  document.getElementById('summary-bar').style.display = 'flex';
+  document.getElementById('val-branch').innerText = data.branch;
+  document.getElementById('val-date').innerText = data.dateRange;
+  document.getElementById('val-currency').innerText = `${curr} (${currSym})`;
+  document.getElementById('val-endbal').innerText = `${formatMoney(data.endBal, currSym)}`;
+
+  const tbody = document.getElementById('recon-body');
+  tbody.innerHTML = '';
+  if (data.items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No valid transaction rows found in the file.</td></tr>`;
+    return;
+  }
+
+  let bData = getActiveBranchData();
+  let sheetsStore = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+  let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
+
+  let manualInputs = bData.manualInputsStore[activeCurrencyTab] || {};
+  let manualRemarks = bData.manualRemarksStore[activeCurrencyTab] || {};
+  let openRemarksInput = bData.openRemarksInputStore[activeCurrencyTab] || {};
+
+  let posJewelrySeen = 0;
+
+  data.items.forEach((item, idx) => {
+    let reportTotal = null, reportQty = null, matchedSheet = "No Sub-Sheet", isManual = false, isRemarks = false, hasSubReport = false;
+    
+    let itemKey = item.particular;
+    let rule = REPORT_RULES[item.particular];
+
+    // AUTOMATIC NON-CASH REMARKS OVERRIDE EXCEPT FOR RENEWAL ANYWHERE PROCESS
+    if (item.category === "Non-Cash" && item.particular !== "Renewal Anywhere Process") {
+      rule = { isRemarks: true };
+    }
+
+    if (item.particular === 'POS Jewelry Sales' && (!rule || !rule.isRemarks)) {
+      posJewelrySeen++;
+      if (posJewelrySeen > 1) {
+        rule = { isManual: true };
+        itemKey = item.particular + '_' + posJewelrySeen;
+      }
+    }
+
+    if (rule) {
+      if (rule.isRemarks) {
+        isRemarks = true; matchedSheet = "N/A (Remarks)";
+      } else if (rule.isManual) {
+        isManual = true; matchedSheet = "Manual Input";
+        reportTotal = manualInputs[itemKey] !== undefined ? manualInputs[itemKey] : null;
+      } else {
+        matchedSheet = rule.sheet;
+        let activeSheet = sheetsStore[rule.sheet] || sheetsStore[rule.altSheet];
+        
+        // Dynamic detection for Fund Transfer Given to BC/HO (B2B + B2FD)
+        if (item.particular === "Fund Transfer Given to BC/HO") {
+          let b2bSheet = sheetsStore["B2B"] || sheetsStore["B2B PHP"];
+          let b2fdSheet = sheetsStore["B2FD"];
+          let hasB2B = b2bSheet && b2bSheet.length > 0;
+          let hasB2FD = b2fdSheet && b2fdSheet.length > 0;
+          if (hasB2B || hasB2FD) {
+            hasSubReport = true;
+            reportTotal = rule.getSum(data, data.branch, data.items, curr);
+            reportQty = rule.getQty ? rule.getQty(data, data.branch, data.items, curr) : '—';
+            if (hasB2B && hasB2FD) {
+              matchedSheet = "B2B + B2FD";
+            } else if (hasB2FD) {
+              matchedSheet = "B2FD";
+            } else {
+              matchedSheet = "B2B";
+            }
+          } else {
+            matchedSheet = `<span style="color:#dc2626;">Sheet 'B2B/B2FD' Missing</span>`;
+          }
+        } else if (activeSheet && activeSheet.length > 0) {
+          hasSubReport = true;
+          reportTotal = rule.getSum(activeSheet, data.branch, data.items, curr);
+          reportQty = rule.getQty ? rule.getQty(activeSheet, data.branch, data.items, curr) : '—';
+        } else {
+          matchedSheet = `<span style="color:#dc2626;">Sheet '${matchedSheet}' Missing</span>`;
+        }
+      }
+    }
+    let diff = reportTotal !== null ? (reportTotal - item.amount) : null;
+    let statusHtml = `<span class="status-badge pending">No Sub-Sheet</span>`, varText = "—", varColor = "";
+    if (isRemarks) {
+      statusHtml = ``; varText = "—";
+    } else if (diff !== null) {
+      if (Math.abs(diff) < 0.01) {
+        statusHtml = `<span class="status-badge match" title="MATCHED">✔</span>`; varText = "0.00"; varColor = "color:var(--match);";
+      } else {
+        statusHtml = `<span class="status-badge mismatch" title="DISCREPANCY">✖</span>`; varText = diff > 0 ? `+${formatMoney(diff, currSym)}` : formatMoney(diff, currSym); varColor = "color:var(--mismatch);";
+      }
+    }
+
+    let currentRemark = manualRemarks[itemKey] || '';
+    let isBoxOpen = !!openRemarksInput[itemKey];
+    let remarkHtml = '';
+
+    if (!isArchived) {
+      if (isBoxOpen) {
+        remarkHtml = `
+          <div class="remarks-input-wrapper hide-print">
+            <input type="text" class="remarks-input" placeholder="Add Remarks..." value="${currentRemark}" autofocus onblur="handleRemarksInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+          </div>
+        `;
+      } else {
+        remarkHtml = `<button class="btn-add-remark hide-print" onclick="toggleRemarksBox('${itemKey.replace(/'/g, "\\'")}')" title="Add Remarks">💬</button>`;
+      }
+    }
+
+    let actionCellHtml = '';
+    if (isRemarks) {
+      actionCellHtml = `<div class="action-cell-flex"><div>${remarkHtml}</div></div>`;
+    } else if (isManual) {
+      let currentVal = manualInputs[itemKey] !== undefined ? manualInputs[itemKey] : '';
+      actionCellHtml = `
+        <div class="action-cell-flex">
+          <div>${statusHtml}</div>
+          ${!isArchived ? `<div class="manual-input-wrapper hide-print">
+            <input type="text" class="manual-input" placeholder="Type Amount" value="${currentVal}" onblur="handleManualInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+          </div>` : `<span class="num-cell" style="font-size:12px;">${formatMoney(parseNum(currentVal), currSym)}</span>`}
+          <div>${remarkHtml}</div>
+        </div>
+      `;
+    } else {
+      let removeBtnHtml = (hasSubReport && !isArchived) ? `<button class="btn-remove-sub hide-print" onclick="removeSubReport('${itemKey.replace(/'/g, "\\'")}')" title="Remove Sub-Report Data">🗑️</button>` : '';
+      let uploadBtnHtml = !isArchived ? `
+        <div class="sub-upload-wrapper hide-print">
+          <button class="btn-upload-sub" onclick="document.getElementById('sub-file-${idx}').click()" title="Upload Report">📤</button>
+          <input type="file" id="sub-file-${idx}" accept=".xlsx, .xls, .csv, .html, .pdf" multiple style="display:none;" onchange="handleSubReportUpload(event, '${itemKey.replace(/'/g, "\\'")}')">
+        </div>` : '';
+
+      actionCellHtml = `
+        <div class="action-cell-flex">
+          <div>${statusHtml}</div>
+          ${uploadBtnHtml}
+          ${removeBtnHtml}
+          <div>${remarkHtml}</div>
+        </div>
+      `;
+    }
+
+    let isNoteVerified = currentRemark.trim().toLowerCase().includes('verified');
+    let noteStyle = isNoteVerified 
+      ? 'color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; font-weight:600;' 
+      : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
+
+    let remarkVarianceTag = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
+    const tr = document.createElement('tr');
+    tr.className = "hoverable";
+    tr.innerHTML = `
+      <td>
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span class="section-tag">${item.category}</span>
+          <span style="font-weight:600;">${item.particular}</span>
+          <span class="recon-details">| Source: ${matchedSheet}</span>
+        </div>
+      </td>
+      <td class="num-cell" style="text-align:center;">${item.qty}</td>
+      <td class="num-cell light-num">${formatMoney(item.cashIn, currSym)}</td>
+      <td class="num-cell light-num">${formatMoney(item.cashOut, currSym)}</td>
+      <td class="num-cell" style="text-align:center; background:#f8fafc;">${reportQty !== null ? reportQty : '—'}</td>
+      <td class="num-cell" style="background:#f8fafc;">${reportTotal !== null ? formatMoney(reportTotal, currSym) : '—'}</td>
+      <td class="num-cell" style="${varColor}">
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+          <span>${varText}</span>
+          ${remarkVarianceTag}
+        </div>
+      </td>
+      <td style="text-align:center;">${actionCellHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 </script>
 </body>
 </html>
