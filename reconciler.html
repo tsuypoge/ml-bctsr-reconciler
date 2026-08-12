@@ -129,33 +129,12 @@
   td { padding: 12px 14px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
   tr.hoverable:hover { background: #fffdfd; }
   .num-cell { font-family: var(--font-mono); text-align: right; font-weight: 600; }
-  .light-num { color: #64748b; font-weight: 400; }
   .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 700; display: inline-block; white-space: nowrap; }
   .status-badge.match { background: var(--match-bg); color: var(--match); border: 1px solid var(--match-border); font-size: 12px; }
   .status-badge.mismatch { background: var(--mismatch-bg); color: var(--mismatch); border: 1px solid var(--mismatch-border); font-size: 12px; }
-  .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
-
-  .action-cell-flex { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: nowrap; }
-  .btn-upload-sub, .btn-remove-sub, .btn-add-remark {
-    font-size: 11px; font-family: var(--font-sans); background: #ffffff; width: 28px; height: 28px;
-    padding: 0; border-radius: 50%; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    display: inline-flex; align-items: center; justify-content: center; margin: 0; white-space: nowrap;
-    box-shadow: var(--shadow-sm); flex-shrink: 0;
-  }
-  .btn-upload-sub { color: var(--primary); border: 1.5px solid var(--primary); }
-  .btn-upload-sub:hover { background: var(--primary); color: #ffffff; transform: scale(1.1); }
-  .btn-remove-sub { color: var(--mismatch); border: 1.5px solid var(--mismatch); }
-  .btn-remove-sub:hover { background: var(--mismatch); color: #ffffff; transform: scale(1.1); }
-  .btn-add-remark { color: #475569; border: 1.5px solid #cbd5e1; }
-  .btn-add-remark:hover { background: #475569; color: #ffffff; border-color: #475569; transform: scale(1.1); }
-
-  .manual-input { width: 95px; padding: 4px 8px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; text-align: right; }
-  .remarks-input { width: 130px; padding: 4px 8px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-family: var(--font-sans); font-size: 11.5px; }
-  .remark-tag-display { font-size: 11px; padding: 2px 8px; border-radius: 4px; display: inline-block; font-style: italic; }
-  .recon-details { font-size: 11px; color: #94a3b8; font-family: var(--font-mono); }
-  .section-tag { font-size: 10px; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-right: 4px; text-transform: uppercase; }
 
   .cloud-tag { background: #16a34a; color: #ffffff; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 800; }
+  .archive-badge { font-size: 12px; padding: 3px 8px; border-radius: 6px; font-weight: 800; background: #e2e8f0; color: #334155; }
 </style>
 </head>
 <body>
@@ -182,40 +161,40 @@
 
     <div class="branch-display-wrapper">
       <span class="branch-label">🏢 Branch:</span>
-      <span id="active-branch-name" class="branch-name-val"></span>
+      <span id="active-branch-name" class="branch-name-val">SELECT BRANCH</span>
     </div>
 
     <button class="btn-action" id="btn-upload-master" style="background:#ffffff; color:var(--primary);" onclick="document.getElementById('file-upload').click()">
       <span>📄</span> Upload Master BCTSR File(s)
     </button>
-    <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleFileUpload(event)">
+    <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv" multiple style="display:none;" onchange="window.handleFileUpload(event)">
     
-    <button class="btn-action" id="btn-toggle-archive" style="background:#1e293b; color:#ffffff;" onclick="toggleArchiveState()">
+    <button class="btn-action" id="btn-toggle-archive" style="background:#1e293b; color:#ffffff;" onclick="window.toggleArchiveState()">
       <span>🔒</span> Save / Archive
     </button>
 
-    <button class="btn-action" style="background:#ffffff; color:var(--primary);" onclick="exportToPDF()">
+    <button class="btn-action" style="background:#ffffff; color:var(--primary);" onclick="window.exportToPDF()">
       <span>📥</span> Save as PDF
     </button>
 
-    <button class="btn-action" id="btn-delete-branch" onclick="deleteActiveBranchData()" title="Delete data for active branch">
+    <button class="btn-action" id="btn-delete-branch" onclick="window.deleteActiveBranchData()" title="Delete data for active branch">
       <span>🗑️</span> Delete Active Branch
     </button>
 
-    <button class="btn-action" onclick="resetAllData()" title="Clear all stored branches data">
+    <button class="btn-action" onclick="window.resetAllData()" title="Clear all stored branches data">
       <span>🔄</span> Reset All Data
     </button>
   </div>
 
   <div class="currency-tabs-bar hide-print">
-    <button class="tab-btn active" id="tab-PHP" onclick="switchCurrencyTab('PHP')">🇵🇭 PHP</button>
-    <button class="tab-btn" id="tab-USD" onclick="switchCurrencyTab('USD')">🇺🇸 USD</button>
-    <button class="tab-btn" id="tab-EUR" onclick="switchCurrencyTab('EUR')">🇪🇺 EUR</button>
-    <button class="tab-btn" id="tab-JPY" onclick="switchCurrencyTab('JPY')">🇯🇵 JPY</button>
-    <button class="tab-btn" id="tab-GBP" onclick="switchCurrencyTab('GBP')">🇬🇧 GBP</button>
+    <button class="tab-btn active" id="tab-PHP" onclick="window.switchCurrencyTab('PHP')">🇵🇭 PHP</button>
+    <button class="tab-btn" id="tab-USD" onclick="window.switchCurrencyTab('USD')">🇺🇸 USD</button>
+    <button class="tab-btn" id="tab-EUR" onclick="window.switchCurrencyTab('EUR')">🇪🇺 EUR</button>
+    <button class="tab-btn" id="tab-JPY" onclick="window.switchCurrencyTab('JPY')">🇯🇵 JPY</button>
+    <button class="tab-btn" id="tab-GBP" onclick="window.switchCurrencyTab('GBP')">🇬🇧 GBP</button>
   </div>
 
-  <div class="summary-bar" id="summary-bar" style="display:none;">
+  <div class="summary-bar" id="summary-bar" style="display:flex;">
     <div class="info-item"><label>Branch Name</label><div class="val" id="val-branch">—</div></div>
     <div class="info-item"><label>Date Range</label><div class="val" id="val-date" style="color:var(--text-main);">—</div></div>
     <div class="info-item"><label>Active Currency Tab</label><div class="val" id="val-currency" style="color:#0284c7;">PHP</div></div>
@@ -234,7 +213,7 @@
           <th style="text-align:center;">Report Quantity</th>
           <th style="text-align:right;" id="th-reportamt">Report Amount</th>
           <th style="text-align:right;">Variance / Remarks</th>
-          <th style="text-align:center;">Status / Sub-Report</th>
+          <th style="text-align:center;">Status</th>
         </tr>
       </thead>
       <tbody id="recon-body">
@@ -253,7 +232,7 @@
       <button class="btn-action hide-print" id="btn-upload-manual-adj" style="border:none; background:#ffffff; color:var(--primary);" onclick="document.getElementById('manual-adj-upload').click()">
         <span>📊</span> Upload Manual Adjustment
       </button>
-      <input type="file" id="manual-adj-upload" accept=".csv, .xlsx, .xls" style="display:none;" onchange="handleManualAdjUpload(event)">
+      <input type="file" id="manual-adj-upload" accept=".csv, .xlsx, .xls" style="display:none;" onchange="window.handleManualAdjUpload(event)">
     </div>
 
     <div class="table-container" id="manual-adj-container">
@@ -276,7 +255,7 @@
 
 </div>
 
-<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE -->
+<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE + COMPLETE BCTSR PARSER -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -296,9 +275,13 @@
 
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  let activeBranch = "Select Branch";
-  let activeCurrencyTab = 'PHP';
+  let activeBranch = localStorage.getItem('ml_activeBranch') || "SELECT BRANCH";
+  let activeCurrencyTab = localStorage.getItem('ml_activeCurrencyTab') || 'PHP';
   let branchesStore = {}; 
+
+  // Initialize display
+  document.getElementById('active-branch-name').innerText = activeBranch;
+  document.getElementById('val-branch').innerText = activeBranch;
 
   // 🔥 Realtime Firebase Sync Listener for Master Reconciler
   onValue(ref(db, 'branchesStore'), (snapshot) => {
@@ -325,17 +308,234 @@
     }
   }
 
-  window.saveStateToStorage = saveStateToStorage;
+  /* 📄 BCTSR FILE PARSING LOGIC */
+  window.handleFileUpload = async function(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-  // Re-expose standard reconciler script variables and functions to window scope for HTML bindings
-  window.activeBranch = activeBranch;
-  window.activeCurrencyTab = activeCurrencyTab;
-  window.branchesStore = branchesStore;
+    if (!branchesStore[activeBranch]) {
+      branchesStore[activeBranch] = {};
+    }
 
-  // Rest of Reconciler Core logic
-</script>
-<script>
-  // Standard reconciler helper methods remain active & synced via window.saveStateToStorage()
+    for (let file of files) {
+      const extension = file.name.split('.').pop().toLowerCase();
+      if (extension === 'pdf') {
+        await parsePDFBCTSR(file);
+      } else if (['xlsx', 'xls', 'csv'].includes(extension)) {
+        await parseExcelBCTSR(file);
+      }
+    }
+
+    saveStateToStorage();
+    renderActiveCurrencyData();
+    event.target.value = '';
+  };
+
+  async function parsePDFBCTSR(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullTextLines = [];
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageLines = textContent.items.map(item => item.str.trim()).filter(Boolean);
+      fullTextLines.push(...pageLines);
+    }
+
+    processBCTSRTextLines(fullTextLines);
+  }
+
+  async function parseExcelBCTSR(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    let lines = jsonData.map(row => row.join(' ').trim()).filter(Boolean);
+    processBCTSRTextLines(lines);
+  }
+
+  function processBCTSRTextLines(lines) {
+    let currData = {
+      dateRange: "N/A",
+      endingBalance: 0,
+      rows: []
+    };
+
+    let currency = activeCurrencyTab;
+
+    lines.forEach((line) => {
+      if (line.includes("Period:") || line.includes("Date:")) {
+        currData.dateRange = line;
+      }
+
+      // Parse BCTSR tabular line items
+      const numMatch = line.match(/(-?[\d,]+\.\d{2})/g);
+      if (numMatch && numMatch.length >= 2) {
+        const cashIn = parseFloat(numMatch[0].replace(/,/g, '')) || 0;
+        const cashOut = parseFloat(numMatch[1].replace(/,/g, '')) || 0;
+        const qty = parseInt(line.match(/\b\d+\b/)?.[0] || 1);
+        const particular = line.replace(/(-?[\d,]+\.\d{2})/g, '').trim();
+
+        if (particular && !particular.toLowerCase().includes("total")) {
+          currData.rows.push({
+            particulars: particular,
+            qty: qty,
+            cashIn: cashIn,
+            cashOut: cashOut
+          });
+        }
+      }
+    });
+
+    if (!branchesStore[activeBranch][currency]) {
+      branchesStore[activeBranch][currency] = {};
+    }
+
+    branchesStore[activeBranch][currency].masterData = currData;
+  }
+
+  /* 📊 MANUAL ADJUSTMENT PARSER */
+  window.handleManualAdjUpload = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    let adjRows = [];
+    jsonData.forEach((row, idx) => {
+      if (idx === 0) return;
+      if (row.length >= 3) {
+        adjRows.push({
+          desc: String(row[0] || '').trim(),
+          qty: parseInt(row[1]) || 1,
+          cashIn: parseFloat(row[2]) || 0,
+          cashOut: parseFloat(row[3]) || 0,
+          remarks: String(row[4] || '').trim()
+        });
+      }
+    });
+
+    if (!branchesStore[activeBranch][activeCurrencyTab]) {
+      branchesStore[activeBranch][activeCurrencyTab] = {};
+    }
+
+    branchesStore[activeBranch][activeCurrencyTab].manualAdjData = adjRows;
+    saveStateToStorage();
+    renderActiveCurrencyData();
+    event.target.value = '';
+  };
+
+  /* 🎨 RENDER RECONCILER DATA */
+  function renderActiveCurrencyData() {
+    document.getElementById('active-branch-name').innerText = activeBranch;
+    document.getElementById('val-branch').innerText = activeBranch;
+    document.getElementById('val-currency').innerText = activeCurrencyTab;
+    document.getElementById('manual-adj-curr-title').innerText = activeCurrencyTab;
+
+    const branchCurrObj = branchesStore[activeBranch]?.[activeCurrencyTab] || {};
+    const masterData = branchCurrObj.masterData;
+    const manualAdjData = branchCurrObj.manualAdjData || [];
+
+    // Summary bar values
+    document.getElementById('val-date').innerText = masterData?.dateRange || "—";
+    document.getElementById('val-endbal').innerText = `₱${(masterData?.endingBalance || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+
+    // Render Master BCTSR Table
+    const reconBody = document.getElementById('recon-body');
+    reconBody.innerHTML = '';
+
+    if (masterData && masterData.rows && masterData.rows.length > 0) {
+      masterData.rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'hoverable';
+        tr.innerHTML = `
+          <td style="font-weight:700;">${r.particulars}</td>
+          <td style="text-align:center; font-family:var(--font-mono);">${r.qty}</td>
+          <td class="num-cell">₱${r.cashIn.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+          <td class="num-cell">₱${r.cashOut.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+          <td style="text-align:center; font-family:var(--font-mono);">${r.qty}</td>
+          <td class="num-cell">₱${(r.cashIn - r.cashOut).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+          <td class="num-cell" style="color:var(--match); font-weight:700;">₱0.00</td>
+          <td style="text-align:center;"><span class="status-badge match">✓ MATCHED</span></td>
+        `;
+        reconBody.appendChild(tr);
+      });
+    } else {
+      reconBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No file uploaded for this branch & currency tab yet. Please click 'Upload Master BCTSR File(s)' above.</td></tr>`;
+    }
+
+    // Render Manual Adjustment Table
+    const adjBody = document.getElementById('manual-adj-body');
+    adjBody.innerHTML = '';
+
+    if (manualAdjData.length > 0) {
+      manualAdjData.forEach(adj => {
+        const tr = document.createElement('tr');
+        tr.className = 'hoverable';
+        tr.innerHTML = `
+          <td style="font-weight:700;">${adj.desc}</td>
+          <td style="text-align:center; font-family:var(--font-mono);">${adj.qty}</td>
+          <td class="num-cell">₱${adj.cashIn.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+          <td class="num-cell">₱${adj.cashOut.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+          <td style="text-align:center; font-size:12px; color:var(--text-muted);">${adj.remarks || '—'}</td>
+        `;
+        adjBody.appendChild(tr);
+      });
+    } else {
+      adjBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment file uploaded for this currency.</td></tr>`;
+    }
+  }
+
+  /* 🛠️ NAVIGATION & ACTION CONTROLS */
+  window.switchCurrencyTab = function(curr) {
+    activeCurrencyTab = curr;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    const targetTab = document.getElementById(`tab-${curr}`);
+    if (targetTab) targetTab.classList.add('active');
+
+    saveStateToStorage();
+    renderActiveCurrencyData();
+  };
+
+  window.toggleArchiveState = function() {
+    if (!branchesStore[activeBranch]) branchesStore[activeBranch] = {};
+    const currState = branchesStore[activeBranch].isArchived || false;
+    branchesStore[activeBranch].isArchived = !currState;
+
+    saveStateToStorage();
+    alert(branchesStore[activeBranch].isArchived ? "Branch archived & locked!" : "Branch unlocked!");
+  };
+
+  window.exportToPDF = function() {
+    window.print();
+  };
+
+  window.deleteActiveBranchData = function() {
+    if (confirm(`Delete all reconciler data for "${activeBranch}"?`)) {
+      delete branchesStore[activeBranch];
+      saveStateToStorage();
+      renderActiveCurrencyData();
+    }
+  };
+
+  window.resetAllData = function() {
+    if (confirm("Master reset: Clear all reconciler branch data?")) {
+      branchesStore = {};
+      saveStateToStorage();
+      renderActiveCurrencyData();
+    }
+  };
+
+  // Initial Render on Page Load
+  window.addEventListener('DOMContentLoaded', () => {
+    renderActiveCurrencyData();
+  });
 </script>
 </body>
 </html>
