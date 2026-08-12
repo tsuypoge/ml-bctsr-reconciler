@@ -474,7 +474,7 @@
     return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
 
-  // 🔥 Realtime Firebase Cloud Sync Listener for QCL
+  // 🔥 Realtime Firebase Cloud Sync Listener for QCL (AUTO-ACTIVE DASHBOARD FOR COMPANIONS)
   function listenFirebaseQCLStore() {
     if (!currentBranch) return;
     const branchSlug = slugBranch(currentBranch);
@@ -500,11 +500,23 @@
           }
         });
 
-        if (changed && activeCategory && categoryData[activeCategory]) {
-          tickets = categoryData[activeCategory].tickets;
-          renderCategoryTabs();
-          renderTable();
-          renderStats();
+        if (changed) {
+          // 🎯 Fix: Automatically select first category if none active yet
+          if (!activeCategory || !categoryData[activeCategory]) {
+            const availableKeys = Object.keys(categoryData);
+            if (availableKeys.length > 0) {
+              activeCategory = availableKeys[0];
+            }
+          }
+
+          if (activeCategory && categoryData[activeCategory]) {
+            tickets = categoryData[activeCategory].tickets;
+            $('#dashboard').classList.add('show');
+            renderCategoryTabs();
+            renderTable();
+            renderStats();
+            setStatus(`Synced cloud data for branch "${currentBranch}".`);
+          }
         }
       }
     });
