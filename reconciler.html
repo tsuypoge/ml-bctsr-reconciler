@@ -699,7 +699,7 @@ function getCurrencySymbol(curr) {
   }
 }
 
-// AUTOMATIC SHEET TYPE DETECTOR (B2B vs B2FD)
+// AUTOMATIC SHEET TYPE DETECTOR 
 function detectSheetType(rows, defaultTarget) {
   if (!rows || !Array.isArray(rows) || rows.length === 0) return defaultTarget;
   
@@ -714,6 +714,12 @@ function detectSheetType(rows, defaultTarget) {
     return "B2FD";
   } else if (fullStr.includes("ccbranch") || fullStr.includes("recvd. from") || fullStr.includes("vfr-") || fullStr.includes("ref no.")) {
     return "B2B";
+  } else if (fullStr.includes("prenda") || fullStr.includes("lukat") || fullStr.includes("tsr") || fullStr.includes("transaction summary report") || fullStr.includes("liquidated damages")) {
+    return "TSR";
+  } else if (fullStr.includes("bills payment") || fullStr.includes("biller")) {
+    return "BP";
+  } else if (fullStr.includes("kwarta padala") && fullStr.includes("sendout")) {
+    return "KP SO";
   }
   
   return defaultTarget;
@@ -1632,7 +1638,10 @@ function getFundTransferGivenHOSum(data, branch, items, curr) {
   }
 
   let targetBranch = (branch && branch !== '—' && branch !== 'Select Branch') ? branch : activeBranch;
-  return sumB2FD(b2fdData, targetBranch, currUpper);
+  let b2fdSum = sumB2FD(b2fdData, targetBranch, currUpper);
+
+  // As requested: B2FD Given + B2FD Given
+  return b2fdSum + b2fdSum;
 }
 
 function getFundTransferGivenHOQty(data, branch, items, curr) {
@@ -1652,8 +1661,61 @@ function getFundTransferGivenHOQty(data, branch, items, curr) {
   }
 
   let targetBranch = (branch && branch !== '—' && branch !== 'Select Branch') ? branch : activeBranch;
-  return countB2FD(b2fdData, targetBranch, currUpper);
+  let b2fdQty = countB2FD(b2fdData, targetBranch, currUpper);
+
+  // As requested: B2FD Given + B2FD Given
+  return b2fdQty + b2fdQty;
 }
+
+// ---------------------------------------------------------
+// REFACTORED QCL CALCULATORS (IMMUNE TO ARRAY LENGTH BUGS)
+// ---------------------------------------------------------
+function sumCol(sheetData, colIndex, startRow = 0) {
+  let total = 0;
+  for (let i = startRow; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row)) {
+      // Safely gets the value even if row is truncated
+      let valStr = String(row[colIndex] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function sumTSRInterest(sheetData, bctsrItems) {
+  let tsrTotal = 0;
+  // Columns matching: Advance Interest, Service Charge, Ordinary Interest, Liquidated Damages, Mailing Expense, etc.
+  // Added 17 to ensure no AI column is missed!
+  const targetCols = [3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21];
+  
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!isValidDataRow(row)) continue; // Ensure we only sum valid transaction rows, not headers or summaries
+    
+    targetCols.forEach(colIdx => {
+      if (row.length > colIdx) { // Check if the column exists in this row
+        let valStr = String(row[colIdx] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) {
+            tsrTotal += val;
+        }
+      }
+    });
+  }
+  
+  let d73_raProcess = 0, e17_interestCashOut = 0;
+  if (bctsrItems && Array.isArray(bctsrItems)) {
+    let raItem = bctsrItems.find(item => item.particular === 'Renewal Anywhere Process');
+    if (raItem) d73_raProcess = raItem.amount || raItem.cashIn || 0;
+    
+    let qclItem = bctsrItems.find(item => item.particular === 'QCL Interest and other Income');
+    if (qclItem) e17_interestCashOut = qclItem.cashOut || 0;
+  }
+  return tsrTotal - d73_raProcess + e17_interestCashOut;
+}
+
 
 const REPORT_RULES = {
   "Fund Transfer Received From BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Received :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Received :", curr) },
@@ -1751,230 +1813,17 @@ const REPORT_RULES = {
 
 function isValidDataRow(row) {
   if (!row || !Array.isArray(row) || row.length === 0) return false;
-  let col0 = String(row[0] || '').trim();
+  let col0 = String(row[0] || '').trim().toLowerCase();
   if (!col0) return false;
-  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp|generated|printed|run)/i.test(col0)) return false;
-  if (/report|philippines/i.test(col0)) return false;
+  
+  // Re-allow rows if the first column is clearly a date (e.g. 2026-xx-xx or 07/13/2026) or a transaction number
+  if (/^(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d+)$/.test(col0)) return true;
+
+  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|branch|employee|insurance|transaction_date|mlkp|generated|printed|run)/i.test(col0)) return false;
+  if (/report|philippines|date printed|date range/i.test(col0)) return false;
+  if (col0 === 'date') return false; // Reject the header column literally named "date"
+  
   return true;
-}
-
-function sumCol(sheetData, colIndex, startRow = 0) {
-  let total = 0;
-  for (let i = startRow; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > colIndex) {
-      let valStr = String(row[colIndex] || '').replace(/,/g, '').trim();
-      let val = parseFloat(valStr);
-      if (!isNaN(val)) total += val;
-    }
-  }
-  return total;
-}
-
-function countRows(sheetData, startRow = 0) {
-  let count = 0;
-  for (let i = startRow; i < sheetData.length; i++) {
-    if (isValidDataRow(sheetData[i])) count++;
-  }
-  return count;
-}
-
-function sumMCCashIn(sheetData, targetCurr = "PHP") {
-  let currUpper = targetCurr.toUpperCase();
-  if (currUpper === "PHP" || currUpper === "PESO") {
-    return sumCol(sheetData, 14);
-  }
-  let total = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > 15) {
-      let rowCurr = String(row[11] || '').trim().toUpperCase();
-      if (rowCurr === currUpper) {
-        let valStr = String(row[15] || '').replace(/,/g, '').trim();
-        let val = parseFloat(valStr);
-        if (!isNaN(val)) total += val;
-      }
-    }
-  }
-  return total;
-}
-
-function countMCCashIn(sheetData, targetCurr = "PHP") {
-  let currUpper = targetCurr.toUpperCase();
-  if (currUpper === "PHP" || currUpper === "PESO") {
-    return countRows(sheetData);
-  }
-  let count = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > 15) {
-      let rowCurr = String(row[11] || '').trim().toUpperCase();
-      if (rowCurr === currUpper) {
-        let valStr = String(row[15] || '').replace(/,/g, '').trim();
-        let val = parseFloat(valStr);
-        if (!isNaN(val) && val > 0) count++;
-      }
-    }
-  }
-  return count;
-}
-
-function sumMCCashOut(sheetData, targetCurr = "PHP") {
-  let currUpper = targetCurr.toUpperCase();
-  if (currUpper === "PHP" || currUpper === "PESO") {
-    return sumCol(sheetData, 16);
-  }
-  let total = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > 13) {
-      let rowCurr = String(row[11] || '').trim().toUpperCase();
-      if (rowCurr === currUpper) {
-        let valStr = String(row[13] || '').replace(/,/g, '').trim();
-        let val = parseFloat(valStr);
-        if (!isNaN(val)) total += val;
-      }
-    }
-  }
-  return total;
-}
-
-function countMCCashOut(sheetData, targetCurr = "PHP") {
-  let currUpper = targetCurr.toUpperCase();
-  if (currUpper === "PHP" || currUpper === "PESO") {
-    return countRows(sheetData);
-  }
-  let count = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > 13) {
-      let rowCurr = String(row[11] || '').trim().toUpperCase();
-      if (rowCurr === currUpper) {
-        let valStr = String(row[13] || '').replace(/,/g, '').trim();
-        let val = parseFloat(valStr);
-        if (!isNaN(val) && val > 0) count++;
-      }
-    }
-  }
-  return count;
-}
-
-function sumPayoutCSV(sheetData, targetCurr = "PHP") {
-  let total = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > 9) {
-      let curr = String(row[8] || '').trim().toUpperCase();
-      if (curr === targetCurr.toUpperCase()) {
-        let valStr = String(row[9] || '').replace(/,/g, '').trim();
-        let val = parseFloat(valStr);
-        if (!isNaN(val)) total += val;
-      }
-    }
-  }
-  return total;
-}
-
-function countPayoutCSV(sheetData, targetCurr = "PHP") {
-  let count = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > 8) {
-      let curr = String(row[8] || '').trim().toUpperCase();
-      if (curr === targetCurr.toUpperCase()) count++;
-    }
-  }
-  return count;
-}
-
-function sumMCashPayout(sheetData) {
-  let total = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row)) {
-      let amtIdx = row.length >= 9 ? 8 : (row.length === 8 ? 7 : 6);
-      if (row.length > amtIdx) {
-        let val = parseFloat(String(row[amtIdx] || '').replace(/,/g, '').trim());
-        if (!isNaN(val)) total += val;
-      }
-    }
-  }
-  return total;
-}
-
-function countMCashPayout(sheetData) {
-  let count = 0;
-  for (let i = 0; i < sheetData.length; i++) {
-    if (isValidDataRow(sheetData[i])) count++;
-  }
-  return count;
-}
-
-function sumTSRInterest(sheetData, bctsrItems) {
-  let tsrTotal = 0;
-  const targetCols = [3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21];
-  for (let i = 1; i < sheetData.length; i++) {
-    targetCols.forEach(colIdx => {
-      let val = parseFloat(sheetData[i][colIdx]);
-      if (!isNaN(val)) tsrTotal += val;
-    });
-  }
-  let d73_raProcess = 0, e17_interestCashOut = 0;
-  if (bctsrItems && Array.isArray(bctsrItems)) {
-    let raItem = bctsrItems.find(item => item.particular === 'Renewal Anywhere Process');
-    if (raItem) d73_raProcess = raItem.amount || raItem.cashIn || 0;
-    let qclItem = bctsrItems.find(item => item.particular === 'QCL Interest and other Income');
-    if (qclItem) e17_interestCashOut = qclItem.cashOut || 0;
-  }
-  return tsrTotal - d73_raProcess + e17_interestCashOut;
-}
-
-// ROBUST BRANCH MATCHING FUNCTION
-function cleanBranch(s) {
-  if (!s) return "";
-  let str_val = String(s).toLowerCase();
-  str_val = str_val.replace(/[,\-/_.\(\)#]/g, ' ');
-  str_val = str_val.replace(/\bml\b/g, '');
-  str_val = str_val.replace(/\b(branch|br|qc|ncr|metro|manila)\b/g, '');
-  str_val = str_val.replace(/([a-z])(\d+)/g, '$1 $2');
-  str_val = str_val.replace(/(\d+)([a-z])/g, '$1 $2');
-  let romanMap = {'i': '1', 'ii': '2', 'iii': '3', 'iv': '4', 'v': '5'};
-  let words = str_val.split(/\s+/);
-  let newWords = words.map(w => romanMap[w] || w);
-  return newWords.join(' ').trim();
-}
-
-function isBranchMatch(rowBranch, headerBranch) {
-  if (!rowBranch || !headerBranch) return false;
-  let rb = cleanBranch(rowBranch);
-  let hb = cleanBranch(headerBranch);
-  if (!rb || !hb || rb === "branch" || hb === "select branch" || hb === "—") return false;
-  if (rb === hb) return true;
-
-  if (rb.includes(hb) || hb.includes(rb)) {
-    let rbNums = rb.match(/\d+/g) || [];
-    let hbNums = hb.match(/\d+/g) || [];
-    
-    // If BOTH have numbers, compare them strictly. 
-    // Otherwise, assume it's a match (e.g. "ML Novaliches" and "ML Novaliches 1")
-    if (rbNums.length > 0 && hbNums.length > 0) {
-      return rbNums.join('-') === hbNums.join('-');
-    }
-    return true;
-  }
-  return false;
-}
-
-function parseNum(val) {
-  if (!val && val !== 0) return 0;
-  let n = parseFloat(String(val).replace(/,/g, '').trim());
-  return isNaN(n) ? 0 : n;
-}
-
-function formatMoney(val, symbol = '') {
-  if (val === 0 || !val) return '—';
-  let formatted = parseFloat(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return symbol ? `${symbol}${formatted}` : formatted;
 }
 
 function saveStateToStorage() {
@@ -2248,9 +2097,10 @@ function saveMasterBCTSR(parsedData) {
   }
 }
 
-function saveSubReportRows(rows) {
+// BASTA SA INLINE UPLOAD, MUDERETSO NA SA SAKTO NGA SHEET NAME (TSR, ETC)
+function saveSubReportRows(rows, forcedTarget = null) {
   if (!rows || rows.length === 0) return;
-  let sheetTarget = detectSheetType(rows, "B2B");
+  let sheetTarget = forcedTarget ? forcedTarget : detectSheetType(rows, "B2B");
   let bData = getActiveBranchData();
   let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
 
@@ -2527,362 +2377,6 @@ function parsePdfLinesWithCoords(allItems) {
     }
   }
 
-  return { branch, dateRange, endBal, currency, items };
-}
-
-async function handleSubReportUpload(evt, itemKey) {
-  const files = Array.from(evt.target.files);
-  if (!files || files.length === 0) return;
-  
-  let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
-  let defaultSheetTarget = rule ? rule.sheet : itemKey;
-
-  for (let file of files) {
-    const fileName = file.name.toLowerCase();
-    let rows = [];
-
-    if (fileName.endsWith('.pdf')) {
-      rows = await parsePdfRowsPromise(file);
-    } else {
-      const arrayBuffer = await file.arrayBuffer();
-      rows = getRowsFromFileBuffer(arrayBuffer);
-    }
-
-    if (rows && rows.length > 0) {
-      saveSubReportRows(rows);
-    }
-  }
-
-  saveStateToStorage();
-  renderActiveCurrencyData();
-  evt.target.value = '';
-}
-
-function removeSubReport(itemKey) {
-  let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
-  let sheetTarget = rule ? rule.sheet : itemKey;
-  if (confirm(`Are you sure you want to remove the uploaded report?`)) {
-    let bData = getActiveBranchData();
-    let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
-    currencies.forEach(c => {
-      if (bData.parsedSheetsStore[c]) {
-        delete bData.parsedSheetsStore[c][sheetTarget];
-        if (rule && rule.altSheet) {
-          delete bData.parsedSheetsStore[c][rule.altSheet];
-        }
-      }
-    });
-    saveStateToStorage();
-    renderActiveCurrencyData();
-  }
-}
-
-function handleManualAdjUpload(evt) {
-  const file = evt.target.files[0];
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
-    let sheetName = workbook.SheetNames[0];
-    let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
-    
-    let headerRowIdx = -1;
-    for (let i = 0; i < Math.min(25, sheetData.length); i++) {
-       let row = sheetData[i];
-       if (row && row.includes('Description') && row.includes('Cash In Amount')) {
-          headerRowIdx = i;
-          break;
-       }
-    }
-    
-    if (headerRowIdx === -1) {
-       alert("Invalid format for Manual Adjustment Report. Please check your uploaded file.");
-       return;
-    }
-    
-    let headers = sheetData[headerRowIdx];
-    let descIdx = headers.indexOf('Description');
-    let cashInIdx = headers.indexOf('Cash In Amount');
-    let cashOutIdx = headers.indexOf('Cash Out Amount');
-    let qtyIdx = headers.indexOf('Quantity');
-    let currIdx = headers.indexOf('Currency');
-    let dateIdx = headers.indexOf('Date & Time');
-    let opIdx = headers.indexOf('Operator');
-    let refIdx = headers.indexOf('Reference Number');
-    let remarksIdx = headers.indexOf('Remarks');
-    
-    let groupedByCurr = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-    
-    for (let i = headerRowIdx + 1; i < sheetData.length; i++) {
-       let row = sheetData[i];
-       if (!row || row.length === 0) continue;
-       
-       let desc = String(row[descIdx] || '').trim();
-       if (!desc || desc.toLowerCase() === 'description' || desc.toLowerCase().includes('total')) continue;
-       
-       let rowCurr = (currIdx !== -1 && row[currIdx]) ? String(row[currIdx]).trim().toUpperCase() : activeCurrencyTab;
-       if (!groupedByCurr[rowCurr]) groupedByCurr[rowCurr] = {};
-
-       let cashIn = parseNum(row[cashInIdx]);
-       let cashOut = parseNum(row[cashOutIdx]);
-       let qty = parseNum(row[qtyIdx]);
-       if (qty === 0) qty = 1; 
-       
-       let detail = {
-         date: row[dateIdx] || '—',
-         operator: row[opIdx] || '—',
-         cashIn: cashIn,
-         cashOut: cashOut,
-         ref: row[refIdx] || '—',
-         remarks: row[remarksIdx] || '—'
-       };
-       
-       if (!groupedByCurr[rowCurr][desc]) {
-          groupedByCurr[rowCurr][desc] = { totalCashIn: 0, totalCashOut: 0, totalQty: 0, details: [] };
-       }
-       
-       groupedByCurr[rowCurr][desc].totalCashIn += cashIn;
-       groupedByCurr[rowCurr][desc].totalCashOut += cashOut;
-       groupedByCurr[rowCurr][desc].totalQty += qty;
-       groupedByCurr[rowCurr][desc].details.push(detail);
-    }
-    
-    let bData = getActiveBranchData();
-    Object.keys(groupedByCurr).forEach(c => {
-       if (Object.keys(groupedByCurr[c]).length > 0) {
-          bData.manualAdjDataStore[c] = groupedByCurr[c];
-       }
-    });
-
-    saveStateToStorage();
-    renderActiveCurrencyData();
-    evt.target.value = '';
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function toggleManualAdjRemarksBox(descKey) {
-  let bData = getActiveBranchData();
-  let store = bData.openManualAdjRemarksStore[activeCurrencyTab];
-  store[descKey] = !store[descKey];
-  saveStateToStorage();
-  renderActiveCurrencyData();
-}
-
-function handleManualAdjRemarksInput(evt, descKey) {
-  let bData = getActiveBranchData();
-  let val = evt.target.value.trim();
-  bData.manualAdjRemarksStore[activeCurrencyTab][descKey] = val;
-  bData.openManualAdjRemarksStore[activeCurrencyTab][descKey] = false;
-  saveStateToStorage();
-  renderActiveCurrencyData();
-}
-
-window.toggleManualAdjDetails = function(idxStr) {
-  const trDetails = document.getElementById('det-' + idxStr);
-  const icon = document.getElementById('icon-det-' + idxStr);
-  if (trDetails.style.display === 'none' || trDetails.style.display === '') {
-     trDetails.style.display = 'table-row';
-     icon.innerText = '▼';
-  } else {
-     trDetails.style.display = 'none';
-     icon.innerText = '▶';
-  }
-};
-
-function renderManualAdjustmentPivot(groupedData) {
-  const tbody = document.getElementById('manual-adj-body');
-  tbody.innerHTML = '';
-  
-  const keys = Object.keys(groupedData).sort();
-  let currSym = getCurrencySymbol(activeCurrencyTab);
-
-  if (keys.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment data found for the ${activeCurrencyTab} tab.</td></tr>`;
-    return;
-  }
-  
-  let bData = getActiveBranchData();
-  let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
-
-  keys.forEach((desc, idx) => {
-    let data = groupedData[desc];
-    let currentRemark = bData.manualAdjRemarksStore[activeCurrencyTab][desc] || '';
-    let isBoxOpen = !!bData.openManualAdjRemarksStore[activeCurrencyTab][desc];
-
-    let remarkHtml = '';
-    if (!isArchived) {
-      if (isBoxOpen) {
-        remarkHtml = `
-          <div class="remarks-input-wrapper hide-print">
-            <input type="text" class="remarks-input" placeholder="Add Remarks..." value="${currentRemark}" autofocus onblur="handleManualAdjRemarksInput(event, '${desc.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
-          </div>
-        `;
-      } else {
-        remarkHtml = `<button class="btn-add-remark hide-print" onclick="toggleManualAdjRemarksBox('${desc.replace(/'/g, "\\'")}')" title="Add Remarks">💬</button>`;
-      }
-    }
-
-    let isNoteVerified = currentRemark.trim().toLowerCase().includes('verified');
-    let noteStyle = isNoteVerified 
-      ? 'color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; font-weight:600;' 
-      : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
-
-    let remarkTagDisplay = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
-
-    let trSum = document.createElement('tr');
-    trSum.className = "hoverable";
-    trSum.style.cursor = 'pointer';
-    trSum.style.background = '#f8fafc';
-    trSum.style.borderLeft = '3px solid transparent';
-    trSum.ondblclick = () => toggleManualAdjDetails(idx);
-    trSum.title = "Double-click to view complete details for this Description";
-    
-    trSum.onmouseover = function() { this.style.borderLeft = '3px solid var(--primary)'; this.style.background = '#f1f5f9'; };
-    trSum.onmouseout = function() { this.style.borderLeft = '3px solid transparent'; this.style.background = '#f8fafc'; };
-    
-    trSum.innerHTML = `
-      <td style="font-weight:700; color:var(--text-main);">
-         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-           <span id="icon-det-${idx}" class="expand-icon" onclick="toggleManualAdjDetails('${idx}'); event.stopPropagation();">▶</span>
-           <span>${desc}</span>
-           ${remarkTagDisplay}
-         </div>
-      </td>
-      <td class="num-cell" style="text-align:center;">${data.totalQty}</td>
-      <td class="num-cell" style="color:var(--match);">${formatMoney(data.totalCashIn, currSym)}</td>
-      <td class="num-cell" style="color:var(--mismatch);">${formatMoney(data.totalCashOut, currSym)}</td>
-      <td style="text-align:center;" onclick="event.stopPropagation();">${remarkHtml}</td>
-    `;
-    tbody.appendChild(trSum);
-    
-    let trDet = document.createElement('tr');
-    trDet.id = 'det-' + idx;
-    trDet.style.display = 'none';
-    
-    let detailsHtml = `
-      <td colspan="5" style="padding: 0; background: #ffffff;">
-        <div style="padding: 12px 20px 16px 32px; border-left: 3px solid var(--primary); background: #fafafa;">
-          <div style="font-size:11px; font-weight:700; margin-bottom:6px; color:#475569;">Detailed Transactions:</div>
-          <table class="inner-table">
-            <thead>
-              <tr>
-                <th>Date & Time</th>
-                <th>Operator</th>
-                <th>Ref Number</th>
-                <th style="text-align:right;">Cash In</th>
-                <th style="text-align:right;">Cash Out</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-    `;
-    
-    data.details.forEach(det => {
-       detailsHtml += `
-         <tr>
-           <td>${det.date}</td>
-           <td>${det.operator}</td>
-           <td style="font-family:var(--font-mono);">${det.ref}</td>
-           <td class="num-cell">${formatMoney(det.cashIn, currSym)}</td>
-           <td class="num-cell">${formatMoney(det.cashOut, currSym)}</td>
-           <td style="max-width:250px; word-break:break-word;">${det.remarks}</td>
-         </tr>
-       `;
-    });
-    
-    detailsHtml += `</tbody></table></div></td>`;
-    trDet.innerHTML = detailsHtml;
-    tbody.appendChild(trDet);
-  });
-}
-
-function extractDataFromRows(rows) {
-  let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
-  let items = [];
-  let currentCategory = "Cash";
-
-  rows.forEach(row => {
-    let particular = String(row[0] || '').trim();
-
-    if (particular.includes('Branch Name:')) branch = row[1] || '—';
-    if (particular.includes('Date Range:')) dateRange = row[1] || '—';
-    if (particular.includes('Ending Balance')) endBal = parseNum(row[3] || row[2]);
-
-    if (/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i.test(particular)) {
-       let m = particular.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
-       if (m) currency = m[1].toUpperCase();
-    }
-
-    if (particular === 'Cash Transactions') { currentCategory = "Cash"; return; }
-    if (particular === 'Non-Cash Transactions') { currentCategory = "Non-Cash"; return; }
-
-    if (particular.toLowerCase() === 'particulars' || particular === '' || particular.includes('M LHUILLIER') || particular.includes('BC TRANSACTION') || particular.includes('(BCTSR)') || particular.startsWith('•') || particular === 'Legend') {
-      return;
-    }
-
-    let qtyVal = row[2];
-    let qtyDisplay = (qtyVal !== '' && qtyVal !== null && qtyVal !== undefined && !isNaN(qtyVal)) ? parseInt(qtyVal) : '—';
-    let valIn = parseNum(row[3]);
-    let valOut = parseNum(row[4]);
-    let amount = Math.max(valIn, valOut);
-
-    if (amount > 0 && !particular.includes('Ending Balance') && !particular.includes('Beginning Balance')) {
-      items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn: valIn, cashOut: valOut, amount });
-    }
-  });
-  return { branch, dateRange, endBal, currency, items };
-}
-
-function parsePdfLines(pdfRows) {
-  let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
-  let items = [];
-  let currentCategory = "Cash";
-
-  pdfRows.forEach(rowItems => {
-    let lineStr = rowItems.join(" ");
-
-    if (lineStr.includes("Branch Name:")) branch = lineStr.substring(lineStr.indexOf("Branch Name:") + 12).trim();
-    if (lineStr.includes("Date Range:")) dateRange = lineStr.substring(lineStr.indexOf("Date Range:") + 11).trim();
-    if (lineStr.includes("Ending Balance")) {
-      let nums = lineStr.match(/[\d,]+\.\d{2}/g);
-      if (nums) endBal = parseNum(nums[nums.length - 1]);
-    }
-
-    if (/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i.test(lineStr)) {
-       let m = lineStr.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
-       if (m) currency = m[1].toUpperCase();
-    } else if (/\b(USD|EUR|JPY|GBP)\b/i.test(lineStr) && currency === "PHP") {
-       let m = lineStr.match(/\b(USD|EUR|JPY|GBP)\b/i);
-       if (m) currency = m[1].toUpperCase();
-    }
-
-    if (lineStr.includes('Cash Transactions')) { currentCategory = "Cash"; return; }
-    if (lineStr.includes('Non-Cash Transactions')) { currentCategory = "Non-Cash"; return; }
-
-    let numbers = rowItems.filter(str => /^[\d,]+(\.\d+)?$/.test(str.replace(/,/g, '')));
-    if (numbers.length > 0) {
-      let firstNumIdx = rowItems.findIndex(str => /^[\d,]+(\.\d+)?$/.test(str.replace(/,/g, '')));
-      let particular = rowItems.slice(0, firstNumIdx).join(" ").trim();
-      if (particular && !particular.includes("Ending Balance") && !particular.includes("Beginning Balance") && !particular.includes("Particulars") && !particular.startsWith("•")) {
-        let qtyDisplay = '—';
-        let amount = 0, cashIn = 0, cashOut = 0;
-        if (numbers.length >= 3) {
-           qtyDisplay = parseInt(numbers[0]); cashIn = parseNum(numbers[1]); cashOut = parseNum(numbers[2]);
-        } else if (numbers.length === 2) {
-           if (!numbers[0].includes('.')) {
-              qtyDisplay = parseInt(numbers[0]); cashIn = parseNum(numbers[1]); 
-           } else {
-              cashIn = parseNum(numbers[0]); cashOut = parseNum(numbers[1]);
-           }
-        } else if (numbers.length === 1) { cashIn = parseNum(numbers[0]); }
-        amount = Math.max(cashIn, cashOut);
-        if (amount > 0) items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn, cashOut, amount });
-      }
-    }
-  });
   return { branch, dateRange, endBal, currency, items };
 }
 
