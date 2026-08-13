@@ -1609,11 +1609,8 @@ function getFundTransferGivenSum(data, branch, items, curr) {
   let b2bSum = sumB2B(b2bData, "Total Given :", currUpper);
   let b2fdSum = sumB2FD(b2fdData, targetBranch, currUpper);
 
-  if (['USD', 'EUR', 'JPY', 'GBP'].includes(currUpper)) {
-    return b2bSum + b2fdSum;
-  }
-
-  return b2bSum;
+  // B2B GIVEN + B2FD GIVEN (APPLIES TO PESO AND FOREIGN CURRENCIES)
+  return b2bSum + b2fdSum;
 }
 
 function getFundTransferGivenQty(data, branch, items, curr) {
@@ -1645,11 +1642,8 @@ function getFundTransferGivenQty(data, branch, items, curr) {
   let b2bQty = countB2B(b2bData, "Total Given :", currUpper);
   let b2fdQty = countB2FD(b2fdData, targetBranch, currUpper);
 
-  if (['USD', 'EUR', 'JPY', 'GBP'].includes(currUpper)) {
-    return b2bQty + b2fdQty;
-  }
-
-  return b2bQty;
+  // B2B GIVEN + B2FD GIVEN (APPLIES TO PESO AND FOREIGN CURRENCIES)
+  return b2bQty + b2fdQty;
 }
 
 const REPORT_RULES = {
