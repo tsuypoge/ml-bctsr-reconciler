@@ -1991,7 +1991,10 @@ function isBranchMatch(rowBranch, headerBranch) {
   if (rb.includes(hb) || hb.includes(rb)) {
     let rbNums = rb.match(/\d+/g) || [];
     let hbNums = hb.match(/\d+/g) || [];
-    if (rbNums.length > 0 || hbNums.length > 0) {
+    
+    // If BOTH have numbers, compare them strictly. 
+    // Otherwise, assume it's a match (e.g. "ML Novaliches" and "ML Novaliches 1")
+    if (rbNums.length > 0 && hbNums.length > 0) {
       return rbNums.join('-') === hbNums.join('-');
     }
     return true;
