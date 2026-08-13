@@ -533,12 +533,12 @@
 
     <div class="form-group">
       <label>User ID / Employee Code</label>
-      <input type="text" id="login-user" class="form-input" placeholder="Enter User ID (e.g. r.duero)" autocomplete="off">
+      <input type="text" id="login-user" class="form-input" placeholder="Enter User ID (e.g. r.duero)" autocomplete="off" name="login-user-field" spellcheck="false" autocapitalize="off">
     </div>
 
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="login-pass" class="form-input" placeholder="Password" autocomplete="off">
+      <input type="password" id="login-pass" class="form-input" placeholder="Password" autocomplete="new-password" name="login-pass-field" spellcheck="false">
     </div>
 
     <button class="btn-login" onclick="doLogin()">Login to Dashboard</button>
@@ -1379,6 +1379,14 @@
       updateUserInfoDisplay();
       renderEnrolledUsersTable();
       renderDashboardTable();
+    } else {
+      // Force-clear in case the browser tries to autofill from saved form history
+      document.getElementById('login-user').value = '';
+      document.getElementById('login-pass').value = '';
+      setTimeout(() => {
+        document.getElementById('login-user').value = '';
+        document.getElementById('login-pass').value = '';
+      }, 100);
     }
   });
 </script>
