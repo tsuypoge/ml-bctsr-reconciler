@@ -100,6 +100,18 @@
   .btn-login:hover { background: var(--primary-dark); }
   .btn-login:active { transform: scale(0.99); }
 
+  .login-error {
+    display: none;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    text-align: left;
+  }
+
   /* Dashboard View */
   #dashboard-view {
     max-width: 1300px;
@@ -516,15 +528,17 @@
     <img src="logo.png" class="login-logo" alt="M Lhuillier" onerror="this.style.display='none';">
     <div class="login-title">M LHUILLIER AUDIT PORTAL</div>
     <div class="login-sub">Strike Force Authentication</div>
-    
+
+    <div class="login-error" id="login-error-box">Invalid User ID or Password.</div>
+
     <div class="form-group">
       <label>User ID / Employee Code</label>
-      <input type="text" id="login-user" class="form-input" value="ADMIN-MASTER" placeholder="Enter User ID (e.g. r.duero)">
+      <input type="text" id="login-user" class="form-input" placeholder="Enter User ID (e.g. r.duero)" autocomplete="off">
     </div>
 
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="login-pass" class="form-input" value="••••••••" placeholder="Password">
+      <input type="password" id="login-pass" class="form-input" placeholder="Password" autocomplete="off">
     </div>
 
     <button class="btn-login" onclick="doLogin()">Login to Dashboard</button>
@@ -642,7 +656,7 @@
 <div class="modal-overlay" id="new-modal">
   <div class="modal-card">
     <h3 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:18px;">Create New Branch Recon Entry</h3>
-    
+
     <div class="form-group">
       <label>Branch Name</label>
       <input type="text" id="new-branch" class="form-input" placeholder="e.g. ML Catarman">
@@ -677,7 +691,7 @@
 
     <div class="form-group">
       <label>USERNAME (AUTO-GENERATED)</label>
-      <input type="text" id="enroll-username" class="form-input bg-soft" value="r.duero" placeholder="Auto-generated Username">
+      <input type="text" id="enroll-username" class="form-input bg-soft" placeholder="Auto-generated Username">
     </div>
 
     <div class="form-group">
@@ -697,7 +711,7 @@
 
     <div class="form-group">
       <label>DEFAULT PASSWORD</label>
-      <input type="password" id="enroll-password" class="form-input bg-soft" value="••••••••" placeholder="Password">
+      <input type="password" id="enroll-password" class="form-input bg-soft" placeholder="Set a default password">
     </div>
 
     <div class="enroll-modal-footer">
@@ -854,10 +868,10 @@
     let time = new Date().toLocaleTimeString();
     systemAuditLogs.unshift(`[${time}] ${msg}`);
     if (systemAuditLogs.length > 25) systemAuditLogs.pop();
-    
+
     let logBox = document.getElementById('admin-log-display');
     if (logBox) logBox.innerHTML = systemAuditLogs.join('<br>');
-    
+
     syncToFirebase('systemAuditLogs', systemAuditLogs);
     localStorage.setItem('ml_audit_logs', JSON.stringify(systemAuditLogs));
   }
@@ -881,13 +895,13 @@
     }
     let parts = clean.split(/\s+/);
     let username = parts[0];
-    
+
     if (parts.length > 1) {
       let firstInitial = parts[0].charAt(0);
       let lastName = parts[parts.length - 1];
       username = `${firstInitial}.${lastName}`;
     }
-    
+
     document.getElementById('enroll-username').value = username;
   };
 
@@ -978,8 +992,8 @@
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
       let creator = (row.createdBy || '').toLowerCase().trim();
-      let companionsList = Array.isArray(row.companions) 
-        ? row.companions.map(c => c.toLowerCase().trim()) 
+      let companionsList = Array.isArray(row.companions)
+        ? row.companions.map(c => c.toLowerCase().trim())
         : [(row.companion || '').toLowerCase().trim()];
 
       return (creator && creator === currentUser) || companionsList.includes(currentUser);
@@ -998,16 +1012,16 @@
       else if (row.status === "Archived") statusBg = "#475569";
 
       let companionsArr = Array.isArray(row.companions) ? row.companions : (row.companion ? [row.companion] : []);
-      
-      let pillsHTML = companionsArr.length > 0 
-        ? companionsArr.map(c => `<span class="companion-pill">🤝 ${c}</span>`).join('') 
+
+      let pillsHTML = companionsArr.length > 0
+        ? companionsArr.map(c => `<span class="companion-pill">🤝 ${c}</span>`).join('')
         : `<span style="font-size:11px; color:#94a3b8;">None</span>`;
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
         <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
-        
+
         <!-- 🎯 MULTI-COMPANION ASSIGN COLUMN -->
         <td style="text-align:center;">
           <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
@@ -1042,12 +1056,12 @@
   }
 
   // Attach functions to window scope
-  window.openEnrollModal = function() { 
-    document.getElementById('enroll-modal').style.display = 'flex'; 
+  window.openEnrollModal = function() {
+    document.getElementById('enroll-modal').style.display = 'flex';
     document.getElementById('enroll-fullname').value = '';
     document.getElementById('enroll-username').value = '';
   };
-  
+
   window.closeEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'none'; };
 
   window.submitEnrollUser = function() {
@@ -1148,10 +1162,10 @@
     }
   };
 
-  window.openNewModal = function() { 
-    document.getElementById('new-modal').style.display = 'flex'; 
+  window.openNewModal = function() {
+    document.getElementById('new-modal').style.display = 'flex';
   };
-  
+
   window.closeNewModal = function() { document.getElementById('new-modal').style.display = 'none'; };
 
   window.saveNewEntry = function() {
@@ -1311,8 +1325,18 @@
   }
 
   window.doLogin = function() {
-    let userInput = document.getElementById('login-user').value.trim().toLowerCase() || 'admin-master';
-    
+    let errBox = document.getElementById('login-error-box');
+    errBox.style.display = 'none';
+
+    let userInput = document.getElementById('login-user').value.trim().toLowerCase();
+    let passInput = document.getElementById('login-pass').value;
+
+    if (!userInput || !passInput) {
+      errBox.textContent = "Please enter both User ID and Password.";
+      errBox.style.display = 'block';
+      return;
+    }
+
     let foundUser = enrolledUsers.find(u => u.username.toLowerCase() === userInput);
     let role = 'user';
 
@@ -1330,7 +1354,7 @@
 
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'block';
-    
+
     addAuditLog(`User Logged In: ${activeUserFormatted} [Role: ${role}]`);
     updateUserInfoDisplay();
     renderEnrolledUsersTable();
@@ -1339,6 +1363,10 @@
 
   window.doLogout = function() {
     sessionStorage.removeItem('ml_logged_in');
+    localStorage.removeItem('ml_activeUser');
+    localStorage.removeItem('ml_user_role');
+    document.getElementById('login-user').value = '';
+    document.getElementById('login-pass').value = '';
     document.getElementById('dashboard-view').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
   };
