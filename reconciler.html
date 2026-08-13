@@ -1909,25 +1909,37 @@ function countMCashPayout(sheetData) {
   }
   return count;
 }
-
 function sumTSRInterest(sheetData, bctsrItems) {
   let tsrTotal = 0;
+  // Columns matching: Advance Interest, Service Charge, Ordinary Interest, Liquidated Damages, Mailing Expense, etc.
   const targetCols = [3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21];
-  for (let i = 1; i < sheetData.length; i++) {
+  
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (!isValidDataRow(row)) continue; // Ensure we only sum valid transaction rows, not headers or summaries
+    
     targetCols.forEach(colIdx => {
-      let val = parseFloat(sheetData[i][colIdx]);
-      if (!isNaN(val)) tsrTotal += val;
+      if (row.length > colIdx) { // Check if the column exists in this row
+        let valStr = String(row[colIdx] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) {
+            tsrTotal += val;
+        }
+      }
     });
   }
+  
   let d73_raProcess = 0, e17_interestCashOut = 0;
   if (bctsrItems && Array.isArray(bctsrItems)) {
     let raItem = bctsrItems.find(item => item.particular === 'Renewal Anywhere Process');
     if (raItem) d73_raProcess = raItem.amount || raItem.cashIn || 0;
+    
     let qclItem = bctsrItems.find(item => item.particular === 'QCL Interest and other Income');
     if (qclItem) e17_interestCashOut = qclItem.cashOut || 0;
   }
   return tsrTotal - d73_raProcess + e17_interestCashOut;
 }
+ 
 
 // ROBUST BRANCH MATCHING FUNCTION
 function cleanBranch(s) {
