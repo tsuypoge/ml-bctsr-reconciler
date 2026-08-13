@@ -2261,6 +2261,9 @@ async function handleFileUpload(evt) {
   let lastParsedBranch = activeBranch;
   let lastParsedCurr = activeCurrencyTab;
 
+  let subReportsUploaded = 0; 
+  let masterUploaded = false;
+
   for (let file of files) {
     const fileName = file.name.toLowerCase();
     let rows = [];
@@ -2268,23 +2271,22 @@ async function handleFileUpload(evt) {
     if (fileName.endsWith('.pdf')) {
       rows = await parsePdfRowsPromise(file);
       if (isMasterBCTSRFile(rows)) {
-        // Master BCTSR file: re-read with real X/Y coordinates so numbers are matched
-        // to the correct column (Quantity / Cash In / Cash Out) instead of guessed.
         let pdfItems = await parsePdfItemsWithCoords(file);
         let parsedData = parsePdfLinesWithCoords(pdfItems);
         if (!parsedData || !parsedData.items || parsedData.items.length === 0) {
-          // Fallback to the old heuristic parser if coordinate parsing found nothing
           parsedData = parsePdfLines(rows);
         }
         if (parsedData && parsedData.items && parsedData.items.length > 0) {
           saveMasterBCTSR(parsedData);
           lastParsedBranch = activeBranch;
           lastParsedCurr = parsedData.currency || activeCurrencyTab;
+          masterUploaded = true;
         } else {
           alert(`Hindi na-basa nang tama ang master BCTSR file na "${file.name}". I-check ang Browser Console (F12) para sa detalye, o subukang i-reload ang page (baka hindi na-load ang PDF reader).`);
         }
       } else {
         saveSubReportRows(rows);
+        subReportsUploaded++;
       }
     } else {
       const arrayBuffer = await file.arrayBuffer();
@@ -2296,9 +2298,11 @@ async function handleFileUpload(evt) {
           saveMasterBCTSR(parsedData);
           lastParsedBranch = activeBranch;
           lastParsedCurr = parsedData.currency || activeCurrencyTab;
+          masterUploaded = true;
         }
       } else {
         saveSubReportRows(rows);
+        subReportsUploaded++;
       }
     }
   }
@@ -2308,6 +2312,10 @@ async function handleFileUpload(evt) {
   switchCurrencyTab(lastParsedCurr);
   saveStateToStorage();
   evt.target.value = '';
+
+  if (subReportsUploaded > 0 && !masterUploaded) {
+    alert(`Successfully saved ${subReportsUploaded} sub-report(s) in the background! \n\nPlease upload the Master BCTSR file for the table to appear.`);
+  }
 }
 
 function parsePdfRowsPromise(file) {
@@ -2353,8 +2361,6 @@ function parsePdfRowsPromise(file) {
   });
 }
 
-// 📍 Reads a PDF and keeps each text run's real X/Y position (instead of collapsing to plain strings),
-// so the master BCTSR parser can tell which column (Quantity / Cash In / Cash Out) each number belongs to.
 function parsePdfItemsWithCoords(file) {
   return new Promise(async (resolve) => {
     try {
@@ -2378,11 +2384,6 @@ function parsePdfItemsWithCoords(file) {
   });
 }
 
-// 📍 Coordinate-based BCTSR master parser: groups text into rows by Y position, detects each
-// table's column X-positions from its header row (Particulars/Quantity/Cash In/Cash Out or
-// Debit/Credit), then classifies every number by which column its X position falls under —
-// instead of guessing from how many numbers appear on the line. Also stops before the Vault
-// Cash Custodian sub-table and the Legend section, since those aren't reconciliation particulars.
 function parsePdfLinesWithCoords(allItems) {
   let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
   let items = [];
@@ -2518,7 +2519,6 @@ function parsePdfLinesWithCoords(allItems) {
   return { branch, dateRange, endBal, currency, items };
 }
 
-// UPDATED SUB-REPORT UPLOAD (CROSS-CURRENCY AUTO SHARING)
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
@@ -2547,7 +2547,6 @@ async function handleSubReportUpload(evt, itemKey) {
   evt.target.value = '';
 }
 
-// UPDATED SUB-REPORT REMOVAL (CLEARS ACROSS CURRENCIES)
 function removeSubReport(itemKey) {
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let sheetTarget = rule ? rule.sheet : itemKey;
