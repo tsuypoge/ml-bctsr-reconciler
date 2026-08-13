@@ -699,7 +699,7 @@ function getCurrencySymbol(curr) {
   }
 }
 
-// AUTOMATIC SHEET TYPE DETECTOR 
+// AUTOMATIC SHEET TYPE DETECTOR (B2B vs B2FD)
 function detectSheetType(rows, defaultTarget) {
   if (!rows || !Array.isArray(rows) || rows.length === 0) return defaultTarget;
   
@@ -714,12 +714,6 @@ function detectSheetType(rows, defaultTarget) {
     return "B2FD";
   } else if (fullStr.includes("ccbranch") || fullStr.includes("recvd. from") || fullStr.includes("vfr-") || fullStr.includes("ref no.")) {
     return "B2B";
-  } else if (fullStr.includes("prenda") || fullStr.includes("lukat") || fullStr.includes("tsr") || fullStr.includes("transaction summary report") || fullStr.includes("liquidated damages")) {
-    return "TSR";
-  } else if (fullStr.includes("bills payment") || fullStr.includes("biller")) {
-    return "BP";
-  } else if (fullStr.includes("kwarta padala") && fullStr.includes("sendout")) {
-    return "KP SO";
   }
   
   return defaultTarget;
@@ -1638,10 +1632,7 @@ function getFundTransferGivenHOSum(data, branch, items, curr) {
   }
 
   let targetBranch = (branch && branch !== '—' && branch !== 'Select Branch') ? branch : activeBranch;
-  let b2fdSum = sumB2FD(b2fdData, targetBranch, currUpper);
-
-  // As requested: B2FD Given + B2FD Given
-  return b2fdSum + b2fdSum;
+  return sumB2FD(b2fdData, targetBranch, currUpper);
 }
 
 function getFundTransferGivenHOQty(data, branch, items, curr) {
@@ -1661,59 +1652,8 @@ function getFundTransferGivenHOQty(data, branch, items, curr) {
   }
 
   let targetBranch = (branch && branch !== '—' && branch !== 'Select Branch') ? branch : activeBranch;
-  let b2fdQty = countB2FD(b2fdData, targetBranch, currUpper);
-
-  // As requested: B2FD Given + B2FD Given
-  return b2fdQty + b2fdQty;
+  return countB2FD(b2fdData, targetBranch, currUpper);
 }
-
-// ---------------------------------------------------------
-// REFACTORED QCL CALCULATORS (IMMUNE TO ARRAY LENGTH BUGS)
-// ---------------------------------------------------------
-function sumCol(sheetData, colIndex, startRow = 0) {
-  let total = 0;
-  for (let i = startRow; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (isValidDataRow(row)) {
-      // Safely gets the value even if row is truncated
-      let valStr = String(row[colIndex] || '').replace(/,/g, '').trim();
-      let val = parseFloat(valStr);
-      if (!isNaN(val)) total += val;
-    }
-  }
-  return total;
-}
-
-function sumTSRInterest(sheetData, bctsrItems) {
-  let tsrTotal = 0;
-  // Columns matching: Advance Interest, Service Charge, Ordinary Interest, Liquidated Damages, Mailing Expense, etc.
-  // Added 17 to ensure no AI column is missed!
-  const targetCols = [3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21];
-  
-  for (let i = 0; i < sheetData.length; i++) {
-    let row = sheetData[i];
-    if (!isValidDataRow(row)) continue;
-    
-    targetCols.forEach(colIdx => {
-      let valStr = String(row[colIdx] || '').replace(/,/g, '').trim();
-      let val = parseFloat(valStr);
-      if (!isNaN(val)) {
-          tsrTotal += val;
-      }
-    });
-  }
-  
-  let d73_raProcess = 0, e17_interestCashOut = 0;
-  if (bctsrItems && Array.isArray(bctsrItems)) {
-    let raItem = bctsrItems.find(item => item.particular === 'Renewal Anywhere Process');
-    if (raItem) d73_raProcess = raItem.amount || raItem.cashIn || 0;
-    
-    let qclItem = bctsrItems.find(item => item.particular === 'QCL Interest and other Income');
-    if (qclItem) e17_interestCashOut = qclItem.cashOut || 0;
-  }
-  return tsrTotal - d73_raProcess + e17_interestCashOut;
-}
-
 
 const REPORT_RULES = {
   "Fund Transfer Received From BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Received :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Received :", curr) },
@@ -1811,17 +1751,230 @@ const REPORT_RULES = {
 
 function isValidDataRow(row) {
   if (!row || !Array.isArray(row) || row.length === 0) return false;
-  let col0 = String(row[0] || '').trim().toLowerCase();
+  let col0 = String(row[0] || '').trim();
   if (!col0) return false;
-  
-  // Re-allow rows if the first column is clearly a date (e.g. 2026-xx-xx or 07/13/2026) or a transaction number
-  if (/^(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d+)$/.test(col0)) return true;
-
-  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|branch|employee|insurance|transaction_date|mlkp|generated|printed|run)/i.test(col0)) return false;
-  if (/report|philippines|date printed|date range/i.test(col0)) return false;
-  if (col0 === 'date') return false; // Reject the header column literally named "date"
-  
+  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp|generated|printed|run)/i.test(col0)) return false;
+  if (/report|philippines/i.test(col0)) return false;
   return true;
+}
+
+function sumCol(sheetData, colIndex, startRow = 0) {
+  let total = 0;
+  for (let i = startRow; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > colIndex) {
+      let valStr = String(row[colIndex] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function countRows(sheetData, startRow = 0) {
+  let count = 0;
+  for (let i = startRow; i < sheetData.length; i++) {
+    if (isValidDataRow(sheetData[i])) count++;
+  }
+  return count;
+}
+
+function sumMCCashIn(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return sumCol(sheetData, 14);
+  }
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 15) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[15] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countMCCashIn(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return countRows(sheetData);
+  }
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 15) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[15] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val) && val > 0) count++;
+      }
+    }
+  }
+  return count;
+}
+
+function sumMCCashOut(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return sumCol(sheetData, 16);
+  }
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 13) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[13] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countMCCashOut(sheetData, targetCurr = "PHP") {
+  let currUpper = targetCurr.toUpperCase();
+  if (currUpper === "PHP" || currUpper === "PESO") {
+    return countRows(sheetData);
+  }
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 13) {
+      let rowCurr = String(row[11] || '').trim().toUpperCase();
+      if (rowCurr === currUpper) {
+        let valStr = String(row[13] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val) && val > 0) count++;
+      }
+    }
+  }
+  return count;
+}
+
+function sumPayoutCSV(sheetData, targetCurr = "PHP") {
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 9) {
+      let curr = String(row[8] || '').trim().toUpperCase();
+      if (curr === targetCurr.toUpperCase()) {
+        let valStr = String(row[9] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countPayoutCSV(sheetData, targetCurr = "PHP") {
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > 8) {
+      let curr = String(row[8] || '').trim().toUpperCase();
+      if (curr === targetCurr.toUpperCase()) count++;
+    }
+  }
+  return count;
+}
+
+function sumMCashPayout(sheetData) {
+  let total = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row)) {
+      let amtIdx = row.length >= 9 ? 8 : (row.length === 8 ? 7 : 6);
+      if (row.length > amtIdx) {
+        let val = parseFloat(String(row[amtIdx] || '').replace(/,/g, '').trim());
+        if (!isNaN(val)) total += val;
+      }
+    }
+  }
+  return total;
+}
+
+function countMCashPayout(sheetData) {
+  let count = 0;
+  for (let i = 0; i < sheetData.length; i++) {
+    if (isValidDataRow(sheetData[i])) count++;
+  }
+  return count;
+}
+
+function sumTSRInterest(sheetData, bctsrItems) {
+  let tsrTotal = 0;
+  const targetCols = [3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21];
+  for (let i = 1; i < sheetData.length; i++) {
+    targetCols.forEach(colIdx => {
+      let val = parseFloat(sheetData[i][colIdx]);
+      if (!isNaN(val)) tsrTotal += val;
+    });
+  }
+  let d73_raProcess = 0, e17_interestCashOut = 0;
+  if (bctsrItems && Array.isArray(bctsrItems)) {
+    let raItem = bctsrItems.find(item => item.particular === 'Renewal Anywhere Process');
+    if (raItem) d73_raProcess = raItem.amount || raItem.cashIn || 0;
+    let qclItem = bctsrItems.find(item => item.particular === 'QCL Interest and other Income');
+    if (qclItem) e17_interestCashOut = qclItem.cashOut || 0;
+  }
+  return tsrTotal - d73_raProcess + e17_interestCashOut;
+}
+
+// ROBUST BRANCH MATCHING FUNCTION
+function cleanBranch(s) {
+  if (!s) return "";
+  let str_val = String(s).toLowerCase();
+  str_val = str_val.replace(/[,\-/_.\(\)#]/g, ' ');
+  str_val = str_val.replace(/\bml\b/g, '');
+  str_val = str_val.replace(/\b(branch|br|qc|ncr|metro|manila)\b/g, '');
+  str_val = str_val.replace(/([a-z])(\d+)/g, '$1 $2');
+  str_val = str_val.replace(/(\d+)([a-z])/g, '$1 $2');
+  let romanMap = {'i': '1', 'ii': '2', 'iii': '3', 'iv': '4', 'v': '5'};
+  let words = str_val.split(/\s+/);
+  let newWords = words.map(w => romanMap[w] || w);
+  return newWords.join(' ').trim();
+}
+
+function isBranchMatch(rowBranch, headerBranch) {
+  if (!rowBranch || !headerBranch) return false;
+  let rb = cleanBranch(rowBranch);
+  let hb = cleanBranch(headerBranch);
+  if (!rb || !hb || rb === "branch" || hb === "select branch" || hb === "—") return false;
+  if (rb === hb) return true;
+
+  if (rb.includes(hb) || hb.includes(rb)) {
+    let rbNums = rb.match(/\d+/g) || [];
+    let hbNums = hb.match(/\d+/g) || [];
+    
+    // If BOTH have numbers, compare them strictly. 
+    // Otherwise, assume it's a match (e.g. "ML Novaliches" and "ML Novaliches 1")
+    if (rbNums.length > 0 && hbNums.length > 0) {
+      return rbNums.join('-') === hbNums.join('-');
+    }
+    return true;
+  }
+  return false;
+}
+
+function parseNum(val) {
+  if (!val && val !== 0) return 0;
+  let n = parseFloat(String(val).replace(/,/g, '').trim());
+  return isNaN(n) ? 0 : n;
+}
+
+function formatMoney(val, symbol = '') {
+  if (val === 0 || !val) return '—';
+  let formatted = parseFloat(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return symbol ? `${symbol}${formatted}` : formatted;
 }
 
 function saveStateToStorage() {
@@ -2095,10 +2248,9 @@ function saveMasterBCTSR(parsedData) {
   }
 }
 
-// BASTA SA INLINE UPLOAD, MUDERETSO NA SA SAKTO NGA SHEET NAME (TSR, ETC)
-function saveSubReportRows(rows, forcedTarget = null) {
+function saveSubReportRows(rows) {
   if (!rows || rows.length === 0) return;
-  let sheetTarget = forcedTarget ? forcedTarget : detectSheetType(rows, "B2B");
+  let sheetTarget = detectSheetType(rows, "B2B");
   let bData = getActiveBranchData();
   let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
 
@@ -2397,8 +2549,7 @@ async function handleSubReportUpload(evt, itemKey) {
     }
 
     if (rows && rows.length > 0) {
-      // GIPASA NA DIRI ANG SHEET TARGET PARA DILI MA-DEFAULT SA B2B!
-      saveSubReportRows(rows, defaultSheetTarget); 
+      saveSubReportRows(rows);
     }
   }
 
