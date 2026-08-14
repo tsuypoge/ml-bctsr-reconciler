@@ -2234,7 +2234,7 @@ function getRowsFromFileBuffer(buffer) {
   }
 }
 
-// 🌟 SAVES BCTSR MASTER FILE & SYNC TO DASHBOARD STORE
+// 🌟 SAVES BCTSR MASTER FILE & SYNC TO DASHBOARD STORE (TAGGED TO LOGGED-IN USER)
 function saveMasterBCTSR(parsedData) {
   let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
     ? parsedData.branch.trim().toUpperCase() 
@@ -2271,7 +2271,9 @@ function saveMasterBCTSR(parsedData) {
       ];
 
       let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || defaultEntries;
-      let currentUser = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+      
+      // 🎯 DYNAMIC USER FIX: Reads currently logged-in account (e.g. test1)
+      let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
       let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
 
       let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
@@ -2281,12 +2283,15 @@ function saveMasterBCTSR(parsedData) {
         if (storedEntries[existingIndex].status === "Pending") {
           storedEntries[existingIndex].status = "In Progress";
         }
+        if (!storedEntries[existingIndex].createdBy) {
+          storedEntries[existingIndex].createdBy = currentUser;
+        }
       } else {
         storedEntries.unshift({
           branch: targetBranch,
           cutoffDate: dateStr,
           companions: [],
-          createdBy: currentUser,
+          createdBy: currentUser, // 👈 TAGS LOGGED IN USER AS CREATOR
           status: "In Progress"
         });
       }
