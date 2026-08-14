@@ -177,7 +177,7 @@
 
   #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
-  /* 🎯 STICKY / FREEZE FOR PRENDA / TERMS / RE-APPRAISAL TABS BELOW SEARCH PTN */
+  /* 🎯 STICKY TABS BELOW SEARCH PTN */
   .tabs {
     display: none; margin-top: 14px; gap: 10px; flex-wrap: wrap;
     position: sticky; top: 135px; z-index: 55;
@@ -222,15 +222,9 @@
   .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
   .toolbar {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-bottom: 16px;
     background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-card);
   }
-  #search {
-    flex: 1; min-width: 200px; padding: 10px 14px;
-    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    font-family: var(--font-sans); font-size: 13px; outline: none;
-  }
-  #search:focus { border-color: var(--primary); }
   select {
     padding: 10px 14px; border: 1.5px solid var(--border);
     border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
@@ -403,13 +397,13 @@
     <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
-  <!-- 🎯 STICKY SEARCH PTN BOX -->
+  <!-- 🎯 SINGLE STICKY SEARCH PTN BOX -->
   <div class="branch-box" id="global-search-box">
-    <h3>🔎 Search PTN (All Categories)</h3>
-    <p>Look up a pawn ticket number across Prenda, Terms Extended, and Re-appraisal simultaneously.</p>
+    <h3>🔎 Search PTN / Description</h3>
+    <p>Look up a pawn ticket number or item description across all active records simultaneously.</p>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <input type="text" id="global-search-input" class="input-control" placeholder="Type full or partial PTN..." style="flex:1; min-width:200px;">
-      <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search PTN</button>
+      <input type="text" id="global-search-input" class="input-control" placeholder="Type PTN digits or description..." style="flex:1; min-width:200px;">
+      <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search</button>
     </div>
     <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
   </div>
@@ -460,7 +454,6 @@
     <div class="cat-row" id="cat-row"></div>
 
     <div class="toolbar">
-      <input type="text" id="search" placeholder="Search: PTN digits, or description...">
       <select id="filter-status">
         <option value="all">All Status</option>
         <option value="pending">Pending</option>
@@ -1070,9 +1063,9 @@
     </div>`;
   }
 
-  // 🎯 PERFECT SIDE-BY-SIDE LINE ALIGNED TABLE RENDER
+  // 🎯 PERFECT SIDE-BY-SIDE LINE ALIGNED TABLE RENDER WITH GLOBAL SEARCH FILTER
   function renderTable(){
-    const q = $('#search').value.trim().toLowerCase();
+    const q = $('#global-search-input').value.trim().toLowerCase();
     const filterStatus = $('#filter-status').value;
     const body = $('#ledger-body');
     body.innerHTML = '';
@@ -1231,42 +1224,14 @@
     `).join('');
   }
 
-  $('#search').addEventListener('input', ()=> keepScroll(renderTable));
   $('#filter-status').addEventListener('change', ()=> keepScroll(renderTable));
 
   function runGlobalSearch(){
-    const q = $('#global-search-input').value.trim().toLowerCase();
-    const box = $('#global-search-results');
-    if(!q){ box.innerHTML = ''; return; }
-
-    const hits = [];
-    CATEGORIES.forEach(c=>{
-      const data = categoryData[c.key];
-      if(!data) return;
-      data.tickets.forEach(t=>{
-        if(t.ptn.toLowerCase().includes(q)){
-          hits.push({label: c.label, ptn: t.ptn, date: t.date, loan: t.loan, actual: t.actual});
-        }
-      });
-    });
-
-    if(!hits.length){
-      box.innerHTML = `<span style="color:var(--text-muted);">No matches in any uploaded category.</span>`;
-      return;
-    }
-    box.innerHTML = hits.map(h=>`
-      <div style="padding:8px 0; border-bottom:1px solid var(--border);">
-        <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})
-        · Loan ₱${Number(h.loan).toLocaleString()}
-        · ${h.actual ? 'Found' : 'Pending'}
-      </div>
-    `).join('');
+    renderTable();
   }
 
   $('#global-search-btn').addEventListener('click', runGlobalSearch);
-  $('#global-search-input').addEventListener('keydown', e=>{
-    if(e.key === 'Enter') runGlobalSearch();
-  });
+  $('#global-search-input').addEventListener('input', runGlobalSearch);
 
   $('#reset-counts-btn').addEventListener('click', async ()=>{
     if(!confirm('Clear all Found checkmarks?')) return;
