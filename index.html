@@ -9,7 +9,7 @@
 <!-- Fonts: Inter for UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -180,7 +180,7 @@
     text-transform: uppercase;
   }
 
-  /* 🎯 SCREENSHOT NAVIGATION TABS CSS */
+  /* NAVIGATION TABS CSS */
   .view-switcher-tabs {
     display: flex;
     gap: 8px;
@@ -418,6 +418,8 @@
   }
   .btn-archive { background: #f1f5f9; color: #334155; }
   .btn-archive:hover { background: #e2e8f0; }
+  .btn-edit { background: #e0e7ff; color: #3730a3; }
+  .btn-edit:hover { background: #c7d2fe; }
   .btn-delete { background: #fee2e2; color: #991b1b; }
   .btn-delete:hover { background: #fca5a5; }
 
@@ -629,7 +631,7 @@
         <span style="font-size:11px; background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:12px; border:1px solid #fcd34d;">Super Admin Mode Active</span>
       </div>
       <div style="display:flex; gap:8px;">
-        <button class="btn-action btn-archive" style="background:#e0e7ff; color:#3730a3;" onclick="openProfileModal()">✏️ Update Admin Profile</button>
+        <button class="btn-action btn-archive" style="background:#e0e7ff; color:#3730a3;" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))">✏️ Update Admin Profile</button>
         <button class="btn-action btn-archive" onclick="toggleAdminPanelUI()">Hide Panel</button>
       </div>
     </div>
@@ -674,12 +676,13 @@
     <div class="user-badge-bar">
       <span class="db-status-badge" id="firebase-status">🔥 Cloud Sync Active</span>
       <span>👤 Logged in as: <strong id="active-user-display">ADMIN-MASTER</strong></span>
-      <button onclick="openProfileModal()" style="background:rgba(255,255,255,0.25); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;" title="Edit Admin Profile">✏️ Profile</button>
+      <!-- 🎯 SHOW PROFILE EDIT ONLY IF ADMIN -->
+      <button id="btn-top-profile-edit" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))" style="background:rgba(255,255,255,0.25); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px; display:none;" title="Edit Admin Profile">✏️ Profile</button>
       <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;">Logout</button>
     </div>
   </div>
 
-  <!-- 🎯 NAVIGATION TABS (LIKE SCREENSHOT) -->
+  <!-- NAVIGATION TABS -->
   <div class="view-switcher-tabs">
     <button class="tab-switch-btn active" id="tab-btn-audits" onclick="switchMainTab('audits')">
       <span>📜</span> All Branch Audits
@@ -689,7 +692,7 @@
     </button>
   </div>
 
-  <!-- 📑 TAB 1: ALL BRANCH AUDITS VIEW -->
+  <!-- TAB 1: ALL BRANCH AUDITS VIEW -->
   <div id="tab-view-audits">
     <div class="search-toolbar-bar">
       <div class="search-input-box">
@@ -720,14 +723,15 @@
     </div>
   </div>
 
-  <!-- 👥 TAB 2: USER PROFILES & CREDENTIALS VIEW -->
+  <!-- TAB 2: USER PROFILES & CREDENTIALS VIEW -->
   <div id="tab-view-users" style="display:none;">
     <div class="search-toolbar-bar">
       <div class="search-input-box">
         <span class="search-icon-inside">🔍</span>
         <input type="text" id="search-user-input" placeholder="Search User Name, Email, or Department..." oninput="filterUserTable(this.value)">
       </div>
-      <button class="btn-toolbar" style="background:var(--primary); color:#fff;" onclick="openEnrollModal()">
+      <!-- 🎯 ENROLL USER BUTTON ONLY SHOWN FOR ADMIN -->
+      <button class="btn-toolbar admin-only-element" style="background:var(--primary); color:#fff; display:none;" onclick="openEnrollModal()">
         <span>➕</span> Enroll New User
       </button>
     </div>
@@ -753,7 +757,7 @@
 
 </div>
 
-<!-- 💜 ENROLL NEW USER MODAL -->
+<!-- ENROLL NEW USER MODAL -->
 <div class="modal-overlay" id="enroll-modal">
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
@@ -800,7 +804,7 @@
   </div>
 </div>
 
-<!-- 👥 MULTI-COMPANION ASSIGN MODAL -->
+<!-- MULTI-COMPANION ASSIGN MODAL -->
 <div class="modal-overlay" id="assign-modal">
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
@@ -825,12 +829,12 @@
   </div>
 </div>
 
-<!-- 👤 UPDATE ADMIN PROFILE MODAL -->
+<!-- UPDATE PROFILE MODAL (EDIT USER PROFILE BY ADMIN) -->
 <div class="modal-overlay" id="profile-modal">
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
       <div class="modal-header-title">
-        <span>👤</span> Update Admin Profile
+        <span>👤</span> Edit User Profile
       </div>
       <button class="btn-close-x" onclick="closeProfileModal()">✕</button>
     </div>
@@ -1001,11 +1005,14 @@
     document.getElementById('enroll-username').value = username;
   };
 
-  /* 👥 RENDER USER ENROLLMENT TABLE */
+  /* 👥 RENDER USER ENROLLMENT TABLE (ADMIN EDIT / DELETE ACTIONS) */
   window.renderEnrolledUsersTable = function(filterQuery = '') {
     const tbody = document.getElementById('enrolled-users-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
+
+    let currentRole = localStorage.getItem('ml_user_role') || 'user';
+    let isAdmin = currentRole === 'admin' || (localStorage.getItem('ml_activeUser') || '').toLowerCase().includes('admin');
 
     let query = filterQuery.toLowerCase().trim();
     let filtered = enrolledUsers.filter(u => 
@@ -1023,6 +1030,13 @@
     filtered.forEach((u) => {
       let originalIdx = enrolledUsers.indexOf(u);
       let tr = document.createElement('tr');
+      
+      // 🎯 ADMIN CAN EDIT & DELETE ALL USERS; REGULAR USER HAS NO ACTIONS
+      let actionButtons = isAdmin ? `
+        <button class="btn-action btn-edit" onclick="window.openProfileModal('${u.username.replace(/'/g, "\\'")}')">✏️ Edit</button>
+        <button class="btn-action btn-delete" onclick="window.deleteEnrolledUser(${originalIdx})">🗑️ Delete</button>
+      ` : `<span style="font-size:11px; color:#94a3b8;">Read-Only</span>`;
+
       tr.innerHTML = `
         <td><strong>${u.username}</strong></td>
         <td>${u.name}</td>
@@ -1030,7 +1044,7 @@
         <td>${u.department}</td>
         <td>${u.email}</td>
         <td style="text-align:center;">
-          <button class="btn-action btn-delete" onclick="window.deleteEnrolledUser(${originalIdx})">🗑️ Delete</button>
+          ${actionButtons}
         </td>
       `;
       tbody.appendChild(tr);
@@ -1217,10 +1231,11 @@
     window.closeEnrollModal();
   };
 
-  window.openProfileModal = function() {
-    let currentUser = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
-    let userObj = enrolledUsers.find(u => u.username.toUpperCase() === currentUser.toUpperCase()) || {
-      username: currentUser,
+  /* 👤 EDIT PROFILE MODAL TRIGGER */
+  window.openProfileModal = function(usernameToEdit) {
+    let uname = usernameToEdit || localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+    let userObj = enrolledUsers.find(u => u.username.toUpperCase() === uname.toUpperCase()) || {
+      username: uname,
       name: "Master Admin",
       position: "Lead Audit Head",
       department: "StrikeForce/Fraud Audit-IAD",
@@ -1271,8 +1286,8 @@
 
     saveEnrolledUsers();
     renderEnrolledUsersTable();
-    addAuditLog(`Admin Profile Updated for: ${uname} (${fname})`);
-    alert("Profile updated successfully!");
+    addAuditLog(`User Profile Updated for: ${uname} (${fname})`);
+    alert(`Profile for ${uname} updated successfully!`);
     window.closeProfileModal();
   };
 
@@ -1409,18 +1424,25 @@
     }
   };
 
+  /* 🔐 HIDE / SHOW ADMIN-ONLY ELEMENTS UPON USER LOGGED IN */
   function updateUserInfoDisplay() {
     let user = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
     let role = localStorage.getItem('ml_user_role') || 'admin';
 
     document.getElementById('active-user-display').innerText = user;
 
-    if (role === 'admin') {
+    if (role === 'admin' || user.toLowerCase().includes('admin')) {
       document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
       document.getElementById('admin-control-panel').style.display = 'block';
+      document.getElementById('btn-top-profile-edit').style.display = 'inline-block';
+      
+      document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'inline-flex');
     } else {
       document.getElementById('btn-admin-panel-toggle').style.display = 'none';
       document.getElementById('admin-control-panel').style.display = 'none';
+      document.getElementById('btn-top-profile-edit').style.display = 'none';
+      
+      document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'none');
     }
   }
 
