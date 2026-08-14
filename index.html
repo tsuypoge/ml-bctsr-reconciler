@@ -9,7 +9,7 @@
 <!-- Fonts: Inter for UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -676,14 +676,13 @@
     <div class="user-badge-bar">
       <span class="db-status-badge" id="firebase-status">🔥 Cloud Sync Active</span>
       <span>👤 Logged in as: <strong id="active-user-display">ADMIN-MASTER</strong></span>
-      <!-- 🎯 SHOW PROFILE EDIT ONLY IF ADMIN -->
       <button id="btn-top-profile-edit" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))" style="background:rgba(255,255,255,0.25); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px; display:none;" title="Edit Admin Profile">✏️ Profile</button>
       <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;">Logout</button>
     </div>
   </div>
 
-  <!-- NAVIGATION TABS -->
-  <div class="view-switcher-tabs">
+  <!-- 🎯 NAVIGATION TABS (SHOWN ONLY FOR ADMIN) -->
+  <div class="view-switcher-tabs admin-only-element" id="admin-tabs-nav" style="display:none;">
     <button class="tab-switch-btn active" id="tab-btn-audits" onclick="switchMainTab('audits')">
       <span>📜</span> All Branch Audits
     </button>
@@ -692,15 +691,15 @@
     </button>
   </div>
 
-  <!-- TAB 1: ALL BRANCH AUDITS VIEW -->
+  <!-- TAB 1: BRANCH AUDITS VIEW (ACCESSIBLE TO ALL - FILTERED BY ROLE) -->
   <div id="tab-view-audits">
     <div class="search-toolbar-bar">
       <div class="search-input-box">
         <span class="search-icon-inside">🔍</span>
         <input type="text" id="search-branch-input" placeholder="Search Branch Name or Auditor..." oninput="filterBranchTable(this.value)">
       </div>
-      <div style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:600;">
-        Showing real-time branch records across all accounts
+      <div style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:600;" id="branch-view-header-sub">
+        Showing assigned branch records for your account
       </div>
     </div>
 
@@ -723,14 +722,13 @@
     </div>
   </div>
 
-  <!-- TAB 2: USER PROFILES & CREDENTIALS VIEW -->
+  <!-- TAB 2: USER PROFILES & CREDENTIALS VIEW (RESTRICTED TO ADMIN ONLY) -->
   <div id="tab-view-users" style="display:none;">
     <div class="search-toolbar-bar">
       <div class="search-input-box">
         <span class="search-icon-inside">🔍</span>
         <input type="text" id="search-user-input" placeholder="Search User Name, Email, or Department..." oninput="filterUserTable(this.value)">
       </div>
-      <!-- 🎯 ENROLL USER BUTTON ONLY SHOWN FOR ADMIN -->
       <button class="btn-toolbar admin-only-element" style="background:var(--primary); color:#fff; display:none;" onclick="openEnrollModal()">
         <span>➕</span> Enroll New User
       </button>
@@ -829,7 +827,7 @@
   </div>
 </div>
 
-<!-- UPDATE PROFILE MODAL (EDIT USER PROFILE BY ADMIN) -->
+<!-- UPDATE PROFILE MODAL -->
 <div class="modal-overlay" id="profile-modal">
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
@@ -1005,7 +1003,7 @@
     document.getElementById('enroll-username').value = username;
   };
 
-  /* 👥 RENDER USER ENROLLMENT TABLE (ADMIN EDIT / DELETE ACTIONS) */
+  /* 👥 RENDER USER ENROLLMENT TABLE */
   window.renderEnrolledUsersTable = function(filterQuery = '') {
     const tbody = document.getElementById('enrolled-users-tbody');
     if (!tbody) return;
@@ -1031,7 +1029,6 @@
       let originalIdx = enrolledUsers.indexOf(u);
       let tr = document.createElement('tr');
       
-      // 🎯 ADMIN CAN EDIT & DELETE ALL USERS; REGULAR USER HAS NO ACTIONS
       let actionButtons = isAdmin ? `
         <button class="btn-action btn-edit" onclick="window.openProfileModal('${u.username.replace(/'/g, "\\'")}')">✏️ Edit</button>
         <button class="btn-action btn-delete" onclick="window.deleteEnrolledUser(${originalIdx})">🗑️ Delete</button>
@@ -1125,6 +1122,7 @@
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
+    // 🎯 FILTER LOGIC: ADMIN SEES ALL; REGULAR USER SEES ONLY CREATED OR ASSIGNED COMPANION
     let visibleEntries = strikeForceEntries.filter((row) => {
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
@@ -1231,7 +1229,6 @@
     window.closeEnrollModal();
   };
 
-  /* 👤 EDIT PROFILE MODAL TRIGGER */
   window.openProfileModal = function(usernameToEdit) {
     let uname = usernameToEdit || localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
     let userObj = enrolledUsers.find(u => u.username.toUpperCase() === uname.toUpperCase()) || {
@@ -1424,7 +1421,7 @@
     }
   };
 
-  /* 🔐 HIDE / SHOW ADMIN-ONLY ELEMENTS UPON USER LOGGED IN */
+  /* 🔐 HIDE/SHOW ELEMENTS DEPENDING ON USER ROLE */
   function updateUserInfoDisplay() {
     let user = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
     let role = localStorage.getItem('ml_user_role') || 'admin';
@@ -1435,14 +1432,18 @@
       document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
       document.getElementById('admin-control-panel').style.display = 'block';
       document.getElementById('btn-top-profile-edit').style.display = 'inline-block';
+      document.getElementById('branch-view-header-sub').innerText = "Showing real-time branch records across all accounts";
       
-      document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'inline-flex');
+      document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'flex');
     } else {
       document.getElementById('btn-admin-panel-toggle').style.display = 'none';
       document.getElementById('admin-control-panel').style.display = 'none';
       document.getElementById('btn-top-profile-edit').style.display = 'none';
+      document.getElementById('branch-view-header-sub').innerText = `Showing assigned branch records for account: ${user}`;
       
+      // 🎯 REGULAR USER: HIDE TABS AND ENROLLMENT MODAL BUTTONS
       document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'none');
+      switchMainTab('audits'); // Force default to Audits View
     }
   }
 
