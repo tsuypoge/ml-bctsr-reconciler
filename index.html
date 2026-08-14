@@ -665,7 +665,6 @@
     </div>
 
     <div class="user-badge-bar">
-      <!-- 🎯 REMOVED CLOUD SYNC ACTIVE & CHANGED TO "Hi [FIRST NAME]" -->
       <span>👤 <strong id="active-user-display">Hi, Admin!</strong></span>
       <button id="btn-top-profile-edit" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))" style="background:rgba(255,255,255,0.25); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px; display:none;" title="Edit Admin Profile">✏️ Profile</button>
       <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;">Logout</button>
@@ -689,9 +688,7 @@
         <span class="search-icon-inside">🔍</span>
         <input type="text" id="search-branch-input" placeholder="Search Branch Name or Auditor..." oninput="filterBranchTable(this.value)">
       </div>
-      <div style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:600;" id="branch-view-header-sub">
-        Showing assigned branch records for your account
-      </div>
+      <!-- REMOVED SUB-TEXT HERE -->
     </div>
 
     <div class="dash-table-container">
@@ -1417,12 +1414,11 @@
     let activeUsername = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
     let role = localStorage.getItem('ml_user_role') || 'admin';
 
-    // Find Full Name of logged in user
     let userObj = enrolledUsers.find(u => u.username.toLowerCase() === activeUsername.toLowerCase());
     let firstName = activeUsername;
 
     if (userObj && userObj.name) {
-      firstName = userObj.name.trim().split(/\s+/)[0]; // Extract first word
+      firstName = userObj.name.trim().split(/\s+/)[0];
     } else if (activeUsername.includes('.')) {
       let parts = activeUsername.split('.');
       firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
@@ -1434,18 +1430,15 @@
       document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
       document.getElementById('admin-control-panel').style.display = 'block';
       document.getElementById('btn-top-profile-edit').style.display = 'inline-block';
-      document.getElementById('branch-view-header-sub').innerText = "Showing real-time branch records across all accounts";
       
       document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'flex');
     } else {
       document.getElementById('btn-admin-panel-toggle').style.display = 'none';
       document.getElementById('admin-control-panel').style.display = 'none';
       document.getElementById('btn-top-profile-edit').style.display = 'none';
-      document.getElementById('branch-view-header-sub').innerText = `Showing assigned branch records for account: ${activeUsername}`;
       
-      // 🎯 REGULAR USER: HIDE ADMIN TABS
       document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'none');
-      switchMainTab('audits'); // Force view to Branch Audits
+      switchMainTab('audits');
     }
   }
 
