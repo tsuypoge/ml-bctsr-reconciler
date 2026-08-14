@@ -2236,63 +2236,69 @@ function getRowsFromFileBuffer(buffer) {
 
 // 🌟 SAVES BCTSR MASTER FILE & SYNC TO DASHBOARD STORE
 function saveMasterBCTSR(parsedData) {
-  let targetBranch = (parsedData.branch && parsedData.branch !== '—') ? parsedData.branch.trim().toUpperCase() : activeBranch;
-  activeBranch = targetBranch;
-  let targetCurrency = parsedData.currency || activeCurrencyTab;
+  let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
+    ? parsedData.branch.trim().toUpperCase() 
+    : activeBranch;
 
-  if (!branchesStore[activeBranch]) {
-    branchesStore[activeBranch] = createEmptyBranchStore();
-  }
-  let bData = branchesStore[activeBranch];
-  bData.bctsrDataStore[targetCurrency] = parsedData;
-  bData.manualInputsStore[targetCurrency] = {};
-  bData.manualRemarksStore[targetCurrency] = {};
-  bData.openRemarksInputStore[targetCurrency] = {};
-  bData.manualAdjDataStore[targetCurrency] = null;
-  bData.manualAdjRemarksStore[targetCurrency] = {};
-  bData.openManualAdjRemarksStore[targetCurrency] = {};
-  bData.isArchivedStore[targetCurrency] = false;
-  if (!bData.parsedSheetsStore) {
-    bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-  }
+  if (targetBranch && targetBranch !== "SELECT BRANCH" && targetBranch !== "—") {
+    activeBranch = targetBranch;
+    updateBranchDropdownUI();
+    let targetCurrency = parsedData.currency || activeCurrencyTab;
 
-  // 🔄 AUTO-SYNC TO STRIKE FORCE DASHBOARD SYSTEM
-  try {
-    let defaultEntries = [
-      { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companions: ["r.duero", "auditor-516"], createdBy: "ADMIN-MASTER", status: "In Progress" },
-      { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companions: ["j.doe"], createdBy: "ADMIN-MASTER", status: "Pending" },
-      { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companions: [], createdBy: "r.duero", status: "Pending" },
-      { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companions: ["r.duero", "j.doe"], createdBy: "ADMIN-MASTER", status: "In Progress" }
-    ];
+    if (!branchesStore[activeBranch]) {
+      branchesStore[activeBranch] = createEmptyBranchStore();
+    }
+    let bData = branchesStore[activeBranch];
+    bData.bctsrDataStore[targetCurrency] = parsedData;
+    bData.manualInputsStore[targetCurrency] = {};
+    bData.manualRemarksStore[targetCurrency] = {};
+    bData.openRemarksInputStore[targetCurrency] = {};
+    bData.manualAdjDataStore[targetCurrency] = null;
+    bData.manualAdjRemarksStore[targetCurrency] = {};
+    bData.openManualAdjRemarksStore[targetCurrency] = {};
+    bData.isArchivedStore[targetCurrency] = false;
+    if (!bData.parsedSheetsStore) {
+      bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+    }
 
-    let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || defaultEntries;
-    let currentUser = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
-    let dateStr = parsedData.dateRange || "Pending Cut-off";
+    // 🔄 AUTO-SYNC BRANCH NAME & CUT-OFF DATE TO DASHBOARD SYSTEM
+    try {
+      let defaultEntries = [
+        { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companions: ["r.duero", "auditor-516"], createdBy: "ADMIN-MASTER", status: "In Progress" },
+        { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companions: ["j.doe"], createdBy: "ADMIN-MASTER", status: "Pending" },
+        { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companions: [], createdBy: "r.duero", status: "Pending" },
+        { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companions: ["r.duero", "j.doe"], createdBy: "ADMIN-MASTER", status: "In Progress" }
+      ];
 
-    let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
+      let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || defaultEntries;
+      let currentUser = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+      let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
 
-    if (existingIndex !== -1) {
-      storedEntries[existingIndex].cutoffDate = dateStr;
-      if (storedEntries[existingIndex].status === "Pending") {
-        storedEntries[existingIndex].status = "In Progress";
+      let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
+
+      if (existingIndex !== -1) {
+        storedEntries[existingIndex].cutoffDate = dateStr;
+        if (storedEntries[existingIndex].status === "Pending") {
+          storedEntries[existingIndex].status = "In Progress";
+        }
+      } else {
+        storedEntries.unshift({
+          branch: targetBranch,
+          cutoffDate: dateStr,
+          companions: [],
+          createdBy: currentUser,
+          status: "In Progress"
+        });
       }
-    } else {
-      storedEntries.unshift({
-        branch: targetBranch,
-        cutoffDate: dateStr,
-        companions: [],
-        createdBy: currentUser,
-        status: "In Progress"
-      });
-    }
 
-    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
+      localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
 
-    if (window.syncDashboardToFirebase) {
-      window.syncDashboardToFirebase(storedEntries);
+      if (typeof window.syncDashboardToFirebase === 'function') {
+        window.syncDashboardToFirebase(storedEntries);
+      }
+    } catch (err) {
+      console.error("Dashboard sync error:", err);
     }
-  } catch (err) {
-    console.error("Dashboard sync error:", err);
   }
 }
 
@@ -2335,7 +2341,7 @@ async function handleFileUpload(evt) {
         if (!parsedData || !parsedData.items || parsedData.items.length === 0) {
           parsedData = parsePdfLines(rows);
         }
-        if (parsedData && parsedData.items && parsedData.items.length > 0) {
+        if (parsedData) {
           saveMasterBCTSR(parsedData);
           lastParsedBranch = activeBranch;
           lastParsedCurr = parsedData.currency || activeCurrencyTab;
@@ -2353,7 +2359,7 @@ async function handleFileUpload(evt) {
 
       if (isMasterBCTSRFile(rows)) {
         let parsedData = extractDataFromRows(rows);
-        if (parsedData && parsedData.items && parsedData.items.length > 0) {
+        if (parsedData) {
           saveMasterBCTSR(parsedData);
           lastParsedBranch = activeBranch;
           lastParsedCurr = parsedData.currency || activeCurrencyTab;
