@@ -406,10 +406,7 @@
   }
   .btn-close-x:hover { color: #0f172a; }
 
-  .enroll-modal-card .form-group {
-    margin-bottom: 14px;
-  }
-
+  .enroll-modal-card .form-group { margin-bottom: 14px; }
   .enroll-modal-card .form-group label {
     font-size: 10.5px;
     font-weight: 800;
@@ -652,7 +649,7 @@
   </div>
 </div>
 
-<!-- 💜 ENROLL NEW USER MODAL (WITH AUTO-USERNAME GENERATOR) -->
+<!-- 💜 ENROLL NEW USER MODAL -->
 <div class="modal-overlay" id="enroll-modal">
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
@@ -791,12 +788,14 @@
 
   let activeAssignEntryIndex = null;
 
-  let strikeForceEntries = [
+  let defaultEntries = [
     { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companions: ["r.duero", "auditor-516"], createdBy: "ADMIN-MASTER", status: "In Progress" },
     { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companions: ["j.doe"], createdBy: "ADMIN-MASTER", status: "Pending" },
     { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companions: [], createdBy: "r.duero", status: "Pending" },
     { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companions: ["r.duero", "j.doe"], createdBy: "ADMIN-MASTER", status: "In Progress" }
   ];
+
+  let strikeForceEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || defaultEntries;
 
   let enrolledUsers = [
     { username: "r.duero", name: "Rey John Duero", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "r.duero@sfcaliquidation.biz" },
@@ -912,7 +911,6 @@
 
     let activeCompanions = Array.isArray(entry.companions) ? entry.companions : (entry.companion ? [entry.companion] : []);
 
-    // Filter out Admin accounts
     let nonAdminUsers = enrolledUsers.filter(u => !u.username.toLowerCase().includes('admin'));
 
     if (nonAdminUsers.length === 0) {
@@ -956,16 +954,21 @@
     renderDashboardTable();
   };
 
-  /* 🔐 ROW-LEVEL USER FILTERED DASHBOARD RENDER WITH MULTI-COMPANIONS */
+  /* 🔐 ROW-LEVEL USER FILTERED DASHBOARD RENDER */
   function renderDashboardTable() {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    // Always ensure reading latest LocalStorage
+    let storedData = localStorage.getItem('ml_strikeForceEntries');
+    if (storedData) {
+      try { strikeForceEntries = JSON.parse(storedData); } catch(e){}
+    }
+
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
-    // Filter logic: Admin sees all; User sees ONLY created OR assigned in companions array
     let visibleEntries = strikeForceEntries.filter((row) => {
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
@@ -1000,7 +1003,6 @@
         <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
         <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
 
-        <!-- 🎯 MULTI-COMPANION ASSIGN COLUMN -->
         <td style="text-align:center;">
           <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
             <button class="btn-assign-multi" onclick="window.openAssignModal(${originalIndex})">
@@ -1010,20 +1012,17 @@
           </div>
         </td>
 
-        <!-- INVENTORY COLUMN -->
         <td style="text-align:center;">
           <button class="btn-inv" title="Subasta / SR" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subasta_sr')">🏷️ Subasta/SR</button>
           <button class="btn-inv" title="QCL" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'qcl')">💎 QCL</button>
         </td>
 
-        <!-- STATUS / RECONCILER COLUMN -->
         <td style="text-align:center;">
           <button class="btn-tbl-status" style="background:${statusBg};" onclick="window.launchReconciler('${row.branch.replace(/'/g, "\\'")}')">
             ${row.status} ➔
           </button>
         </td>
 
-        <!-- ACTION COLUMN -->
         <td style="text-align:center;">
           <button class="btn-action btn-archive" title="Archive" onclick="window.archiveEntry(${originalIndex})">📁 Archive</button>
           <button class="btn-action btn-delete" title="Delete" onclick="window.deleteEntry(${originalIndex})">🗑️ Delete</button>
@@ -1033,7 +1032,6 @@
     });
   }
 
-  // Attach functions to window scope
   window.openEnrollModal = function() {
     document.getElementById('enroll-modal').style.display = 'flex';
     document.getElementById('enroll-fullname').value = '';
@@ -1069,7 +1067,6 @@
     window.closeEnrollModal();
   };
 
-  /* 👤 PROFILE UPDATE LOGIC */
   window.openProfileModal = function() {
     let currentUser = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
     let userObj = enrolledUsers.find(u => u.username.toUpperCase() === currentUser.toUpperCase()) || {
@@ -1333,7 +1330,6 @@
       renderEnrolledUsersTable();
       renderDashboardTable();
     } else {
-      // Force-clear in case the browser tries to autofill from saved form history
       document.getElementById('login-user').value = '';
       document.getElementById('login-pass').value = '';
       setTimeout(() => {
