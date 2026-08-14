@@ -284,7 +284,6 @@
   .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
   .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
   
-  /* 🎯 ENHANCED FINDINGS DROPDOWN CONTAINER */
   .findings-list { min-width: 150px; }
   .findings-toggle {
     padding: 5px 10px; border: 1.5px solid var(--primary); border-radius: 6px; background: #ffffff;
@@ -1016,6 +1015,7 @@
     'Wrong Weight'
   ];
 
+  // 🎯 INCLUDED 'Bracelet/ Pul' IN WRONG DESCRIPTION OPTIONS
   function correctOptionsFor(finding){
     switch(finding){
       case 'Wrong Karat Grading':
@@ -1025,7 +1025,7 @@
       case 'Wrong Quantity':
         return Array.from({length:100}, (_,i)=> String(i+1));
       case 'Wrong Description':
-        return ['Necklace','Pendant','Earring','Ring','Terno','Set'];
+        return ['Necklace','Pendant','Earring','Ring','Bracelet/ Pul','Terno','Set'];
       case 'Wrong Weight':
         return Array.from({length:3000}, (_,i)=> ((i+1)/10).toFixed(1));
       default:
@@ -1040,7 +1040,6 @@
       opts.map(v=>`<option value="${v}" ${selected===v?'selected':''}>${v}</option>`).join('');
   }
 
-  // 🎯 ALWAYS RENDERS BOTH DROPDOWNS FULLY VISIBLE
   function findingItemHtml(it, ti, ii){
     const finding = it.finding || '';
     const correct = it.correct || '';
