@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Strike Force Template — M Lhuillier Audit Portal</title>
 
-<!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
+<!-- Fonts: Inter for UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -178,6 +178,77 @@
     color: var(--primary-dark);
     margin-bottom: 10px;
     text-transform: uppercase;
+  }
+
+  /* 🎯 SCREENSHOT NAVIGATION TABS CSS */
+  .view-switcher-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .tab-switch-btn {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .tab-switch-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .tab-switch-btn.active {
+    background: #0f172a;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+  }
+
+  .search-toolbar-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .search-input-box {
+    position: relative;
+    flex: 1;
+    max-width: 380px;
+  }
+
+  .search-input-box input {
+    width: 100%;
+    padding: 9px 14px 9px 36px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input-box input:focus {
+    border-color: var(--primary);
+  }
+
+  .search-icon-inside {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #94a3b8;
   }
 
   .dash-toolbar {
@@ -479,19 +550,23 @@
   .user-list-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
-    margin-top: 10px;
+    font-size: 13px;
   }
   .user-list-table th {
-    background: #e2e8f0;
-    color: #334155;
-    padding: 8px;
+    background: #ffffff;
+    color: var(--primary);
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 14px 16px;
+    border-bottom: 2px solid #f1f5f9;
+    text-transform: uppercase;
     text-align: left;
-    font-weight: 700;
   }
   .user-list-table td {
-    padding: 8px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f8fafc;
+    color: #334155;
+    vertical-align: middle;
   }
 
   .checkbox-list {
@@ -544,7 +619,7 @@
 
 <!-- 2. DASHBOARD VIEW -->
 <div id="dashboard-view" style="display:none;">
-  <h2 class="dash-header-title">Strike Force Template</h2>
+  <h2 class="dash-header-title">Strike Force Audit Portal</h2>
 
   <!-- 👑 MASTER ADMIN CONTROL PANEL -->
   <div class="admin-panel-card" id="admin-control-panel">
@@ -588,32 +663,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 👤 USER MANAGEMENT SECTION -->
-    <div class="admin-box" style="margin-top:10px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h4>👤 User Enrollment & Permission Management</h4>
-        <button class="btn-toolbar" style="background:var(--primary); color:#fff; padding:6px 14px; font-size:12px;" onclick="openEnrollModal()">➕ Enroll New User</button>
-      </div>
-
-      <!-- ENROLLED USERS TABLE -->
-      <div style="max-height:160px; overflow-y:auto; background:#fff; border-radius:6px; border:1px solid #e2e8f0;">
-        <table class="user-list-table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Full Name</th>
-              <th>Position</th>
-              <th>Department</th>
-              <th style="text-align:center;">Action</th>
-            </tr>
-          </thead>
-          <tbody id="enrolled-users-tbody">
-            <!-- Enrolled users loaded here -->
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 
   <div class="dash-toolbar">
@@ -630,23 +679,78 @@
     </div>
   </div>
 
-  <div class="dash-table-container">
-    <table class="dash-table">
-      <thead>
-        <tr>
-          <th>Branchname</th>
-          <th>Cut-off Date</th>
-          <th style="text-align:center;">Assign Companions</th>
-          <th style="text-align:center;">Inventory</th>
-          <th style="text-align:center;">Status</th>
-          <th style="text-align:center;">Action</th>
-        </tr>
-      </thead>
-      <tbody id="dash-tbody">
-        <!-- Rows dynamically rendered -->
-      </tbody>
-    </table>
+  <!-- 🎯 NAVIGATION TABS (LIKE SCREENSHOT) -->
+  <div class="view-switcher-tabs">
+    <button class="tab-switch-btn active" id="tab-btn-audits" onclick="switchMainTab('audits')">
+      <span>📜</span> All Branch Audits
+    </button>
+    <button class="tab-switch-btn" id="tab-btn-users" onclick="switchMainTab('users')">
+      <span>👥</span> User Profiles & Credentials
+    </button>
   </div>
+
+  <!-- 📑 TAB 1: ALL BRANCH AUDITS VIEW -->
+  <div id="tab-view-audits">
+    <div class="search-toolbar-bar">
+      <div class="search-input-box">
+        <span class="search-icon-inside">🔍</span>
+        <input type="text" id="search-branch-input" placeholder="Search Branch Name or Auditor..." oninput="filterBranchTable(this.value)">
+      </div>
+      <div style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:600;">
+        Showing real-time branch records across all accounts
+      </div>
+    </div>
+
+    <div class="dash-table-container">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>Branchname</th>
+            <th>Cut-off Date</th>
+            <th style="text-align:center;">Assign Companions</th>
+            <th style="text-align:center;">Inventory</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="dash-tbody">
+          <!-- Branch Rows dynamically rendered -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 👥 TAB 2: USER PROFILES & CREDENTIALS VIEW -->
+  <div id="tab-view-users" style="display:none;">
+    <div class="search-toolbar-bar">
+      <div class="search-input-box">
+        <span class="search-icon-inside">🔍</span>
+        <input type="text" id="search-user-input" placeholder="Search User Name, Email, or Department..." oninput="filterUserTable(this.value)">
+      </div>
+      <button class="btn-toolbar" style="background:var(--primary); color:#fff;" onclick="openEnrollModal()">
+        <span>➕</span> Enroll New User
+      </button>
+    </div>
+
+    <div class="dash-table-container">
+      <table class="user-list-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Position / Designation</th>
+            <th>Department</th>
+            <th>Email Address</th>
+            <th style="text-align:center;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="enrolled-users-tbody">
+          <!-- Enrolled users loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <!-- 💜 ENROLL NEW USER MODAL -->
@@ -863,6 +967,21 @@
     syncToFirebase('enrolledUsers', enrolledUsers);
   }
 
+  /* ⚡ TAB SWITCHING FUNCTIONALITY */
+  window.switchMainTab = function(tabName) {
+    document.querySelectorAll('.tab-switch-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('tab-view-audits').style.display = 'none';
+    document.getElementById('tab-view-users').style.display = 'none';
+
+    if (tabName === 'audits') {
+      document.getElementById('tab-btn-audits').classList.add('active');
+      document.getElementById('tab-view-audits').style.display = 'block';
+    } else if (tabName === 'users') {
+      document.getElementById('tab-btn-users').classList.add('active');
+      document.getElementById('tab-view-users').style.display = 'block';
+    }
+  };
+
   /* ⚡ AUTO-GENERATE USERNAME FROM FULL NAME */
   window.autoGenerateUsername = function(fullName) {
     let clean = fullName.trim().toLowerCase().replace(/[^a-z0-9\s]/g, '');
@@ -882,25 +1001,49 @@
     document.getElementById('enroll-username').value = username;
   };
 
-  function renderEnrolledUsersTable() {
+  /* 👥 RENDER USER ENROLLMENT TABLE */
+  window.renderEnrolledUsersTable = function(filterQuery = '') {
     const tbody = document.getElementById('enrolled-users-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    enrolledUsers.forEach((u, idx) => {
+    let query = filterQuery.toLowerCase().trim();
+    let filtered = enrolledUsers.filter(u => 
+      u.username.toLowerCase().includes(query) ||
+      u.name.toLowerCase().includes(query) ||
+      u.department.toLowerCase().includes(query) ||
+      u.email.toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">No enrolled users found.</td></tr>`;
+      return;
+    }
+
+    filtered.forEach((u) => {
+      let originalIdx = enrolledUsers.indexOf(u);
       let tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${u.username}</strong></td>
         <td>${u.name}</td>
         <td>${u.position}</td>
         <td>${u.department}</td>
+        <td>${u.email}</td>
         <td style="text-align:center;">
-          <button class="btn-action btn-delete" onclick="window.deleteEnrolledUser(${idx})">🗑️</button>
+          <button class="btn-action btn-delete" onclick="window.deleteEnrolledUser(${originalIdx})">🗑️ Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
-  }
+  };
+
+  window.filterUserTable = function(val) {
+    renderEnrolledUsersTable(val);
+  };
+
+  window.filterBranchTable = function(val) {
+    renderDashboardTable(val);
+  };
 
   /* 👥 MULTI-COMPANION MODAL FUNCTIONS */
   window.openAssignModal = function(entryIndex) {
@@ -955,12 +1098,11 @@
   };
 
   /* 🔐 ROW-LEVEL USER FILTERED DASHBOARD RENDER */
-  function renderDashboardTable() {
+  window.renderDashboardTable = function(filterQuery = '') {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    // Always ensure reading latest LocalStorage
     let storedData = localStorage.getItem('ml_strikeForceEntries');
     if (storedData) {
       try { strikeForceEntries = JSON.parse(storedData); } catch(e){}
@@ -979,6 +1121,14 @@
 
       return (creator && creator === currentUser) || companionsList.includes(currentUser);
     });
+
+    if (filterQuery) {
+      let q = filterQuery.toLowerCase().trim();
+      visibleEntries = visibleEntries.filter(row => 
+        row.branch.toLowerCase().includes(q) || 
+        (row.companions && row.companions.some(c => c.toLowerCase().includes(q)))
+      );
+    }
 
     if (visibleEntries.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found for your account (${currentUser}).</td></tr>`;
@@ -1030,7 +1180,7 @@
       `;
       tbody.appendChild(tr);
     });
-  }
+  };
 
   window.openEnrollModal = function() {
     document.getElementById('enroll-modal').style.display = 'flex';
