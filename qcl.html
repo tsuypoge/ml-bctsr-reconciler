@@ -238,9 +238,10 @@
   .ptn .flag { color: var(--primary); }
   .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
   .desc-list { font-size: 13px; line-height: 1.5; }
+  .desc-item { margin-bottom: 3px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
   .desc-list .code {
     display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700;
-    background: #f1f5f9; color: var(--primary); border-radius: 4px; padding: 1px 6px; margin-right: 6px;
+    background: #f1f5f9; color: var(--primary); border-radius: 4px; padding: 1px 6px;
   }
   .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
   .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
@@ -474,7 +475,7 @@
     return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
 
-  // 🔥 Realtime Firebase Cloud Sync Listener for QCL (AUTO-ACTIVE DASHBOARD FOR COMPANIONS)
+  // 🔥 Realtime Firebase Cloud Sync Listener
   function listenFirebaseQCLStore() {
     if (!currentBranch) return;
     const branchSlug = slugBranch(currentBranch);
@@ -501,7 +502,6 @@
         });
 
         if (changed) {
-          // 🎯 Fix: Automatically select first category if none active yet
           if (!activeCategory || !categoryData[activeCategory]) {
             const availableKeys = Object.keys(categoryData);
             if (availableKeys.length > 0) {
@@ -617,7 +617,7 @@
         catTickets = parsed.tickets.map((t,i)=>({
           id: catKey+'_'+i,
           ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
-          expected: t.items.reduce((a,it)=>a+it.pcs,0),
+          expected: t.items.reduce((a,it)=>a+(Number(it.pcs)||0),0),
           actual: null
         }));
       } else {
@@ -633,7 +633,7 @@
         catTickets = best.tickets.map((t,i)=>({
           id: catKey+'_'+i,
           ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
-          expected: t.items.reduce((a,it)=>a+it.pcs,0),
+          expected: t.items.reduce((a,it)=>a+(Number(it.pcs)||0),0),
           actual: null
         }));
       }
@@ -999,6 +999,7 @@
     </div>`;
   }
 
+  // 🎯 UPDATE: Render Items with 'No. of Pcs' included
   function renderTable(){
     const q = $('#search').value.trim().toLowerCase();
     const filterStatus = $('#filter-status').value;
@@ -1019,11 +1020,28 @@
       const flagged = /\*/.test(t.ptn);
       tr.dataset.status = st;
       const isFound = st === 'match';
+
+      // 🔍 Here we render pcs alongside item code and description
+      const itemsHtml = t.items.map((it, ii) => {
+        const numPcs = Number(it.pcs) || 1;
+        const pcsLabel = numPcs > 1 ? `${numPcs} pcs` : `${numPcs} pc`;
+        const pcsBadge = `<span class="meta" style="font-weight:700; color:var(--primary); margin-right:4px;">[${pcsLabel}]</span>`;
+        const karatStr = it.karat ? ` — ${it.karat}K` : '';
+        const wtStr = it.wt ? `, ${it.wt}g` : '';
+        
+        return `<div class="desc-item">
+          <span class="code">${it.code}</span>
+          ${pcsBadge}
+          <span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span>
+          <span class="meta">${karatStr}${wtStr}</span>
+        </div>`;
+      }).join('');
+
       tr.innerHTML = `
         <td class="num">${idx+1}</td>
         <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
         <td class="date">${t.date||'—'}</td>
-        <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
+        <td class="desc-list">${itemsHtml}</td>
         <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
         <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
         <td class="status-cell">${statusBadge(st)}</td>
@@ -1125,11 +1143,11 @@
       t.items.forEach(it=>{
         const cat = categoryOf(it.code);
         if(!cats[cat]) cats[cat] = {expected:0, counted:0};
-        cats[cat].expected += it.pcs;
+        cats[cat].expected += (Number(it.pcs) || 1);
       });
       if(t.actual){
         const primaryCat = categoryOf(t.items[0].code);
-        const ticketPcs = t.items.reduce((a,it)=>a+(Number(it.pcs)||0),0);
+        const ticketPcs = t.items.reduce((a,it)=>a+(Number(it.pcs)||1),0);
         cats[primaryCat].counted += ticketPcs;
       }
     });
@@ -1186,14 +1204,14 @@
   });
 
   $('#export-btn').addEventListener('click', ()=>{
-    const rows = [['Pawn Ticket #','Date','Principal Amount','Item Code','Description','Karat','Weight','Findings','Correct','Status']];
+    const rows = [['Pawn Ticket #','Date','Principal Amount','Item Code','Description','No. of Pcs','Karat','Weight','Findings','Correct','Status']];
     tickets.forEach(t=>{
       const flaggedItems = t.items.filter(i=>i.finding);
       if(!flaggedItems.length) return;
       const st = statusOf(t);
       flaggedItems.forEach(it=>{
         rows.push([
-          t.ptn, t.date, t.loan ?? '', it.code || '', it.desc || '',
+          t.ptn, t.date, t.loan ?? '', it.code || '', it.desc || '', it.pcs || 1,
           it.karat ? it.karat+'K' : '', it.wt ?? '',
           it.finding || '', it.correct || '', st
         ]);
