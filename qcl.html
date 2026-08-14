@@ -248,7 +248,7 @@
     white-space: nowrap; position: sticky; top: 0; z-index: 10;
   }
   
-  /* 🎯 FIXED ROW HEIGHT TO 50PX WITH VERTICAL CENTER ALIGNMENT */
+  /* FIXED ROW HEIGHT TO 50PX WITH VERTICAL CENTER ALIGNMENT */
   tbody td { 
     padding: 0 14px; 
     border-bottom: 1px solid #f8fafc; 
@@ -1097,8 +1097,9 @@
           <div class="item-row-container">
             ${t.items.map((it, ii) => {
               const numPcs = Number(it.pcs) || 1;
-              const karatStr = it.karat ? ` — ${it.karat}K` : '';
-              const wtStr = it.wt ? `, ${it.wt}g` : '';
+              // 🎯 FIXED: NO HYPHEN DASH IF KARAT OR WEIGHT IS MISSING/0
+              const karatStr = (it.karat && Number(it.karat) > 0) ? ` ${it.karat}K` : '';
+              const wtStr = (it.wt && Number(it.wt) > 0) ? `, ${it.wt}g` : '';
               return `
                 <div class="item-single-row">
                   <div class="item-pcs">${numPcs}</div>
@@ -1338,8 +1339,7 @@
         const card = document.querySelector(`.cat-upload-card[data-cat="${key}"]`);
         if(card){
           card.classList.add('done');
-          const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
-          if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored`;
+          const statusEl = document.querySelector(`[data-cat-status="${key}"]`).textContent = `✓ ${catInfo.tickets.length} tickets — restored`;
         }
         if(!firstCat) firstCat = key;
       }
