@@ -283,21 +283,12 @@
     padding: 6px 14px;
     border-radius: 20px;
     color: #ffffff;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
     backdrop-filter: blur(4px);
-  }
-
-  .db-status-badge {
-    background: #16a34a;
-    color: #ffffff;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 800;
   }
 
   .dash-table-container {
@@ -674,14 +665,14 @@
     </div>
 
     <div class="user-badge-bar">
-      <span class="db-status-badge" id="firebase-status">🔥 Cloud Sync Active</span>
-      <span>👤 Logged in as: <strong id="active-user-display">ADMIN-MASTER</strong></span>
+      <!-- 🎯 REMOVED CLOUD SYNC ACTIVE & CHANGED TO "Hi [FIRST NAME]" -->
+      <span>👤 <strong id="active-user-display">Hi, Admin!</strong></span>
       <button id="btn-top-profile-edit" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))" style="background:rgba(255,255,255,0.25); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px; display:none;" title="Edit Admin Profile">✏️ Profile</button>
       <button onclick="doLogout()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;">Logout</button>
     </div>
   </div>
 
-  <!-- 🎯 NAVIGATION TABS (SHOWN ONLY FOR ADMIN) -->
+  <!-- NAVIGATION TABS (SHOWN ONLY FOR ADMIN) -->
   <div class="view-switcher-tabs admin-only-element" id="admin-tabs-nav" style="display:none;">
     <button class="tab-switch-btn active" id="tab-btn-audits" onclick="switchMainTab('audits')">
       <span>📜</span> All Branch Audits
@@ -691,7 +682,7 @@
     </button>
   </div>
 
-  <!-- TAB 1: BRANCH AUDITS VIEW (ACCESSIBLE TO ALL - FILTERED BY ROLE) -->
+  <!-- TAB 1: BRANCH AUDITS VIEW -->
   <div id="tab-view-audits">
     <div class="search-toolbar-bar">
       <div class="search-input-box">
@@ -722,7 +713,7 @@
     </div>
   </div>
 
-  <!-- TAB 2: USER PROFILES & CREDENTIALS VIEW (RESTRICTED TO ADMIN ONLY) -->
+  <!-- TAB 2: USER PROFILES & CREDENTIALS VIEW -->
   <div id="tab-view-users" style="display:none;">
     <div class="search-toolbar-bar">
       <div class="search-input-box">
@@ -1122,7 +1113,6 @@
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
-    // 🎯 FILTER LOGIC: ADMIN SEES ALL; REGULAR USER SEES ONLY CREATED OR ASSIGNED COMPANION
     let visibleEntries = strikeForceEntries.filter((row) => {
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
@@ -1286,6 +1276,7 @@
     addAuditLog(`User Profile Updated for: ${uname} (${fname})`);
     alert(`Profile for ${uname} updated successfully!`);
     window.closeProfileModal();
+    updateUserInfoDisplay();
   };
 
   window.deleteEnrolledUser = function(index) {
@@ -1421,14 +1412,25 @@
     }
   };
 
-  /* 🔐 HIDE/SHOW ELEMENTS DEPENDING ON USER ROLE */
+  /* 🎯 EXTRACT FIRST NAME & UPDATE GREETING USER DISPLAY */
   function updateUserInfoDisplay() {
-    let user = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+    let activeUsername = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
     let role = localStorage.getItem('ml_user_role') || 'admin';
 
-    document.getElementById('active-user-display').innerText = user;
+    // Find Full Name of logged in user
+    let userObj = enrolledUsers.find(u => u.username.toLowerCase() === activeUsername.toLowerCase());
+    let firstName = activeUsername;
 
-    if (role === 'admin' || user.toLowerCase().includes('admin')) {
+    if (userObj && userObj.name) {
+      firstName = userObj.name.trim().split(/\s+/)[0]; // Extract first word
+    } else if (activeUsername.includes('.')) {
+      let parts = activeUsername.split('.');
+      firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+    }
+
+    document.getElementById('active-user-display').innerText = `Hi, ${firstName}!`;
+
+    if (role === 'admin' || activeUsername.toLowerCase().includes('admin')) {
       document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
       document.getElementById('admin-control-panel').style.display = 'block';
       document.getElementById('btn-top-profile-edit').style.display = 'inline-block';
@@ -1439,11 +1441,11 @@
       document.getElementById('btn-admin-panel-toggle').style.display = 'none';
       document.getElementById('admin-control-panel').style.display = 'none';
       document.getElementById('btn-top-profile-edit').style.display = 'none';
-      document.getElementById('branch-view-header-sub').innerText = `Showing assigned branch records for account: ${user}`;
+      document.getElementById('branch-view-header-sub').innerText = `Showing assigned branch records for account: ${activeUsername}`;
       
-      // 🎯 REGULAR USER: HIDE TABS AND ENROLLMENT MODAL BUTTONS
+      // 🎯 REGULAR USER: HIDE ADMIN TABS
       document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'none');
-      switchMainTab('audits'); // Force default to Audits View
+      switchMainTab('audits'); // Force view to Branch Audits
     }
   }
 
