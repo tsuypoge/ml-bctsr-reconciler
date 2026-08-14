@@ -284,7 +284,8 @@
   .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
   .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
   
-  .findings-list { min-width: 120px; }
+  /* 🎯 ENHANCED FINDINGS DROPDOWN CONTAINER */
+  .findings-list { min-width: 150px; }
   .findings-toggle {
     padding: 5px 10px; border: 1.5px solid var(--primary); border-radius: 6px; background: #ffffff;
     cursor: pointer; font-size: 11px; font-weight: 700; color: var(--primary); font-family: var(--font-sans);
@@ -293,9 +294,15 @@
   .findings-toggle.has-findings { background: var(--primary); color: #ffffff; }
   .findings-body { display: none; margin-top: 8px; }
   .findings-body.show { display: block; }
-  .finding-item { margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .finding-item { margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; }
+  
   .finding-select, .correct-select {
-    width: 100%; font-size: 11px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px;
+    width: 100%; min-width: 140px; font-size: 11.5px; font-weight: 600;
+    padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 6px;
+    background: #ffffff; color: var(--text-main); outline: none;
+  }
+  .finding-select:focus, .correct-select:focus {
+    border-color: var(--primary);
   }
 
   .status-badge {
@@ -309,7 +316,6 @@
     border: 1.5px solid var(--match); border-radius: 4px; padding: 1px 6px; transform: rotate(-4deg);
   }
 
-  /* 🎯 FIXED: STATUS CELL CONTAINER FOR SIDE-BY-SIDE ALIGNMENT */
   .status-cell {
     white-space: nowrap;
   }
@@ -1029,11 +1035,12 @@
 
   function correctOptionsHtml(finding, selected){
     const opts = correctOptionsFor(finding);
-    const placeholder = finding ? '— Select Correct —' : '— Select Findings first —';
+    const placeholder = '— Select Correct —';
     return `<option value="">${placeholder}</option>` +
       opts.map(v=>`<option value="${v}" ${selected===v?'selected':''}>${v}</option>`).join('');
   }
 
+  // 🎯 ALWAYS RENDERS BOTH DROPDOWNS FULLY VISIBLE
   function findingItemHtml(it, ti, ii){
     const finding = it.finding || '';
     const correct = it.correct || '';
@@ -1042,7 +1049,7 @@
         <option value="">— Select Findings —</option>
         ${FINDINGS_TYPES.map(f=>`<option value="${f}" ${finding===f?'selected':''}>${f}</option>`).join('')}
       </select>
-      <select class="correct-select" data-ti="${ti}" data-ii="${ii}" ${!finding?'disabled':''}>
+      <select class="correct-select" data-ti="${ti}" data-ii="${ii}">
         ${correctOptionsHtml(finding, correct)}
       </select>
     </div>`;
@@ -1144,7 +1151,6 @@
         saveFullCategoryState(activeCategory);
         const wrap = e.target.closest('.finding-item');
         const correctSel = wrap.querySelector('.correct-select');
-        correctSel.disabled = !val;
         correctSel.innerHTML = correctOptionsHtml(val, '');
         const toggleBtn = e.target.closest('.findings-list').querySelector('.findings-toggle');
         const hasFinding = tickets[ti].items.some(it=>it.finding);
@@ -1172,7 +1178,6 @@
     renderStats();
   }
 
-  // 🎯 FIXED: STATUS BADGE + OK STAMP IN A FLEX CONTAINER FOR SIDE-BY-SIDE DISPLAY
   function statusBadge(st){
     if(st==='match') return `<div class="status-cell-container"><span class="status-badge match">Found</span><span class="stamp">✓ OK</span></div>`;
     return `<div class="status-cell-container"><span class="status-badge pending">Pending</span></div>`;
