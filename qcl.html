@@ -237,16 +237,52 @@
   .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); white-space: nowrap; }
   .ptn .flag { color: var(--primary); }
   .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
-  .pcs-col { font-size: 13.5px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); text-align: center; }
   
-  .code-col { font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
-  .code-col div { display: inline-block; background: #f1f5f9; color: var(--primary); border-radius: 4px; padding: 1px 6px; margin-bottom: 3px; }
-
-  .desc-list { font-size: 13px; line-height: 1.5; }
-  .desc-item { margin-bottom: 3px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  /* 🎯 PERFECT SIDE-BY-SIDE LINE ALIGNMENT STYLES */
+  .item-row-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .item-single-row {
+    display: flex;
+    align-items: center;
+    min-height: 26px;
+  }
+  .item-pcs {
+    width: 70px;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--text-main);
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .item-code {
+    width: 80px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .item-code span {
+    background: #f1f5f9;
+    color: var(--primary);
+    border-radius: 4px;
+    padding: 2px 6px;
+    display: inline-block;
+  }
+  .item-desc {
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex-grow: 1;
+  }
+  .item-desc .meta { color: var(--text-muted); font-size: 11.5px; font-weight: 600; }
   .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
   .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
-  .desc-list .meta { color: var(--text-muted); font-size: 11.5px; font-weight: 600; }
   
   .findings-list { min-width: 120px; }
   .findings-toggle {
@@ -409,7 +445,7 @@
             <th>Date</th>
             <th style="text-align:center;">No. of Pcs</th>
             <th>Item Code</th>
-            <th>Items</th>
+            <th>Items / Description</th>
             <th>Loan Value</th>
             <th style="text-align:center;">Found?</th>
             <th>Status</th>
@@ -1002,7 +1038,7 @@
     </div>`;
   }
 
-  // 🎯 UPDATE: Render Table with separate 'Item Code' column
+  // 🎯 PERFECT SIDE-BY-SIDE LINE ALIGNED TABLE RENDER
   function renderTable(){
     const q = $('#search').value.trim().toLowerCase();
     const filterStatus = $('#filter-status').value;
@@ -1024,23 +1060,23 @@
       tr.dataset.status = st;
       const isFound = st === 'match';
 
-      // Render pcs in its own column
+      // 1. Render Pcs row items
       const pcsHtml = t.items.map(it => {
         const numPcs = Number(it.pcs) || 1;
-        return `<div>${numPcs}</div>`;
+        return `<div class="item-pcs">${numPcs}</div>`;
       }).join('');
 
-      // Render Item Code in its own column
+      // 2. Render Item Code row items
       const codeHtml = t.items.map(it => {
-        return `<div>${it.code || '—'}</div>`;
+        return `<div class="item-code"><span>${it.code || '—'}</span></div>`;
       }).join('');
 
-      // Render Description, Karat, and Weight in Items column
+      // 3. Render Description, Karat, and Weight row items
       const itemsHtml = t.items.map((it, ii) => {
         const karatStr = it.karat ? ` — ${it.karat}K` : '';
         const wtStr = it.wt ? `, ${it.wt}g` : '';
         
-        return `<div class="desc-item">
+        return `<div class="item-desc">
           <span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span>
           <span class="meta">${karatStr}${wtStr}</span>
         </div>`;
@@ -1050,9 +1086,25 @@
         <td class="num">${idx+1}</td>
         <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
         <td class="date">${t.date||'—'}</td>
-        <td class="pcs-col">${pcsHtml}</td>
-        <td class="code-col">${codeHtml}</td>
-        <td class="desc-list">${itemsHtml}</td>
+        <td colspan="3" style="padding: 12px 0;">
+          <div class="item-row-container">
+            ${t.items.map((it, ii) => {
+              const numPcs = Number(it.pcs) || 1;
+              const karatStr = it.karat ? ` — ${it.karat}K` : '';
+              const wtStr = it.wt ? `, ${it.wt}g` : '';
+              return `
+                <div class="item-single-row">
+                  <div class="item-pcs">${numPcs}</div>
+                  <div class="item-code"><span>${it.code || '—'}</span></div>
+                  <div class="item-desc">
+                    <span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span>
+                    <span class="meta">${karatStr}${wtStr}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </td>
         <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
         <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
         <td class="status-cell">${statusBadge(st)}</td>
