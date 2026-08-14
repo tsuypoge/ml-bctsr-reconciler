@@ -165,7 +165,7 @@
 
   #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
-  /* 🎯 STICKY CONTAINER FOR TABS + SEARCH TOOLBAR */
+  /* STICKY CONTROLS WRAPPER */
   .sticky-controls-wrapper {
     position: sticky;
     top: 0;
@@ -193,7 +193,7 @@
   .tab .t-name { font-size: 15px; font-weight: 800; color: var(--primary); }
   .tab .t-count { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
 
-  /* 🎯 TOOLBAR STICKY TOGETHER WITH TABS */
+  /* TOOLBAR STYLES */
   .toolbar {
     display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
     background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md);
@@ -247,7 +247,14 @@
     color: var(--primary); text-align: left; padding: 16px 14px; border-bottom: 2px solid var(--border);
     white-space: nowrap; position: sticky; top: 0; z-index: 10;
   }
-  tbody td { padding: 12px 14px; border-bottom: 1px solid #f8fafc; vertical-align: top; }
+  
+  /* 🎯 FIXED ROW HEIGHT TO 50PX WITH VERTICAL CENTER ALIGNMENT */
+  tbody td { 
+    padding: 0 14px; 
+    border-bottom: 1px solid #f8fafc; 
+    vertical-align: middle; 
+    height: 50px; 
+  }
   tbody tr:hover { background: #fffdfd; }
   .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); white-space: nowrap; }
   .ptn .flag { color: var(--primary); }
@@ -442,7 +449,7 @@
     <div id="debug-panel" style="display:none; background:#fff; padding:12px; border-radius:8px; margin-top:8px; text-align:left; font-size:11px; max-height:150px; overflow:auto;"></div>
   </div>
 
-  <!-- 🎯 STICKY CONTROLS WRAPPER (TABS + SEARCH BAR SIDE-BY-SIDE WITH STATUS) -->
+  <!-- STICKY CONTROLS WRAPPER (TABS + SEARCH TOOLBAR SIDE BY SIDE) -->
   <div class="sticky-controls-wrapper">
     <div class="tabs" id="category-tabs"></div>
 
@@ -1086,7 +1093,7 @@
         <td class="num">${idx+1}</td>
         <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
         <td class="date">${t.date||'—'}</td>
-        <td colspan="3" style="padding: 12px 0;">
+        <td colspan="3" style="padding: 0;">
           <div class="item-row-container">
             ${t.items.map((it, ii) => {
               const numPcs = Number(it.pcs) || 1;
