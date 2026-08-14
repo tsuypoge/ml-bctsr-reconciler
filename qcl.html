@@ -237,8 +237,10 @@
   .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); white-space: nowrap; }
   .ptn .flag { color: var(--primary); }
   .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
+  .pcs-col { font-size: 13.5px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); text-align: center; }
+  
   .desc-list { font-size: 13px; line-height: 1.5; }
-  .desc-item { margin-bottom: 3px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .desc-item { margin-bottom: 3px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
   .desc-list .code {
     display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700;
     background: #f1f5f9; color: var(--primary); border-radius: 4px; padding: 1px 6px;
@@ -406,6 +408,7 @@
             <th>#</th>
             <th>Pawn Ticket #</th>
             <th>Date</th>
+            <th style="text-align:center;">No. of Pcs</th>
             <th>Items</th>
             <th>Loan Value</th>
             <th style="text-align:center;">Found?</th>
@@ -999,7 +1002,7 @@
     </div>`;
   }
 
-  // 🎯 UPDATE: Render Items with 'No. of Pcs' included
+  // 🎯 UPDATE: Render Table with separate 'No. of Pcs' column in between Date and Items
   function renderTable(){
     const q = $('#search').value.trim().toLowerCase();
     const filterStatus = $('#filter-status').value;
@@ -1021,17 +1024,18 @@
       tr.dataset.status = st;
       const isFound = st === 'match';
 
-      // 🔍 Here we render pcs alongside item code and description
-      const itemsHtml = t.items.map((it, ii) => {
+      // 🔍 Render pcs in a dedicated column, list items cleanly without "pc/pcs"
+      const pcsHtml = t.items.map(it => {
         const numPcs = Number(it.pcs) || 1;
-        const pcsLabel = numPcs > 1 ? `${numPcs} pcs` : `${numPcs} pc`;
-        const pcsBadge = `<span class="meta" style="font-weight:700; color:var(--primary); margin-right:4px;">[${pcsLabel}]</span>`;
+        return `<div>${numPcs}</div>`;
+      }).join('');
+
+      const itemsHtml = t.items.map((it, ii) => {
         const karatStr = it.karat ? ` — ${it.karat}K` : '';
         const wtStr = it.wt ? `, ${it.wt}g` : '';
         
         return `<div class="desc-item">
           <span class="code">${it.code}</span>
-          ${pcsBadge}
           <span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span>
           <span class="meta">${karatStr}${wtStr}</span>
         </div>`;
@@ -1041,6 +1045,7 @@
         <td class="num">${idx+1}</td>
         <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
         <td class="date">${t.date||'—'}</td>
+        <td class="pcs-col">${pcsHtml}</td>
         <td class="desc-list">${itemsHtml}</td>
         <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
         <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
