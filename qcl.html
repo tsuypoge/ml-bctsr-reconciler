@@ -136,18 +136,6 @@
   .branch-box h3 { font-size: 17px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
   .branch-box p { font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; }
 
-  /* 🎯 STICKY / FREEZE FOR GLOBAL SEARCH PTN BOX */
-  #global-search-box {
-    position: sticky;
-    top: 0;
-    z-index: 60;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-    border-bottom: 2px solid var(--gold);
-    padding: 16px 22px;
-  }
-  #global-search-box h3 { font-size: 15px; }
-  #global-search-box p { margin-bottom: 8px; font-size: 11.5px; }
-
   .input-control {
     padding: 10px 14px;
     border-radius: var(--radius-sm);
@@ -177,10 +165,10 @@
 
   #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
-  /* 🎯 STICKY TABS BELOW SEARCH PTN */
+  /* STICKY TABS FOR PRENDA / TERMS / RE-APPRAISAL */
   .tabs {
-    display: none; margin-top: 14px; gap: 10px; flex-wrap: wrap;
-    position: sticky; top: 135px; z-index: 55;
+    display: none; margin-top: 20px; gap: 10px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 55;
     background: rgba(255,255,255,0.92); backdrop-filter: blur(10px);
     padding: 10px; border-radius: var(--radius-md);
     box-shadow: 0 8px 15px rgba(0,0,0,0.12);
@@ -221,14 +209,24 @@
   .cat-card .figures { font-size: 18px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; color: var(--text-main); }
   .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
+  /* 🎯 TOOLBAR STYLES: SEARCH BOX SIDE BY SIDE WITH STATUS DROPDOWN */
   .toolbar {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-bottom: 16px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
     background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-card);
   }
+  #search {
+    flex: 1; min-width: 200px; padding: 10px 14px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--font-sans); font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+  #search:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
   select {
     padding: 10px 14px; border: 1.5px solid var(--border);
     border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
+    outline: none; transition: border-color 0.2s;
   }
+  select:focus { border-color: var(--primary); }
 
   .ledger {
     background: var(--panel-bg); border-radius: var(--radius-lg);
@@ -397,17 +395,6 @@
     <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
-  <!-- 🎯 SINGLE STICKY SEARCH PTN BOX -->
-  <div class="branch-box" id="global-search-box">
-    <h3>🔎 Search PTN / Description</h3>
-    <p>Look up a pawn ticket number or item description across all active records simultaneously.</p>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <input type="text" id="global-search-input" class="input-control" placeholder="Type PTN digits or description..." style="flex:1; min-width:200px;">
-      <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search</button>
-    </div>
-    <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
-  </div>
-
   <div class="cat-uploads" id="cat-uploads">
     <div class="cat-upload-card" data-cat="prenda">
       <h3>Prenda</h3>
@@ -446,14 +433,16 @@
     <div id="debug-panel" style="display:none; background:#fff; padding:12px; border-radius:8px; margin-top:8px; text-align:left; font-size:11px; max-height:150px; overflow:auto;"></div>
   </div>
 
-  <!-- 🎯 STICKY TABS BELOW SEARCH PTN -->
+  <!-- STICKY TABS FOR CATEGORIES -->
   <div class="tabs" id="category-tabs"></div>
 
   <div id="dashboard">
     <div class="stats-row" id="stats-row"></div>
     <div class="cat-row" id="cat-row"></div>
 
+    <!-- 🎯 SEARCH BOX SIDE BY SIDE WITH STATUS DROPDOWN FILTER -->
     <div class="toolbar">
+      <input type="text" id="search" placeholder="🔎 Search: PTN digits, or item description...">
       <select id="filter-status">
         <option value="all">All Status</option>
         <option value="pending">Pending</option>
@@ -630,8 +619,6 @@
     $('#category-tabs').innerHTML = '';
     $('#category-tabs').classList.remove('show');
     $('#dashboard').classList.remove('show');
-    $('#global-search-input').value = '';
-    $('#global-search-results').innerHTML = '';
 
     listenFirebaseQCLStore();
     autoRestoreBranch();
@@ -1063,9 +1050,9 @@
     </div>`;
   }
 
-  // 🎯 PERFECT SIDE-BY-SIDE LINE ALIGNED TABLE RENDER WITH GLOBAL SEARCH FILTER
+  // 🎯 PERFECT SIDE-BY-SIDE LINE ALIGNED TABLE RENDER WITH TOOLBAR SEARCH FILTER
   function renderTable(){
-    const q = $('#global-search-input').value.trim().toLowerCase();
+    const q = $('#search').value.trim().toLowerCase();
     const filterStatus = $('#filter-status').value;
     const body = $('#ledger-body');
     body.innerHTML = '';
@@ -1224,14 +1211,8 @@
     `).join('');
   }
 
+  $('#search').addEventListener('input', ()=> keepScroll(renderTable));
   $('#filter-status').addEventListener('change', ()=> keepScroll(renderTable));
-
-  function runGlobalSearch(){
-    renderTable();
-  }
-
-  $('#global-search-btn').addEventListener('click', runGlobalSearch);
-  $('#global-search-input').addEventListener('input', runGlobalSearch);
 
   $('#reset-counts-btn').addEventListener('click', async ()=>{
     if(!confirm('Clear all Found checkmarks?')) return;
@@ -1377,8 +1358,6 @@
     $('#category-tabs').innerHTML = '';
     $('#category-tabs').classList.remove('show');
     $('#dashboard').classList.remove('show');
-    $('#global-search-input').value = '';
-    $('#global-search-results').innerHTML = '';
     setStatus(`Cleared data for branch "${currentBranch}".`);
   });
 
