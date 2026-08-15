@@ -255,7 +255,25 @@
     vertical-align: middle; 
     height: 50px; 
   }
-  tbody tr:hover { background: #fffdfd; }
+
+  /* 🔥 OPTION 1: FULL-ROW HOVER HIGHLIGHT STYLES 🔥 */
+  tbody tr {
+    transition: background-color 0.15s ease-in-out;
+  }
+
+  tbody tr:hover {
+    background-color: #fef2f2 !important; /* Soft M Lhuillier red tint */
+  }
+
+  tbody tr:hover .ptn {
+    color: var(--primary-dark);
+  }
+
+  tbody tr:hover .item-code span {
+    background-color: #ffe4e6;
+    color: var(--primary);
+  }
+
   .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); white-space: nowrap; }
   .ptn .flag { color: var(--primary); }
   .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
