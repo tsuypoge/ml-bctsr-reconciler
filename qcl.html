@@ -256,9 +256,10 @@
     height: 50px; 
   }
 
-  /* OPTION 1: FULL-ROW HOVER HIGHLIGHT STYLES */
+  /* FULL-ROW HOVER HIGHLIGHT STYLES WITH CURSOR POINTER */
   tbody tr {
     transition: background-color 0.15s ease-in-out;
+    cursor: pointer; /* Pinapakita nga pwedeng i-click ang row */
   }
 
   tbody tr:hover {
@@ -286,7 +287,7 @@
   }
   .item-single-row {
     display: flex;
-    align-items: center; /* Sigurado nga magkatupong ang tanan sa tunga */
+    align-items: center;
     min-height: 26px;
   }
   .item-pcs {
@@ -1155,6 +1156,26 @@
           <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
         </td>
       `;
+
+      // 🔥 CLICK ROW TO TOGGLE CHECKBOX (Exc. Findings dropdown, Delete button, and editable text)
+      tr.addEventListener('click', (e) => {
+        if (
+          e.target.closest('.findings-list') ||
+          e.target.closest('.del-btn') ||
+          e.target.isContentEditable ||
+          e.target.tagName === 'SELECT' ||
+          e.target.tagName === 'OPTION'
+        ) {
+          return;
+        }
+
+        const chk = tr.querySelector('.found-check');
+        if (e.target !== chk) {
+          chk.checked = !chk.checked;
+          chk.dispatchEvent(new Event('change'));
+        }
+      });
+
       body.appendChild(tr);
     });
 
