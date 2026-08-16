@@ -57,7 +57,7 @@
 
   ::selection { background: var(--primary); color: #ffffff; }
 
-  /* CENTER SCREEN OFFLINE OVERLAY MODAL */
+  /* CENTER SCREEN OFFLINE WARNING MODAL */
   .offline-modal-overlay {
     position: fixed;
     top: 0;
@@ -417,15 +417,21 @@
     justify-content: center;
     line-height: 1;
   }
+  
+  /* INLINE DESCRIPTION + KARAT + WEIGHT STYLES */
   .item-desc {
     font-size: 13px;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
     flex-grow: 1;
+    white-space: nowrap;
   }
-  .item-desc .meta { color: var(--text-muted); font-size: 12px; font-weight: 600; margin-left: 2px; }
+  .item-desc .meta { 
+    color: var(--text-muted); 
+    font-size: 12px; 
+    font-weight: 600; 
+  }
   .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
   .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
   
@@ -708,7 +714,6 @@
   // CLICK ANYWHERE HANDLER WHEN OFFLINE TO DISPLAY CENTER MODAL
   document.addEventListener('click', (e) => {
     if (!isOnlineState) {
-      // Don't interrupt dismiss or refresh clicks
       if (e.target.closest('#offline-modal-overlay')) return;
       modalOverlay.classList.add('show');
     }
@@ -1285,7 +1290,7 @@
             ${t.items.map((it, ii) => {
               const numPcs = Number(it.pcs) || 1;
               
-              // KARAT & FORMATTED WEIGHT (ALWAYS 0.0g) DIRECTLY APPENDED TO DESCRIPTION
+              // KARAT & FORMATTED WEIGHT (ALWAYS 0.0g) DIRECTLY APPENDED BESIDE DESCRIPTION
               const karatStr = (it.karat && Number(it.karat) > 0) ? `${it.karat}K` : '';
               const weightVal = (it.wt !== undefined && it.wt !== null && it.wt !== '') ? Number(it.wt) : 0;
               const wtStr = `${weightVal.toFixed(1)}g`;
