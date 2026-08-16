@@ -259,11 +259,11 @@
   /* FULL-ROW HOVER HIGHLIGHT STYLES WITH CURSOR POINTER */
   tbody tr {
     transition: background-color 0.15s ease-in-out;
-    cursor: pointer; /* Pinapakita nga pwedeng i-click ang row */
+    cursor: pointer;
   }
 
   tbody tr:hover {
-    background-color: #fef2f2 !important; /* Soft M Lhuillier red tint */
+    background-color: #fef2f2 !important;
   }
 
   tbody tr:hover .ptn {
@@ -384,13 +384,19 @@
   .found-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--match); }
   .actions-cell { white-space: nowrap; text-align: right; }
 
+  /* DYNAMIC CLOUD ONLINE / OFFLINE BADGE */
   .cloud-tag {
     background: #16a34a;
     color: #ffffff;
     font-size: 11px;
-    padding: 3px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     font-weight: 800;
+    transition: all 0.3s ease;
+  }
+  .cloud-tag.offline {
+    background: #dc2626 !important;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
   }
 
   @media print {
@@ -415,7 +421,7 @@
         <div class="header-sub">Automated Pawn Ticket Verification & Audit Engine</div>
       </div>
     </div>
-    <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
+    <span class="cloud-tag" id="network-status-tag">🔥 Live Multi-User Cloud Sync</span>
   </div>
 </header>
 
@@ -572,6 +578,34 @@
     return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
 
+  // 🌐 NETWORK MONITORING (DETECTS INTERNET DISCONNECTION)
+  const networkTag = $('#network-status-tag');
+
+  function updateNetworkUI(isOnline) {
+    if (isOnline) {
+      networkTag.textContent = '🔥 Live Multi-User Cloud Sync';
+      networkTag.classList.remove('offline');
+    } else {
+      networkTag.textContent = '⚠️ Offline (No Internet Sync)';
+      networkTag.classList.add('offline');
+      setStatus('⚠️ No internet connection. Changes are currently saved locally.');
+    }
+  }
+
+  // Browser level online/offline events check
+  window.addEventListener('online', () => updateNetworkUI(true));
+  window.addEventListener('offline', () => updateNetworkUI(false));
+
+  // Firebase connection state listener
+  const connectedRef = ref(db, ".info/connected");
+  onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+      updateNetworkUI(true);
+    } else {
+      updateNetworkUI(false);
+    }
+  });
+
   // 🔥 Realtime Firebase Cloud Sync Listener
   function listenFirebaseQCLStore() {
     if (!currentBranch) return;
@@ -682,6 +716,7 @@
       listenFirebaseQCLStore();
       autoRestoreBranch();
     }
+    updateNetworkUI(navigator.onLine);
   })();
 
   $$('.cat-upload-btn').forEach(btn=>{
@@ -1157,7 +1192,7 @@
         </td>
       `;
 
-      // 🔥 CLICK ROW TO TOGGLE CHECKBOX (Exc. Findings dropdown, Delete button, and editable text)
+      // CLICK ROW TO TOGGLE CHECKBOX (Exc. Findings dropdown, Delete button, and editable text)
       tr.addEventListener('click', (e) => {
         if (
           e.target.closest('.findings-list') ||
