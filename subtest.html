@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QCL Subtesting Report</title>
+<title>QCL Subtesting Report — M Lhuillier</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23a3241c'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23fff2f1' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23fff2f1'/%3E%3Ccircle cx='32' cy='28' r='6.5' fill='%23a3241c'/%3E%3Cpath d='M27 34 Q32 46 37 34 Z' fill='%23a3241c'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <style>
   :root{
     --bg:#ffffff;
@@ -55,12 +56,16 @@
     font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
     background:var(--brass);color:var(--ink);border:none;padding:11px 22px;border-radius:6px;
     cursor:pointer;font-weight:600;transition:transform .12s, background .15s;
+    display:inline-flex;align-items:center;gap:6px;
   }
   .btn:hover{background:var(--brass-soft);transform:translateY(-1px);}
   .btn:active{transform:translateY(0);}
   .btn.ghost{background:transparent;color:var(--parchment);border:1px solid var(--line);}
   .btn.ghost:hover{border-color:var(--brass);color:var(--brass);}
   .btn.small{padding:7px 13px;font-size:11px;}
+  .btn-dashboard { background: #1e293b; color: #ffffff; }
+  .btn-dashboard:hover { background: #0f172a; color: #ffffff; }
+
   input[type=file]{display:none;}
 
   .cat-uploads{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;}
@@ -70,7 +75,7 @@
   }
   .cat-upload-card.done{border-style:solid;border-color:var(--brass);background:var(--panel-2);}
   .branch-box{
-    margin-top:26px;border:1.5px solid var(--brass);border-radius:var(--radius);
+    margin-top:20px;border:1.5px solid var(--brass);border-radius:var(--radius);
     background:var(--panel-2);padding:18px 20px;
   }
   .branch-box h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 4px;}
@@ -211,20 +216,11 @@
   .empty-note{text-align:center;color:var(--parchment-dim);font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:40px 20px;}
 
   @media print{
-    header.cover, .cat-uploads, .tabs, .toolbar, .footer-tools{display:none !important;}
+    header.cover, .cat-uploads, .tabs, .toolbar, .footer-tools, #btn-back-dashboard{display:none !important;}
     body{background:#fff;color:#000;}
     .ledger{border-color:#999;max-height:none !important;overflow:visible !important;}
     thead th{background:#eee;color:#000;position:static;}
     tbody td{color:#000;border-color:#ccc;}
-  }
-  @media (max-width:720px){
-    thead{display:none;}
-    table, tbody, tr, td{display:block;width:100%;}
-    tbody tr{border-bottom:1px solid var(--line);padding:12px 4px;}
-    tbody td{border:none;padding:4px 6px;}
-    .num{text-align:left;}
-    tbody td::before{content:attr(data-label);display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
-      text-transform:uppercase;letter-spacing:.05em;color:var(--brass);margin-bottom:2px;}
   }
 </style>
 </head>
@@ -233,16 +229,23 @@
 <header class="cover">
   <div class="eyebrow">QCL Subtesting Report</div>
   <h1>Non-Compliance Review</h1>
-  <p>Upload the monthly Re-appraise, Renew, and Redeem reports (Excel). Rows are grouped by Pawn Ticket + Date — same ticket, same date counts as one transaction. Filter by date range, check off items physically found, and flag compliance findings per ticket before exporting.</p>
+  <p>Upload the monthly Re-appraise, Renew, and Redeem reports (Excel). Filter by date range, check off items physically found, and flag compliance findings per ticket before exporting.</p>
 </header>
 
 <div class="wrap">
 
+  <!-- ⬅️ BACK TO DASHBOARD BUTTON -->
+  <div style="display:flex; justify-content:flex-start; align-items:center; margin-top:20px;">
+    <button class="btn btn-dashboard" id="btn-back-dashboard" onclick="window.location.href='index.html'" title="Return to Main Dashboard">
+      <span>⬅️</span> Back to Dashboard
+    </button>
+  </div>
+
   <div class="branch-box" id="branch-box">
     <h3>🏢 Branch & Audit Date</h3>
-    <p>Enter the branch and audit date first — your uploads and findings will be saved under this branch/date so nothing gets mixed up or lost on refresh.</p>
+    <p>Select or enter your branch name and audit date to keep inventory records separate.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <input type="text" id="branch-input" placeholder="e.g. Marawi, Colon, Carbon..." style="flex:1;min-width:200px;padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
+      <input type="text" id="branch-input" placeholder="e.g. ML Catarman, ML Liloan 3..." style="flex:1;min-width:200px;padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
       <input type="date" id="audit-date-input" style="padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
       <button class="btn" id="branch-confirm-btn">Start / Switch Branch</button>
     </div>
@@ -334,14 +337,7 @@
 </div>
 
 <script>
-// ---------- Storage fallback ----------
-// window.storage only exists when this page is opened inside a Claude
-// artifact (claude.ai). When the file is downloaded and opened directly
-// in a browser (double-clicked), window.storage is missing, so every
-// save silently failed. This shim falls back to the browser's
-// localStorage in that case, so data still persists on THIS computer
-// between refreshes (it just won't be shared to other computers/people —
-// that sharing only works when hosted as a Claude artifact link).
+// ---------- Storage Fallback ----------
 if(!window.storage){
   const LS_PREFIX = 'qcl_subtesting_local:';
   window.storage = {
@@ -368,7 +364,6 @@ if(!window.storage){
       return {keys, prefix, shared: !!shared};
     }
   };
-  console.info('QCL Subtesting Report: running standalone — saving to this browser only (localStorage fallback).');
 }
 
 const $ = s => document.querySelector(s);
@@ -391,7 +386,7 @@ const FINDINGS = [
   {key:'no_fla_signature', label:"7. No FLA Signature"},
 ];
 
-let categoryData = {};   // key -> {records:[], fileName}
+let categoryData = {};
 let activeCategory = null;
 let sortState = {col:'date', dir:1};
 let currentBranch = '';
@@ -407,8 +402,6 @@ function computeDataKey(catKey){
   return 'qcl-subtesting:' + slugBranch(currentBranch) + ':' + catKey + ':full';
 }
 
-// Saves the FULL record list (incl. actual counts, findings, validated
-// flags) so a refresh does not require re-uploading the Excel.
 let saveTimer = null;
 function persistState(){
   clearTimeout(saveTimer);
@@ -425,7 +418,6 @@ async function saveFullCategoryState(catKey, attempt){
   try{
     await window.storage.set(computeDataKey(catKey), payload, true);
   }catch(e){
-    console.warn('save failed (attempt '+attempt+')', e);
     if(attempt < 3) setTimeout(()=> saveFullCategoryState(catKey, attempt+1), 800*attempt);
   }
 }
@@ -460,7 +452,7 @@ async function autoRestoreBranch(){
     activeCategory = firstRestored;
     renderCategoryTabs();
     loadCategory(firstRestored);
-    setStatus(`Welcome back — restored saved data for branch "${currentBranch}".`);
+    setStatus(`Restored saved data for branch "${currentBranch}".`);
   }
 }
 
@@ -470,6 +462,8 @@ async function rememberBranch(name){
 }
 async function recallBranch(){
   try{
+    let activeB = localStorage.getItem('ml_activeBranch');
+    if(activeB && activeB !== 'SELECT BRANCH') return activeB;
     const res = await window.storage.get(REMEMBERED_BRANCH_KEY, false);
     return (res && res.value) ? res.value : '';
   }catch(e){ return ''; }
@@ -496,9 +490,10 @@ $('#branch-confirm-btn').addEventListener('click', ()=>{
   const val = $('#branch-input').value.trim();
   if(!val){ alert('Please type your branch name first.'); return; }
   const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
-  if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"? Your current view will clear (that branch's saved data is safe under its own name).`)) return;
+  if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"? Your current view will clear.`)) return;
 
   currentBranch = val;
+  localStorage.setItem('ml_activeBranch', currentBranch);
   currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
   $('#audit-date-input').value = currentAuditDate;
   $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
@@ -526,12 +521,13 @@ $('#branch-confirm-btn').addEventListener('click', ()=>{
   autoRestoreBranch();
 });
 
+// 🔥 AUTOMATIC BRANCH NAME RECOGNITION FROM RECONCILER/INDEX PORTAL
 (async ()=>{
   $('#audit-date-input').value = new Date().toISOString().slice(0,10);
   const remembered = await recallBranch();
   const rememberedDate = await recallAuditDate();
   if(rememberedDate) $('#audit-date-input').value = rememberedDate;
-  if(remembered){
+  if(remembered && remembered !== 'SELECT BRANCH'){
     $('#branch-input').value = remembered;
     currentBranch = remembered;
     currentAuditDate = $('#audit-date-input').value;
@@ -540,8 +536,6 @@ $('#branch-confirm-btn').addEventListener('click', ()=>{
     autoRestoreBranch();
   }
 })();
-
-lockCatUploads();
 
 function toNum(v){
   if(v === null || v === undefined || v === '') return 0;
@@ -559,10 +553,6 @@ function findHeaderCol(headerRow, candidates){
 }
 
 function cleanStr(v){
-  // Some branch exports carry invisible Unicode marks (zero-width spaces,
-  // left/right-mark characters, BOM) glued to text cells. These are
-  // invisible on screen but break a regex anchored to the start of the
-  // string, so strip them before parsing.
   return String(v||'').replace(/[\u200B-\u200F\u202A-\u202E\uFEFF]/g,'').trim();
 }
 
@@ -584,7 +574,6 @@ function formatExcelDate(val){
       return `${mm}/${dd}/${yyyy}`;
     }
   }
-  // strings like "06/30/2026 08:38:35" -> keep date part only
   const str = cleanStr(val);
   const m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   return m ? `${m[1]}/${m[2]}/${m[3]}` : str;
@@ -600,23 +589,18 @@ async function parseExcelFile(file, catDef){
 
   const header = rows[0];
   const cols = {
-    date:   findHeaderCol(header, catDef.dateCandidates),
-    ptn:    findHeaderCol(header, catDef.ptnCandidates),
-    desc:   findHeaderCol(header, ['item description']),
-    code:   findHeaderCol(header, ['item code']),
-    qty:    findHeaderCol(header, ['quantity']),
-    karat:  findHeaderCol(header, ['karat']),
-    weight: findHeaderCol(header, ['weight']),
-    pawner: findHeaderCol(header, ['pawner']),
-    principal: findHeaderCol(header, catDef.principalCandidates),
-    appraiser: findHeaderCol(header, ['appraiser/fla','appraiser / fla','appraiser','fla']),
+    date:       findHeaderCol(header, catDef.dateCandidates),
+    ptn:        findHeaderCol(header, catDef.ptnCandidates),
+    desc:       findHeaderCol(header, ['item description']),
+    code:       findHeaderCol(header, ['item code']),
+    qty:        findHeaderCol(header, ['quantity']),
+    karat:      findHeaderCol(header, ['karat']),
+    weight:     findHeaderCol(header, ['weight']),
+    pawner:     findHeaderCol(header, ['pawner']),
+    principal:  findHeaderCol(header, catDef.principalCandidates),
+    appraiser:  findHeaderCol(header, ['appraiser/fla','appraiser / fla','appraiser','fla']),
   };
 
-  // Same Pawn Ticket + same Date = ONE transaction. A pawn ticket with
-  // several items (e.g. a ring and an earring pawned together) prints as
-  // several rows in the source Excel — one per item — so we group those
-  // rows back into a single record instead of listing each item line as
-  // its own "transaction".
   const map = new Map();
   const order = [];
   for(let i=1;i<rows.length;i++){
@@ -628,10 +612,10 @@ async function parseExcelFile(file, catDef){
     if(!desc && !ptn) continue;
 
     const date = cols.date>=0 ? formatExcelDate(row[cols.date]) : '';
-    const qty    = cols.qty>=0    ? toNum(row[cols.qty])    : 0;
-    const karat  = cols.karat>=0  ? toNum(row[cols.karat])  : 0;
-    const weight = cols.weight>=0 ? toNum(row[cols.weight]) : 0;
-    const pawner = cols.pawner>=0 ? String(row[cols.pawner]||'').trim() : '';
+    const qty     = cols.qty>=0    ? toNum(row[cols.qty])    : 0;
+    const karat   = cols.karat>=0  ? toNum(row[cols.karat])  : 0;
+    const weight  = cols.weight>=0 ? toNum(row[cols.weight]) : 0;
+    const pawner  = cols.pawner>=0 ? String(row[cols.pawner]||'').trim() : '';
     const principal = cols.principal>=0 ? toNum(row[cols.principal]) : 0;
     const appraiser = cols.appraiser>=0 ? String(row[cols.appraiser]||'').trim() : '';
 
@@ -788,7 +772,6 @@ function itemsCodeHtml(r){
 }
 
 function parseUSDate(str){
-  // stored as mm/dd/yyyy
   const m = cleanStr(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if(!m) return null;
   return new Date(Number(m[3]), Number(m[1])-1, Number(m[2]));
