@@ -326,35 +326,29 @@
   }
   .dash-table tr:hover { background: #fffdfd; }
 
-  .btn-assign-multi {
-    padding: 6px 12px;
-    border-radius: 8px;
-    border: 1.5px solid var(--border);
-    font-size: 12px;
-    font-weight: 700;
-    color: #1e293b;
-    background: #f8fafc;
+  /* CLICKABLE BRANCH / DATE CELL STYLING */
+  .clickable-assign-cell {
     cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    transition: background 0.15s ease-in-out;
   }
-  .btn-assign-multi:hover {
-    border-color: var(--primary);
-    background: #ffffff;
+  .clickable-assign-cell:hover {
+    background-color: #fef2f2 !important;
+  }
+  .clickable-assign-cell:hover .branch-click-title {
     color: var(--primary);
+    text-decoration: underline;
   }
 
   .companion-pill {
     display: inline-block;
-    background: #e2e8f0;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
     color: #1e293b;
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 700;
-    margin: 2px;
+    margin: 2px 2px 0 0;
   }
 
   .btn-tbl-status {
@@ -421,13 +415,6 @@
     backdrop-filter: blur(4px);
     display: none; align-items: center; justify-content: center;
     z-index: 10000;
-  }
-  .modal-card {
-    background: #ffffff;
-    padding: 32px;
-    border-radius: var(--radius-lg);
-    width: 480px;
-    box-shadow: var(--shadow-card);
   }
 
   .enroll-modal-card {
@@ -563,7 +550,7 @@
   }
 
   .checkbox-list {
-    max-height: 180px;
+    max-height: 220px;
     overflow-y: auto;
     border: 1.5px solid #e2e8f0;
     border-radius: 12px;
@@ -575,7 +562,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 8px;
+    padding: 8px 10px;
     border-bottom: 1px solid #e2e8f0;
     font-size: 13px;
     font-weight: 600;
@@ -658,9 +645,12 @@
     </div>
   </div>
 
+  <!-- TOOLBAR WITH NEW ENTRY & ASSIGN COMPANIONS BUTTON -->
   <div class="dash-toolbar">
     <div style="display:flex; gap:10px; align-items:center;">
       <button class="btn-toolbar" onclick="goToNewReconciler()"><span>➕</span> New Entry</button>
+      <!-- 🔥 ASSIGN COMPANIONS BUTTON RIGHT NEXT TO NEW ENTRY -->
+      <button class="btn-toolbar" style="color:#3b82f6;" onclick="window.triggerSelectAssignModal()"><span>👥</span> Assign Companion</button>
       <button class="btn-toolbar" id="btn-admin-panel-toggle" style="display:none; background:#1e293b; color:#fff;" onclick="toggleAdminPanelUI()">⚡ Admin Controls</button>
     </div>
 
@@ -696,7 +686,6 @@
           <tr>
             <th>Branchname</th>
             <th>Cut-off Date</th>
-            <th style="text-align:center;">Assign Companions</th>
             <th style="text-align:center;">Inventory</th>
             <th style="text-align:center;">Status</th>
             <th style="text-align:center;">Action</th>
@@ -794,13 +783,13 @@
   <div class="modal-card enroll-modal-card">
     <div class="modal-header-custom">
       <div class="modal-header-title">
-        <span>👥</span> Select Companion Auditors
+        <span>👥</span> <span id="assign-modal-branch-name">Select Companion Auditors</span>
       </div>
       <button class="btn-close-x" onclick="closeAssignModal()">✕</button>
     </div>
 
     <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px; font-weight:600;">
-      Select two, three, or more auditors to collaborate on this branch:
+      Select auditors to assign as companions for this branch:
     </p>
 
     <div class="checkbox-list" id="assign-checkbox-container">
@@ -1043,10 +1032,34 @@
     renderDashboardTable(val);
   };
 
+  /* 🔥 TOP ASSIGN TOOLBAR TRIGGER MODAL */
+  window.triggerSelectAssignModal = function() {
+    if (strikeForceEntries.length === 0) {
+      alert("No branch entries available.");
+      return;
+    }
+    
+    let optionsStr = strikeForceEntries.map((e, idx) => `${idx + 1}. ${e.branch}`).join('\n');
+    let choice = prompt(`Select a branch number to Assign Companions:\n\n${optionsStr}`);
+    
+    if (choice) {
+      let num = parseInt(choice.trim());
+      if (!isNaN(num) && num >= 1 && num <= strikeForceEntries.length) {
+        window.openAssignModal(num - 1);
+      } else {
+        alert("Invalid selection.");
+      }
+    }
+  };
+
   /* 👥 MULTI-COMPANION MODAL FUNCTIONS */
   window.openAssignModal = function(entryIndex) {
     activeAssignEntryIndex = entryIndex;
     let entry = strikeForceEntries[entryIndex];
+    
+    let titleEl = document.getElementById('assign-modal-branch-name');
+    if (titleEl) titleEl.innerText = `Assign Companions — ${entry.branch}`;
+
     let container = document.getElementById('assign-checkbox-container');
     container.innerHTML = '';
 
@@ -1129,7 +1142,7 @@
     }
 
     if (visibleEntries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found for your account (${currentUser}).</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found for your account (${currentUser}).</td></tr>`;
       return;
     }
 
@@ -1144,20 +1157,17 @@
 
       let pillsHTML = companionsArr.length > 0
         ? companionsArr.map(c => `<span class="companion-pill">🤝 ${c}</span>`).join('')
-        : `<span style="font-size:11px; color:#94a3b8;">None</span>`;
+        : `<span style="font-size:11px; color:#94a3b8;">Click branch to assign companion</span>`;
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="font-weight:700; font-size:14px; color:var(--text-main);">${row.branch}</td>
-        <td style="font-family:var(--font-mono); color:#475569; font-size:13px;">${row.cutoffDate}</td>
+        <td class="clickable-assign-cell" title="Click branch name to Assign Companions" onclick="window.openAssignModal(${originalIndex})">
+          <div class="branch-click-title" style="font-weight:800; font-size:14px; color:var(--text-main);">${row.branch}</div>
+          <div style="margin-top:2px;">${pillsHTML}</div>
+        </td>
 
-        <td style="text-align:center;">
-          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-            <button class="btn-assign-multi" onclick="window.openAssignModal(${originalIndex})">
-              ⚙️ Assign (${companionsArr.length})
-            </button>
-            <div style="max-width:200px; display:flex; flex-wrap:wrap; justify-content:center;">${pillsHTML}</div>
-          </div>
+        <td class="clickable-assign-cell" title="Click date range to Assign Companions" onclick="window.openAssignModal(${originalIndex})" style="font-family:var(--font-mono); color:#475569; font-size:13px;">
+          ${row.cutoffDate}
         </td>
 
         <td style="text-align:center;">
