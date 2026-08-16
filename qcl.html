@@ -57,6 +57,31 @@
 
   ::selection { background: var(--primary); color: #ffffff; }
 
+  /* FLOATING OFFLINE WARNING TOAST NOTIFICATION */
+  .offline-toast {
+    position: fixed;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #dc2626;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    font-weight: 700;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .offline-toast.show {
+    top: 20px;
+  }
+
   header {
     background: #ffffff;
     color: var(--text-main);
@@ -411,6 +436,9 @@
 </head>
 <body>
 
+<!-- OFFLINE WARNING BANNER FOR CLICK-ANYWHERE DETECTION -->
+<div id="offline-toast" class="offline-toast">⚠️ No Internet Connection. Changes are saved locally.</div>
+
 <header>
   <div class="header-content">
     <div class="header-title-box">
@@ -570,6 +598,7 @@
   let reportKey = '';
   let currentBranch = '';
   let currentAuditDate = '';
+  let isOnlineState = navigator.onLine;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
@@ -578,25 +607,43 @@
     return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
 
-  // 🌐 NETWORK MONITORING (DETECTS INTERNET DISCONNECTION)
+  // NETWORK MONITORING & CLICK ANYWHERE WARNING
   const networkTag = $('#network-status-tag');
+  const toast = $('#offline-toast');
+  let toastTimer = null;
 
-  function updateNetworkUI(isOnline) {
-    if (isOnline) {
+  function showOfflineToast() {
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2500);
+  }
+
+  function updateNetworkUI(online) {
+    isOnlineState = online;
+    if (online) {
       networkTag.textContent = '🔥 Live Multi-User Cloud Sync';
       networkTag.classList.remove('offline');
+      toast.classList.remove('show');
     } else {
       networkTag.textContent = '⚠️ Offline (No Internet Sync)';
       networkTag.classList.add('offline');
-      setStatus('⚠️ No internet connection. Changes are currently saved locally.');
+      setStatus('⚠️ No internet connection. Changes are saved locally.');
     }
   }
 
-  // Browser level online/offline events check
+  // Click handler anywhere on the document when offline
+  document.addEventListener('click', () => {
+    if (!isOnlineState) {
+      showOfflineToast();
+    }
+  });
+
   window.addEventListener('online', () => updateNetworkUI(true));
   window.addEventListener('offline', () => updateNetworkUI(false));
 
-  // Firebase connection state listener
+  // Firebase connection status check
   const connectedRef = ref(db, ".info/connected");
   onValue(connectedRef, (snap) => {
     if (snap.val() === true) {
@@ -606,7 +653,7 @@
     }
   });
 
-  // 🔥 Realtime Firebase Cloud Sync Listener
+  // Realtime Firebase Sync Listener
   function listenFirebaseQCLStore() {
     if (!currentBranch) return;
     const branchSlug = slugBranch(currentBranch);
