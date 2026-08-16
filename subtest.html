@@ -141,9 +141,6 @@
   .code-badge{display:inline-block;background:var(--panel-2);color:var(--brass);border:1px solid var(--line);
     border-radius:4px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;margin-right:5px;}
 
-  .actual-input{width:56px;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;
-    padding:6px 7px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--parchment);text-align:center;}
-  .actual-input:focus{outline:none;border-color:var(--brass);}
   .status-pill{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
     letter-spacing:.05em;padding:3px 9px;border-radius:20px;border:1px solid; white-space:nowrap;}
   .status-pill.pending{color:#b8801a;border-color:#f0dcb0;background:#fff6e6;}
@@ -175,8 +172,6 @@
     box-shadow:0 10px 30px rgba(163,36,28,0.10);}
   .ledger-card .ledger{border:none;border-radius:14px;}
   .ledger-card thead th{background:#fff;color:var(--brass);font-size:11.5px;font-weight:700;border-bottom:2px solid var(--line);}
-  .ledger-card tbody tr:nth-child(4n+1), .ledger-card tbody tr:nth-child(4n+2){background:#fff8f7;}
-  .ledger-card tbody tr:nth-child(4n+1):hover, .ledger-card tbody tr:nth-child(4n+2):hover{background:rgba(163,36,28,0.07);}
 
   #findings-modal-overlay{position:fixed;inset:0;background:rgba(20,10,9,0.88);z-index:900;
     display:none;align-items:center;justify-content:center;padding:20px;}
@@ -189,15 +184,10 @@
   .findings-modal select, .findings-modal input[type=number]{width:100%;background:var(--panel-2);
     border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-family:'IBM Plex Mono',monospace;
     font-size:13px;color:var(--parchment);}
-  .fm-row{display:flex;gap:10px;align-items:center;}
   .fm-validated{display:flex;align-items:center;gap:8px;margin-top:16px;}
   .fm-validated label{margin:0;}
   .fm-actions{display:flex;gap:10px;justify-content:space-between;margin-top:22px;flex-wrap:wrap;}
   .fm-actions .right{display:flex;gap:8px;}
-
-  .finding-select{max-width:170px;white-space:normal;}
-  .finding-select.flagged{border-color:var(--brass);color:var(--brass-soft);}
-  .validated-check{width:16px;height:16px;cursor:pointer;accent-color:#1a7d3a;}
 
   .findings-breakdown{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     padding:14px 16px;margin-bottom:20px;}
@@ -211,6 +201,15 @@
   .fb-empty{font-size:12px;color:var(--parchment-dim);font-family:'IBM Plex Mono',monospace;}
   .del-btn{background:none;border:none;color:var(--parchment-dim);font-size:16px;cursor:pointer;line-height:1;}
   .del-btn:hover{color:var(--brass);}
+
+  .cloud-tag {
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 800;
+  }
 
   .footer-tools{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
   .empty-note{text-align:center;color:var(--parchment-dim);font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:40px 20px;}
@@ -234,11 +233,11 @@
 
 <div class="wrap">
 
-  <!-- ⬅️ BACK TO DASHBOARD BUTTON -->
-  <div style="display:flex; justify-content:flex-start; align-items:center; margin-top:20px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
     <button class="btn btn-dashboard" id="btn-back-dashboard" onclick="window.location.href='index.html'" title="Return to Main Dashboard">
       <span>⬅️</span> Back to Dashboard
     </button>
+    <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
   </div>
 
   <div class="branch-box" id="branch-box">
@@ -336,710 +335,705 @@
 
 </div>
 
-<script>
-// ---------- Storage Fallback ----------
-if(!window.storage){
-  const LS_PREFIX = 'qcl_subtesting_local:';
-  window.storage = {
-    async get(key, shared){
-      const raw = localStorage.getItem(LS_PREFIX + key);
-      if(raw === null) throw new Error('Key not found: ' + key);
-      return {key, value: raw, shared: !!shared};
-    },
-    async set(key, value, shared){
-      localStorage.setItem(LS_PREFIX + key, value);
-      return {key, value, shared: !!shared};
-    },
-    async delete(key, shared){
-      localStorage.removeItem(LS_PREFIX + key);
-      return {key, deleted: true, shared: !!shared};
-    },
-    async list(prefix, shared){
-      const keys = [];
-      const full = LS_PREFIX + (prefix || '');
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k && k.startsWith(full)) keys.push(k.slice(LS_PREFIX.length));
-      }
-      return {keys, prefix, shared: !!shared};
-    }
+<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvkLtHz_fAUiEIhFjABhtovTemFFhAFR4",
+    authDomain: "sftools-139a1.firebaseapp.com",
+    databaseURL: "https://sftools-139a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "sftools-139a1",
+    storageBucket: "sftools-139a1.firebasestorage.app",
+    messagingSenderId: "504177778177",
+    appId: "1:504177778177:web:5c9c522efa2130516dea00"
   };
-}
 
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-const CATEGORIES = [
-  {key:'reappraise', label:'Re-appraise', dateCandidates:['date re-appraise'], ptnCandidates:['old (previous) ptn','old ptn'], principalCandidates:['old principal amount']},
-  {key:'renew',      label:'Renew',       dateCandidates:['date term extended'], ptnCandidates:['pawn ticket number'], principalCandidates:['principal amount']},
-  {key:'redeem',     label:'Redeem',      dateCandidates:['date redeemed'], ptnCandidates:['pawn ticket number'], principalCandidates:['principal amount']},
-];
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
 
-const FINDINGS = [
-  {key:'', label:'— No Finding —'},
-  {key:'no_signature_terms', label:"1. No Pawner signature on Terms & Condition (back portion)"},
-  {key:'missing_papelitas', label:"2. Missing Customer's Papelitas"},
-  {key:'no_signature_received', label:"3. No Customer's Signature on Received the Article in same condition"},
-  {key:'no_name_signature_rep', label:"4. No Printed Name and Signature on Pawner's Authorized Representative"},
-  {key:'different_pawner_signature', label:"5. Different Pawner's Signature"},
-  {key:'no_prenda_tag', label:"6. Non Attachment on Prenda Tag"},
-  {key:'no_fla_signature', label:"7. No FLA Signature"},
-];
+  const CATEGORIES = [
+    {key:'reappraise', label:'Re-appraise', dateCandidates:['date re-appraise'], ptnCandidates:['old (previous) ptn','old ptn'], principalCandidates:['old principal amount']},
+    {key:'renew',      label:'Renew',       dateCandidates:['date term extended'], ptnCandidates:['pawn ticket number'], principalCandidates:['principal amount']},
+    {key:'redeem',     label:'Redeem',      dateCandidates:['date redeemed'], ptnCandidates:['pawn ticket number'], principalCandidates:['principal amount']},
+  ];
 
-let categoryData = {};
-let activeCategory = null;
-let sortState = {col:'date', dir:1};
-let currentBranch = '';
-let currentAuditDate = '';
+  const FINDINGS = [
+    {key:'', label:'— No Finding —'},
+    {key:'no_signature_terms', label:"1. No Pawner signature on Terms & Condition (back portion)"},
+    {key:'missing_papelitas', label:"2. Missing Customer's Papelitas"},
+    {key:'no_signature_received', label:"3. No Customer's Signature on Received the Article in same condition"},
+    {key:'no_name_signature_rep', label:"4. No Printed Name and Signature on Pawner's Authorized Representative"},
+    {key:'different_pawner_signature', label:"5. Different Pawner's Signature"},
+    {key:'no_prenda_tag', label:"6. Non Attachment on Prenda Tag"},
+    {key:'no_fla_signature', label:"7. No FLA Signature"},
+  ];
 
-function slugBranch(name){
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
-}
-function lockCatUploads(){ $('#cat-uploads').classList.add('locked'); }
-function unlockCatUploads(){ $('#cat-uploads').classList.remove('locked'); }
+  let categoryData = {};
+  let activeCategory = null;
+  let sortState = {col:'date', dir:1};
+  let currentBranch = '';
+  let currentAuditDate = '';
 
-function computeDataKey(catKey){
-  return 'qcl-subtesting:' + slugBranch(currentBranch) + ':' + catKey + ':full';
-}
-
-let saveTimer = null;
-function persistState(){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=> saveFullCategoryState(activeCategory), 400);
-}
-async function saveFullCategoryState(catKey, attempt){
-  attempt = attempt || 1;
-  if(!catKey || !categoryData[catKey]) return;
-  const payload = JSON.stringify({
-    records: categoryData[catKey].records,
-    fileName: categoryData[catKey].fileName,
-    auditDate: currentAuditDate
-  });
-  try{
-    await window.storage.set(computeDataKey(catKey), payload, true);
-  }catch(e){
-    if(attempt < 3) setTimeout(()=> saveFullCategoryState(catKey, attempt+1), 800*attempt);
+  function slugBranch(name){
+    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
-}
+  function lockCatUploads(){ $('#cat-uploads').classList.add('locked'); }
+  function unlockCatUploads(){ $('#cat-uploads').classList.remove('locked'); }
 
-async function restoreCategoryFromStorage(catKey){
-  try{
-    const res = await window.storage.get(computeDataKey(catKey), true);
-    if(!res || !res.value) return false;
-    const saved = JSON.parse(res.value);
-    if(!saved.records || !saved.records.length) return false;
-    saved.records.forEach(r=>{
-      if(r.found === undefined) r.found = (r.actual !== null && r.actual !== undefined && Number(r.actual) === Number(r.qty));
+  // 🔥 FIREBASE REALTIME CLOUD SYNC LISTENERS
+  function listenFirebaseSubtestStore() {
+    if (!currentBranch) return;
+    const branchSlug = slugBranch(currentBranch);
+    
+    onValue(ref(db, `subtestStore/${branchSlug}`), (snapshot) => {
+      const val = snapshot.val();
+      if (val) {
+        let changed = false;
+        Object.keys(val).forEach(catKey => {
+          if (val[catKey] && val[catKey].records) {
+            categoryData[catKey] = {
+              records: val[catKey].records,
+              fileName: val[catKey].fileName || '(cloud-synced)'
+            };
+            changed = true;
+
+            const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+            if(card){
+              card.classList.add('done');
+              const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+              if(statusEl) statusEl.textContent = `✓ ${val[catKey].records.length} transactions — synced`;
+            }
+          }
+        });
+
+        if (changed) {
+          if (!activeCategory || !categoryData[activeCategory]) {
+            const availableKeys = Object.keys(categoryData);
+            if (availableKeys.length > 0) activeCategory = availableKeys[0];
+          }
+
+          if (activeCategory && categoryData[activeCategory]) {
+            renderCategoryTabs();
+            loadCategory(activeCategory);
+            setStatus(`Synced cloud data for branch "${currentBranch}".`);
+          }
+        }
+      }
     });
-    categoryData[catKey] = {records: saved.records, fileName: saved.fileName || '(restored)'};
-    const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
-    if(card){
-      card.classList.add('done');
-      const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
-      if(statusEl) statusEl.textContent = `✓ ${saved.records.length} transactions — ${saved.fileName || 'restored from last session'}`;
+  }
+
+  function syncSubtestCategoryToFirebase(catKey) {
+    if (!currentBranch || !categoryData[catKey]) return;
+    const branchSlug = slugBranch(currentBranch);
+    set(ref(db, `subtestStore/${branchSlug}/${catKey}`), {
+      records: categoryData[catKey].records,
+      fileName: categoryData[catKey].fileName,
+      lastUpdated: new Date().toISOString()
+    }).catch(e => console.warn("Firebase sync fallback local:", e));
+  }
+
+  function computeDataKey(catKey){
+    return 'qcl-subtesting:' + slugBranch(currentBranch) + ':' + catKey + ':full';
+  }
+
+  function saveFullCategoryState(catKey){
+    if(!catKey || !categoryData[catKey]) return;
+    const payload = JSON.stringify({
+      records: categoryData[catKey].records,
+      fileName: categoryData[catKey].fileName,
+      auditDate: currentAuditDate
+    });
+    localStorage.setItem(computeDataKey(catKey), payload);
+    syncSubtestCategoryToFirebase(catKey);
+  }
+
+  function restoreCategoryFromStorage(catKey){
+    try{
+      const raw = localStorage.getItem(computeDataKey(catKey));
+      if(!raw) return false;
+      const saved = JSON.parse(raw);
+      if(!saved.records || !saved.records.length) return false;
+      categoryData[catKey] = {records: saved.records, fileName: saved.fileName || '(restored)'};
+      const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+      if(card){
+        card.classList.add('done');
+        const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+        if(statusEl) statusEl.textContent = `✓ ${saved.records.length} transactions — restored`;
+      }
+      return true;
+    }catch(e){ return false; }
+  }
+
+  function autoRestoreBranch(){
+    let firstRestored = null;
+    for(const c of CATEGORIES){
+      const ok = restoreCategoryFromStorage(c.key);
+      if(ok && !firstRestored) firstRestored = c.key;
     }
-    return true;
-  }catch(e){ return false; }
-}
-
-async function autoRestoreBranch(){
-  let firstRestored = null;
-  for(const c of CATEGORIES){
-    const ok = await restoreCategoryFromStorage(c.key);
-    if(ok && !firstRestored) firstRestored = c.key;
+    if(firstRestored){
+      activeCategory = firstRestored;
+      renderCategoryTabs();
+      loadCategory(firstRestored);
+      setStatus(`Restored saved data for branch "${currentBranch}".`);
+    }
   }
-  if(firstRestored){
-    activeCategory = firstRestored;
-    renderCategoryTabs();
-    loadCategory(firstRestored);
-    setStatus(`Restored saved data for branch "${currentBranch}".`);
-  }
-}
 
-const REMEMBERED_BRANCH_KEY = 'qcl-subtesting:remembered-branch';
-async function rememberBranch(name){
-  try{ await window.storage.set(REMEMBERED_BRANCH_KEY, name, false); }catch(e){}
-}
-async function recallBranch(){
-  try{
-    let activeB = localStorage.getItem('ml_activeBranch');
-    if(activeB && activeB !== 'SELECT BRANCH') return activeB;
-    const res = await window.storage.get(REMEMBERED_BRANCH_KEY, false);
-    return (res && res.value) ? res.value : '';
-  }catch(e){ return ''; }
-}
-const REMEMBERED_AUDIT_DATE_KEY = 'qcl-subtesting:remembered-audit-date';
-async function rememberAuditDate(dateStr){
-  try{ await window.storage.set(REMEMBERED_AUDIT_DATE_KEY, dateStr, false); }catch(e){}
-}
-async function recallAuditDate(){
-  try{
-    const res = await window.storage.get(REMEMBERED_AUDIT_DATE_KEY, false);
-    return (res && res.value) ? res.value : '';
-  }catch(e){ return ''; }
-}
-
-$('#audit-date-input').addEventListener('change', e=>{
-  currentAuditDate = e.target.value;
-  rememberAuditDate(currentAuditDate);
-  if(currentBranch) $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
-  persistState();
-});
-
-$('#branch-confirm-btn').addEventListener('click', ()=>{
-  const val = $('#branch-input').value.trim();
-  if(!val){ alert('Please type your branch name first.'); return; }
-  const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
-  if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"? Your current view will clear.`)) return;
-
-  currentBranch = val;
-  localStorage.setItem('ml_activeBranch', currentBranch);
-  currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
-  $('#audit-date-input').value = currentAuditDate;
-  $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
-  unlockCatUploads();
-  rememberBranch(currentBranch);
-  rememberAuditDate(currentAuditDate);
-
-  categoryData = {};
-  activeCategory = null;
-  $$('.cat-upload-card').forEach(card=>{
-    card.classList.remove('done');
-    const key = card.dataset.cat;
-    document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-    card.querySelector('.cat-file-input').value = '';
+  $('#audit-date-input').addEventListener('change', e=>{
+    currentAuditDate = e.target.value;
+    if(currentBranch) $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
+    saveFullCategoryState(activeCategory);
   });
-  $('#category-tabs').innerHTML = '';
-  $('#category-tabs').classList.remove('show');
-  $('#dashboard').classList.remove('show');
-  $('#search').value = '';
-  $('#date-from').value = '';
-  $('#date-to').value = '';
-  $('#filter-status').value = 'all';
-  $('#filter-finding').value = 'all';
 
-  autoRestoreBranch();
-});
+  $('#branch-confirm-btn').addEventListener('click', ()=>{
+    const val = $('#branch-input').value.trim();
+    if(!val){ alert('Please type your branch name first.'); return; }
 
-// 🔥 AUTOMATIC BRANCH NAME RECOGNITION FROM RECONCILER/INDEX PORTAL
-(async ()=>{
-  $('#audit-date-input').value = new Date().toISOString().slice(0,10);
-  const remembered = await recallBranch();
-  const rememberedDate = await recallAuditDate();
-  if(rememberedDate) $('#audit-date-input').value = rememberedDate;
-  if(remembered && remembered !== 'SELECT BRANCH'){
-    $('#branch-input').value = remembered;
-    currentBranch = remembered;
-    currentAuditDate = $('#audit-date-input').value;
+    currentBranch = val;
+    localStorage.setItem('ml_activeBranch', currentBranch);
+    currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
+    $('#audit-date-input').value = currentAuditDate;
     $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
     unlockCatUploads();
+
+    categoryData = {};
+    activeCategory = null;
+    $$('.cat-upload-card').forEach(card=>{
+      card.classList.remove('done');
+      const key = card.dataset.cat;
+      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
+      card.querySelector('.cat-file-input').value = '';
+    });
+    $('#category-tabs').innerHTML = '';
+    $('#category-tabs').classList.remove('show');
+    $('#dashboard').classList.remove('show');
+
+    listenFirebaseSubtestStore();
     autoRestoreBranch();
+  });
+
+  // AUTO RECOGNIZE BRANCH
+  (async ()=>{
+    $('#audit-date-input').value = new Date().toISOString().slice(0,10);
+    let activeB = localStorage.getItem('ml_activeBranch');
+    if(activeB && activeB !== 'SELECT BRANCH'){
+      $('#branch-input').value = activeB;
+      currentBranch = activeB;
+      currentAuditDate = $('#audit-date-input').value;
+      $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
+      unlockCatUploads();
+      listenFirebaseSubtestStore();
+      autoRestoreBranch();
+    }
+  })();
+
+  function toNum(v){
+    if(v === null || v === undefined || v === '') return 0;
+    if(typeof v === 'number') return v;
+    const n = parseFloat(String(v).replace(/,/g,'').trim());
+    return isNaN(n) ? 0 : n;
   }
-})();
 
-function toNum(v){
-  if(v === null || v === undefined || v === '') return 0;
-  if(typeof v === 'number') return v;
-  const n = parseFloat(String(v).replace(/,/g,'').trim());
-  return isNaN(n) ? 0 : n;
-}
-
-function findHeaderCol(headerRow, candidates){
-  for(let i=0;i<headerRow.length;i++){
-    const cell = String(headerRow[i]||'').toLowerCase().trim();
-    if(candidates.some(c=>cell === c || cell.includes(c))) return i;
+  function findHeaderCol(headerRow, candidates){
+    for(let i=0;i<headerRow.length;i++){
+      const cell = String(headerRow[i]||'').toLowerCase().trim();
+      if(candidates.some(c=>cell === c || cell.includes(c))) return i;
+    }
+    return -1;
   }
-  return -1;
-}
 
-function cleanStr(v){
-  return String(v||'').replace(/[\u200B-\u200F\u202A-\u202E\uFEFF]/g,'').trim();
-}
-
-function formatExcelDate(val){
-  if(val === null || val === undefined || val === '') return '';
-  if(val instanceof Date && !isNaN(val)){
-    const mm = String(val.getUTCMonth()+1).padStart(2,'0');
-    const dd = String(val.getUTCDate()).padStart(2,'0');
-    const yyyy = val.getUTCFullYear();
-    return `${mm}/${dd}/${yyyy}`;
+  function cleanStr(v){
+    return String(v||'').replace(/[\u200B-\u200F\u202A-\u202E\uFEFF]/g,'').trim();
   }
-  if(typeof val === 'number'){
-    const days = Math.round(val);
-    const d = new Date((days - 25569) * 86400 * 1000);
-    if(!isNaN(d)){
-      const mm = String(d.getUTCMonth()+1).padStart(2,'0');
-      const dd = String(d.getUTCDate()).padStart(2,'0');
-      const yyyy = d.getUTCFullYear();
+
+  function formatExcelDate(val){
+    if(val === null || val === undefined || val === '') return '';
+    if(val instanceof Date && !isNaN(val)){
+      const mm = String(val.getUTCMonth()+1).padStart(2,'0');
+      const dd = String(val.getUTCDate()).padStart(2,'0');
+      const yyyy = val.getUTCFullYear();
       return `${mm}/${dd}/${yyyy}`;
     }
-  }
-  const str = cleanStr(val);
-  const m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  return m ? `${m[1]}/${m[2]}/${m[3]}` : str;
-}
-
-async function parseExcelFile(file, catDef){
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, {type:'array'});
-  const sheetName = wb.SheetNames[0];
-  const sheet = wb.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
-  if(!rows.length) return {records:[]};
-
-  const header = rows[0];
-  const cols = {
-    date:       findHeaderCol(header, catDef.dateCandidates),
-    ptn:        findHeaderCol(header, catDef.ptnCandidates),
-    desc:       findHeaderCol(header, ['item description']),
-    code:       findHeaderCol(header, ['item code']),
-    qty:        findHeaderCol(header, ['quantity']),
-    karat:      findHeaderCol(header, ['karat']),
-    weight:     findHeaderCol(header, ['weight']),
-    pawner:     findHeaderCol(header, ['pawner']),
-    principal:  findHeaderCol(header, catDef.principalCandidates),
-    appraiser:  findHeaderCol(header, ['appraiser/fla','appraiser / fla','appraiser','fla']),
-  };
-
-  const map = new Map();
-  const order = [];
-  for(let i=1;i<rows.length;i++){
-    const row = rows[i];
-    if(!row || row.every(c=>String(c||'').trim()==='')) continue;
-    const desc = cols.desc>=0 ? String(row[cols.desc]||'').trim() : '';
-    const code = cols.code>=0 ? String(row[cols.code]||'').trim() : '';
-    const ptn  = cols.ptn>=0  ? String(row[cols.ptn]||'').trim()  : '';
-    if(!desc && !ptn) continue;
-
-    const date = cols.date>=0 ? formatExcelDate(row[cols.date]) : '';
-    const qty     = cols.qty>=0    ? toNum(row[cols.qty])    : 0;
-    const karat   = cols.karat>=0  ? toNum(row[cols.karat])  : 0;
-    const weight  = cols.weight>=0 ? toNum(row[cols.weight]) : 0;
-    const pawner  = cols.pawner>=0 ? String(row[cols.pawner]||'').trim() : '';
-    const principal = cols.principal>=0 ? toNum(row[cols.principal]) : 0;
-    const appraiser = cols.appraiser>=0 ? String(row[cols.appraiser]||'').trim() : '';
-
-    const key = ptn + '|' + date;
-    if(!map.has(key)){
-      map.set(key, {date, ptn, pawner, appraiser, items:[], qty:0, weight:0, principal:0});
-      order.push(key);
+    if(typeof val === 'number'){
+      const days = Math.round(val);
+      const d = new Date((days - 25569) * 86400 * 1000);
+      if(!isNaN(d)){
+        const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+        const dd = String(d.getUTCDate()).padStart(2,'0');
+        const yyyy = d.getUTCFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+      }
     }
-    const rec = map.get(key);
-    if(desc) rec.items.push({desc, code, qty, karat, weight});
-    rec.qty += qty;
-    rec.weight += weight;
-    rec.principal = principal || rec.principal;
-    rec.appraiser = appraiser || rec.appraiser;
+    const str = cleanStr(val);
+    const m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    return m ? `${m[1]}/${m[2]}/${m[3]}` : str;
   }
 
-  const records = order.map((k,idx)=>{
-    const rec = map.get(k);
-    const karats = [...new Set(rec.items.map(it=>it.karat).filter(k=>k))];
-    rec.karat = karats.length === 1 ? karats[0] : (karats.length ? karats.join(', ') : '');
-    rec.weight = Math.round(rec.weight * 100) / 100;
-    rec.id = catDef.key + '_' + idx;
-    rec.actual = null;
-    rec.found = false;
-    rec.finding = '';
-    rec.validated = false;
-    return rec;
-  });
-  return {records};
-}
+  async function parseExcelFile(file, catDef){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const sheetName = wb.SheetNames[0];
+    const sheet = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
+    if(!rows.length) return {records:[]};
 
-function setStatus(msg){ $('#status-line').textContent = msg; }
+    const header = rows[0];
+    const cols = {
+      date:       findHeaderCol(header, catDef.dateCandidates),
+      ptn:        findHeaderCol(header, catDef.ptnCandidates),
+      desc:       findHeaderCol(header, ['item description']),
+      code:       findHeaderCol(header, ['item code']),
+      qty:        findHeaderCol(header, ['quantity']),
+      karat:      findHeaderCol(header, ['karat']),
+      weight:     findHeaderCol(header, ['weight']),
+      pawner:     findHeaderCol(header, ['pawner']),
+      principal:  findHeaderCol(header, catDef.principalCandidates),
+      appraiser:  findHeaderCol(header, ['appraiser/fla','appraiser / fla','appraiser','fla']),
+    };
 
-async function handleFile(file, catKey){
-  if(!currentBranch){ alert('Please set the branch first.'); return; }
-  const catDef = CATEGORIES.find(c=>c.key===catKey);
-  setStatus(`Reading ${file.name}...`);
-  try{
-    const {records} = await parseExcelFile(file, catDef);
-    categoryData[catKey] = {records, fileName: file.name};
-    const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
-    card.classList.add('done');
-    document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${records.length} transactions — ${file.name}`;
-    setStatus(`Loaded ${records.length} transactions for ${catDef.label}.`);
-    renderCategoryTabs();
-    if(!activeCategory) { activeCategory = catKey; }
-    loadCategory(activeCategory);
-    saveFullCategoryState(catKey);
-  }catch(err){
-    console.error(err);
-    setStatus(`Could not read ${file.name} — make sure it is a valid Excel file.`);
+    const map = new Map();
+    const order = [];
+    for(let i=1;i<rows.length;i++){
+      const row = rows[i];
+      if(!row || row.every(c=>String(c||'').trim()==='')) continue;
+      const desc = cols.desc>=0 ? String(row[cols.desc]||'').trim() : '';
+      const code = cols.code>=0 ? String(row[cols.code]||'').trim() : '';
+      const ptn  = cols.ptn>=0  ? String(row[cols.ptn]||'').trim()  : '';
+      if(!desc && !ptn) continue;
+
+      const date = cols.date>=0 ? formatExcelDate(row[cols.date]) : '';
+      const qty     = cols.qty>=0    ? toNum(row[cols.qty])    : 0;
+      const karat   = cols.karat>=0  ? toNum(row[cols.karat])  : 0;
+      const weight  = cols.weight>=0 ? toNum(row[cols.weight]) : 0;
+      const pawner  = cols.pawner>=0 ? String(row[cols.pawner]||'').trim() : '';
+      const principal = cols.principal>=0 ? toNum(row[cols.principal]) : 0;
+      const appraiser = cols.appraiser>=0 ? String(row[cols.appraiser]||'').trim() : '';
+
+      const key = ptn + '|' + date;
+      if(!map.has(key)){
+        map.set(key, {date, ptn, pawner, appraiser, items:[], qty:0, weight:0, principal:0});
+        order.push(key);
+      }
+      const rec = map.get(key);
+      if(desc) rec.items.push({desc, code, qty, karat, weight});
+      rec.qty += qty;
+      rec.weight += weight;
+      rec.principal = principal || rec.principal;
+      rec.appraiser = appraiser || rec.appraiser;
+    }
+
+    const records = order.map((k,idx)=>{
+      const rec = map.get(k);
+      const karats = [...new Set(rec.items.map(it=>it.karat).filter(k=>k))];
+      rec.karat = karats.length === 1 ? karats[0] : (karats.length ? karats.join(', ') : '');
+      rec.weight = Math.round(rec.weight * 100) / 100;
+      rec.id = catDef.key + '_' + idx;
+      rec.actual = null;
+      rec.found = false;
+      rec.finding = '';
+      rec.validated = false;
+      return rec;
+    });
+    return {records};
   }
-}
 
-$$('.cat-upload-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelector(`.cat-file-input[data-cat="${btn.dataset.cat}"]`).click();
-  });
-});
-$$('.cat-file-input').forEach(inp=>{
-  inp.addEventListener('change', e=>{
-    const file = e.target.files[0];
-    if(file) handleFile(file, inp.dataset.cat);
-  });
-});
+  function setStatus(msg){ $('#status-line').textContent = msg; }
 
-function renderCategoryTabs(){
-  const wrap = $('#category-tabs');
-  wrap.innerHTML = '';
-  let any = false;
-  CATEGORIES.forEach(c=>{
-    const has = !!categoryData[c.key];
-    if(has) any = true;
-    const div = document.createElement('div');
-    div.className = 'tab ' + (has ? 'enabled' : 'disabled') + (activeCategory===c.key ? ' active' : '');
-    div.innerHTML = `<div class="t-name">${c.label}</div><div class="t-count">${has ? categoryData[c.key].records.length + ' transactions' : 'no file yet'}</div>`;
-    if(has){
-      div.addEventListener('click', ()=>{ activeCategory = c.key; loadCategory(c.key); renderCategoryTabs(); });
+  async function handleFile(file, catKey){
+    if(!currentBranch){ alert('Please set the branch first.'); return; }
+    const catDef = CATEGORIES.find(c=>c.key===catKey);
+    setStatus(`Reading ${file.name}...`);
+    try{
+      const {records} = await parseExcelFile(file, catDef);
+      categoryData[catKey] = {records, fileName: file.name};
+      const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+      card.classList.add('done');
+      document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${records.length} transactions — ${file.name}`;
+      setStatus(`Loaded ${records.length} transactions for ${catDef.label}.`);
+      renderCategoryTabs();
+      if(!activeCategory) { activeCategory = catKey; }
+      loadCategory(activeCategory);
+      saveFullCategoryState(catKey);
+    }catch(err){
+      console.error(err);
+      setStatus(`Could not read ${file.name} — make sure it is a valid Excel file.`);
     }
-    wrap.appendChild(div);
-  });
-  wrap.classList.toggle('show', any);
-}
-
-function loadCategory(catKey){
-  if(!categoryData[catKey]) return;
-  $('#dashboard').classList.add('show');
-  renderStats();
-  renderTable();
-}
-
-function statusOf(r){
-  return r.found ? 'found' : 'pending';
-}
-
-function renderStats(){
-  const recs = categoryData[activeCategory] ? categoryData[activeCategory].records : [];
-  const totalQty = recs.reduce((s,r)=>s+r.qty,0);
-  const totalWeight = recs.reduce((s,r)=>s+r.weight,0);
-  const totalLineItems = recs.reduce((s,r)=>s+r.items.length,0);
-  const totalPrincipal = recs.reduce((s,r)=>s+(r.principal||0),0);
-  const flagged = recs.filter(r=>r.finding).length;
-  const foundCount = recs.filter(r=>r.found).length;
-  const pendingCount = recs.length - foundCount;
-  $('#stats-row').innerHTML = `
-    <div class="stat-chip"><div class="num">${recs.length}</div><div class="lab">Transactions (Pawn Tickets)</div></div>
-    <div class="stat-chip"><div class="num">${totalLineItems}</div><div class="lab">Line Items</div></div>
-    <div class="stat-chip"><div class="num">${totalQty}</div><div class="lab">Total Quantity</div></div>
-    <div class="stat-chip"><div class="num">${totalWeight.toFixed(2)}</div><div class="lab">Total Weight (g)</div></div>
-    <div class="stat-chip"><div class="num">₱${totalPrincipal.toLocaleString()}</div><div class="lab">Total Loan Value</div></div>
-    <div class="stat-chip"><div class="num">${foundCount}</div><div class="lab">Found</div></div>
-    <div class="stat-chip"><div class="num">${pendingCount}</div><div class="lab">Pending</div></div>
-    <div class="stat-chip"><div class="num">${flagged}</div><div class="lab">Flagged Findings</div></div>
-  `;
-  renderFindingsBreakdown(recs);
-}
-
-function renderFindingsBreakdown(recs){
-  const el = $('#findings-breakdown');
-  if(!el) return;
-  const rows = FINDINGS.filter(f=>f.key).map(f=>{
-    const no = f.label.split('.')[0];
-    const label = f.label.replace(/^\d+\.\s*/,'');
-    const count = recs.filter(r=>r.finding === f.key).length;
-    return {no, label, count};
-  });
-  const total = rows.reduce((s,r)=>s+r.count,0);
-  if(!total){
-    el.innerHTML = `<h4>Findings Breakdown</h4><div class="fb-empty">No findings flagged yet.</div>`;
-    return;
   }
-  el.innerHTML = `<h4>Findings Breakdown</h4>` + rows.map(r=>`
-    <div class="fb-row"><div class="fb-no">${r.no}</div><div class="fb-label">${r.label}</div><div class="fb-count">${r.count}</div></div>
-  `).join('');
-}
 
-function itemsLabel(r){
-  return r.items.map(it=>it.desc).join('; ');
-}
-
-function itemsHtml(r){
-  if(!r.items.length) return '—';
-  return r.items.map(it=>`<div class="desc-item">${it.desc}<span class="meta">${it.karat?` ${it.karat}K`:''}${it.weight?` ${it.weight}g`:''}</span></div>`).join('');
-}
-
-function itemsQtyHtml(r){
-  if(!r.items.length) return `<div class="iq-row">${r.qty}</div>`;
-  return `<div class="item-qty-list">` + r.items.map(it=>`<div class="iq-row">${it.qty}</div>`).join('') + `</div>`;
-}
-
-function itemsCodeHtml(r){
-  if(!r.items.length) return '—';
-  return `<div class="item-code-list">` + r.items.map(it=>`<div class="ic-row">${it.code?`<span class="code-badge">${it.code}</span>`:'—'}</div>`).join('') + `</div>`;
-}
-
-function parseUSDate(str){
-  const m = cleanStr(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if(!m) return null;
-  return new Date(Number(m[3]), Number(m[1])-1, Number(m[2]));
-}
-
-function getFiltered(){
-  const recs = categoryData[activeCategory] ? categoryData[activeCategory].records.slice() : [];
-  const q = $('#search').value.trim().toLowerCase();
-  const statusFilter = $('#filter-status').value;
-  const findingFilter = $('#filter-finding').value;
-  const dFrom = $('#date-from').value ? new Date($('#date-from').value+'T00:00:00') : null;
-  const dTo = $('#date-to').value ? new Date($('#date-to').value+'T23:59:59') : null;
-
-  let filtered = recs.filter(r=>{
-    if(q && !(r.ptn.toLowerCase().includes(q) || itemsLabel(r).toLowerCase().includes(q) || r.pawner.toLowerCase().includes(q))) return false;
-    if(statusFilter !== 'all' && statusOf(r) !== statusFilter) return false;
-    if(findingFilter === 'flagged' && !r.finding) return false;
-    if(findingFilter === 'none' && r.finding) return false;
-    if(findingFilter === 'unvalidated' && (!r.finding || r.validated)) return false;
-    if(dFrom || dTo){
-      const rd = parseUSDate(r.date);
-      if(!rd) return false;
-      if(dFrom && rd < dFrom) return false;
-      if(dTo && rd > dTo) return false;
-    }
-    return true;
+  $$('.cat-upload-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelector(`.cat-file-input[data-cat="${btn.dataset.cat}"]`).click();
+    });
+  });
+  $$('.cat-file-input').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const file = e.target.files[0];
+      if(file) handleFile(file, inp.dataset.cat);
+    });
   });
 
-  const {col, dir} = sortState;
-  filtered.sort((a,b)=>{
-    let av = col === 'desc' ? itemsLabel(a) : a[col];
-    let bv = col === 'desc' ? itemsLabel(b) : b[col];
-    if(col === 'qty' || col === 'weight' || col === 'principal'){
-      return (av - bv) * dir;
-    }
-    if(col === 'date'){
-      const ad = parseUSDate(av) || new Date(0), bd = parseUSDate(bv) || new Date(0);
-      return (ad - bd) * dir;
-    }
-    return String(av).localeCompare(String(bv)) * dir;
-  });
-  return filtered;
-}
+  function renderCategoryTabs(){
+    const wrap = $('#category-tabs');
+    wrap.innerHTML = '';
+    let any = false;
+    CATEGORIES.forEach(c=>{
+      const has = !!categoryData[c.key];
+      if(has) any = true;
+      const div = document.createElement('div');
+      div.className = 'tab ' + (has ? 'enabled' : 'disabled') + (activeCategory===c.key ? ' active' : '');
+      div.innerHTML = `<div class="t-name">${c.label}</div><div class="t-count">${has ? categoryData[c.key].records.length + ' transactions' : 'no file yet'}</div>`;
+      if(has){
+        div.addEventListener('click', ()=>{ activeCategory = c.key; loadCategory(c.key); renderCategoryTabs(); });
+      }
+      wrap.appendChild(div);
+    });
+    wrap.classList.toggle('show', any);
+  }
 
-function findRecordById(id){
-  const recs = categoryData[activeCategory] ? categoryData[activeCategory].records : [];
-  return recs.find(r=>r.id===id);
-}
+  function loadCategory(catKey){
+    if(!categoryData[catKey]) return;
+    $('#dashboard').classList.add('show');
+    renderStats();
+    renderTable();
+  }
 
-function findingOptionsHtml(selected){
-  return FINDINGS.map(f=>`<option value="${f.key}" ${f.key===selected?'selected':''}>${f.label}</option>`).join('');
-}
+  function statusOf(r){
+    return r.found ? 'found' : 'pending';
+  }
 
-function renderTable(){
-  const body = $('#ledger-body');
-  const filtered = getFiltered();
-  body.innerHTML = '';
-  const activeFilters = [];
-  if($('#search').value.trim()) activeFilters.push(`search "${$('#search').value.trim()}"`);
-  if($('#date-from').value || $('#date-to').value) activeFilters.push(`date range`);
-  if($('#filter-status').value !== 'all') activeFilters.push(`status: ${$('#filter-status').value}`);
-  if($('#filter-finding').value !== 'all') activeFilters.push(`findings: ${$('#filter-finding').value}`);
-  $('#empty-note').innerHTML = activeFilters.length
-    ? `No matching results. Active filters: <b>${activeFilters.join(', ')}</b> — all filters combine together, so try "Clear All Filters" if this looks wrong.`
-    : 'No matching results.';
-  $('#empty-note').style.display = filtered.length ? 'none' : 'block';
-
-  filtered.forEach((r,i)=>{
-    const tr = document.createElement('tr');
-    const status = statusOf(r);
-    const chip = r.found ? (r.finding ? `<span class="flag-chip">⚑ Flagged</span>` : `<span class="ok-chip">✓ OK</span>`) : '';
-    tr.innerHTML = `
-      <td data-label="#">${i+1}</td>
-      <td class="ptn" data-label="Pawn Ticket #">${r.ptn || '—'}</td>
-      <td class="date" data-label="Date">${r.date || '—'}</td>
-      <td class="num" data-label="Quantity">${itemsQtyHtml(r)}</td>
-      <td data-label="Item Code">${itemsCodeHtml(r)}</td>
-      <td class="desc-list" data-label="Items / Description">${itemsHtml(r)}</td>
-      <td class="num" data-label="Loan Value">₱${Number(r.principal||0).toLocaleString()}</td>
-      <td data-label="Found?"><input type="checkbox" class="found-check" data-id="${r.id}" ${r.found?'checked':''}></td>
-      <td data-label="Status"><span class="status-pill ${status}">${status.toUpperCase()}</span> ${chip}</td>
-      <td data-label="Findings & Correct"><button class="findings-btn ${r.finding?'has-finding':''}" data-id="${r.id}">Findings</button></td>
+  function renderStats(){
+    const recs = categoryData[activeCategory] ? categoryData[activeCategory].records : [];
+    const totalQty = recs.reduce((s,r)=>s+r.qty,0);
+    const totalWeight = recs.reduce((s,r)=>s+r.weight,0);
+    const totalLineItems = recs.reduce((s,r)=>s+r.items.length,0);
+    const totalPrincipal = recs.reduce((s,r)=>s+(r.principal||0),0);
+    const flagged = recs.filter(r=>r.finding).length;
+    const foundCount = recs.filter(r=>r.found).length;
+    const pendingCount = recs.length - foundCount;
+    $('#stats-row').innerHTML = `
+      <div class="stat-chip"><div class="num">${recs.length}</div><div class="lab">Transactions (Pawn Tickets)</div></div>
+      <div class="stat-chip"><div class="num">${totalLineItems}</div><div class="lab">Line Items</div></div>
+      <div class="stat-chip"><div class="num">${totalQty}</div><div class="lab">Total Quantity</div></div>
+      <div class="stat-chip"><div class="num">${totalWeight.toFixed(2)}</div><div class="lab">Total Weight (g)</div></div>
+      <div class="stat-chip"><div class="num">₱${totalPrincipal.toLocaleString()}</div><div class="lab">Total Loan Value</div></div>
+      <div class="stat-chip"><div class="num">${foundCount}</div><div class="lab">Found</div></div>
+      <div class="stat-chip"><div class="num">${pendingCount}</div><div class="lab">Pending</div></div>
+      <div class="stat-chip"><div class="num">${flagged}</div><div class="lab">Flagged Findings</div></div>
     `;
-    body.appendChild(tr);
-  });
-
-  $$('thead th').forEach(th=>{
-    const arrow = th.querySelector('.arrow');
-    if(!arrow) return;
-    arrow.textContent = th.dataset.sort === sortState.col ? (sortState.dir === 1 ? '▲' : '▼') : '';
-  });
-
-  $$('.found-check').forEach(cb=>cb.addEventListener('change', e=>{
-    const r = findRecordById(e.target.dataset.id);
-    if(!r) return;
-    r.found = e.target.checked;
-    r.actual = e.target.checked ? r.qty : null;
-    renderTable(); renderStats(); persistState();
-  }));
-  $$('.findings-btn').forEach(btn=>btn.addEventListener('click', e=>{
-    openFindingsModal(e.target.dataset.id);
-  }));
-}
-
-function openFindingsModal(id){
-  const r = findRecordById(id);
-  if(!r) return;
-  let overlay = document.getElementById('findings-modal-overlay');
-  if(!overlay){
-    overlay = document.createElement('div');
-    overlay.id = 'findings-modal-overlay';
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', e=>{ if(e.target === overlay) closeFindingsModal(); });
+    renderFindingsBreakdown(recs);
   }
-  overlay.style.display = 'flex';
-  renderFindingsModalContent(r);
-}
 
-function closeFindingsModal(){
-  const overlay = document.getElementById('findings-modal-overlay');
-  if(overlay) overlay.style.display = 'none';
-}
+  function renderFindingsBreakdown(recs){
+    const el = $('#findings-breakdown');
+    if(!el) return;
+    const rows = FINDINGS.filter(f=>f.key).map(f=>{
+      const no = f.label.split('.')[0];
+      const label = f.label.replace(/^\d+\.\s*/,'');
+      const count = recs.filter(r=>r.finding === f.key).length;
+      return {no, label, count};
+    });
+    const total = rows.reduce((s,r)=>s+r.count,0);
+    if(!total){
+      el.innerHTML = `<h4>Findings Breakdown</h4><div class="fb-empty">No findings flagged yet.</div>`;
+      return;
+    }
+    el.innerHTML = `<h4>Findings Breakdown</h4>` + rows.map(r=>`
+      <div class="fb-row"><div class="fb-no">${r.no}</div><div class="fb-label">${r.label}</div><div class="fb-count">${r.count}</div></div>
+    `).join('');
+  }
 
-function renderFindingsModalContent(r){
-  const overlay = document.getElementById('findings-modal-overlay');
-  if(!overlay) return;
-  overlay.innerHTML = `
-    <div class="findings-modal">
-      <h4>${r.ptn || 'Transaction'}</h4>
-      <div class="fm-sub">${r.date || '—'} &nbsp;·&nbsp; ${itemsLabel(r) || '—'}</div>
+  function itemsLabel(r){
+    return r.items.map(it=>it.desc).join('; ');
+  }
 
-      <label>Actual Count Found (of ${r.qty})</label>
-      <input type="number" id="fm-actual" min="0" value="${r.actual===null||r.actual===undefined?'':r.actual}" placeholder="–">
+  function itemsHtml(r){
+    if(!r.items.length) return '—';
+    return r.items.map(it=>`<div class="desc-item">${it.desc}<span class="meta">${it.karat?` ${it.karat}K`:''}${it.weight?` ${it.weight}g`:''}</span></div>`).join('');
+  }
 
-      <label>Compliance Finding</label>
-      <select id="fm-finding">${findingOptionsHtml(r.finding)}</select>
+  function itemsQtyHtml(r){
+    if(!r.items.length) return `<div class="iq-row">${r.qty}</div>`;
+    return `<div class="item-qty-list">` + r.items.map(it=>`<div class="iq-row">${it.qty}</div>`).join('') + `</div>`;
+  }
 
-      <div class="fm-validated">
-        <input type="checkbox" id="fm-validated" ${r.validated?'checked':''}>
-        <label style="margin:0;">Validated / Corrected</label>
-      </div>
+  function itemsCodeHtml(r){
+    if(!r.items.length) return '—';
+    return `<div class="item-code-list">` + r.items.map(it=>`<div class="ic-row">${it.code?`<span class="code-badge">${it.code}</span>`:'—'}</div>`).join('') + `</div>`;
+  }
 
-      <div class="fm-actions">
-        <button class="del-btn" id="fm-delete-btn" style="font-size:12px;">✕ Remove this row</button>
-        <div class="right"><button class="btn ghost small" id="fm-close-btn">Close</button></div>
-      </div>
-    </div>`;
+  function parseUSDate(str){
+    const m = cleanStr(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(!m) return null;
+    return new Date(Number(m[3]), Number(m[1])-1, Number(m[2]));
+  }
 
-  $('#fm-actual').addEventListener('input', e=>{
-    r.actual = e.target.value === '' ? null : Number(e.target.value);
-    persistState();
-  });
-  $('#fm-finding').addEventListener('change', e=>{
-    r.finding = e.target.value;
-    if(!r.finding) r.validated = false;
-    renderTable(); renderStats(); persistState();
+  function getFiltered(){
+    const recs = categoryData[activeCategory] ? categoryData[activeCategory].records.slice() : [];
+    const q = $('#search').value.trim().toLowerCase();
+    const statusFilter = $('#filter-status').value;
+    const findingFilter = $('#filter-finding').value;
+    const dFrom = $('#date-from').value ? new Date($('#date-from').value+'T00:00:00') : null;
+    const dTo = $('#date-to').value ? new Date($('#date-to').value+'T23:59:59') : null;
+
+    let filtered = recs.filter(r=>{
+      if(q && !(r.ptn.toLowerCase().includes(q) || itemsLabel(r).toLowerCase().includes(q) || r.pawner.toLowerCase().includes(q))) return false;
+      if(statusFilter !== 'all' && statusOf(r) !== statusFilter) return false;
+      if(findingFilter === 'flagged' && !r.finding) return false;
+      if(findingFilter === 'none' && r.finding) return false;
+      if(findingFilter === 'unvalidated' && (!r.finding || r.validated)) return false;
+      if(dFrom || dTo){
+        const rd = parseUSDate(r.date);
+        if(!rd) return false;
+        if(dFrom && rd < dFrom) return false;
+        if(dTo && rd > dTo) return false;
+      }
+      return true;
+    });
+
+    const {col, dir} = sortState;
+    filtered.sort((a,b)=>{
+      let av = col === 'desc' ? itemsLabel(a) : a[col];
+      let bv = col === 'desc' ? itemsLabel(b) : b[col];
+      if(col === 'qty' || col === 'weight' || col === 'principal'){
+        return (av - bv) * dir;
+      }
+      if(col === 'date'){
+        const ad = parseUSDate(av) || new Date(0), bd = parseUSDate(bv) || new Date(0);
+        return (ad - bd) * dir;
+      }
+      return String(av).localeCompare(String(bv)) * dir;
+    });
+    return filtered;
+  }
+
+  function findRecordById(id){
+    const recs = categoryData[activeCategory] ? categoryData[activeCategory].records : [];
+    return recs.find(r=>r.id===id);
+  }
+
+  function findingOptionsHtml(selected){
+    return FINDINGS.map(f=>`<option value="${f.key}" ${f.key===selected?'selected':''}>${f.label}</option>`).join('');
+  }
+
+  function renderTable(){
+    const body = $('#ledger-body');
+    const filtered = getFiltered();
+    body.innerHTML = '';
+    const activeFilters = [];
+    if($('#search').value.trim()) activeFilters.push(`search "${$('#search').value.trim()}"`);
+    if($('#date-from').value || $('#date-to').value) activeFilters.push(`date range`);
+    if($('#filter-status').value !== 'all') activeFilters.push(`status: ${$('#filter-status').value}`);
+    if($('#filter-finding').value !== 'all') activeFilters.push(`findings: ${$('#filter-finding').value}`);
+    $('#empty-note').innerHTML = activeFilters.length
+      ? `No matching results. Active filters: <b>${activeFilters.join(', ')}</b>`
+      : 'No matching results.';
+    $('#empty-note').style.display = filtered.length ? 'none' : 'block';
+
+    filtered.forEach((r,i)=>{
+      const tr = document.createElement('tr');
+      const status = statusOf(r);
+      const chip = r.found ? (r.finding ? `<span class="flag-chip">⚑ Flagged</span>` : `<span class="ok-chip">✓ OK</span>`) : '';
+      tr.innerHTML = `
+        <td data-label="#">${i+1}</td>
+        <td class="ptn" data-label="Pawn Ticket #">${r.ptn || '—'}</td>
+        <td class="date" data-label="Date">${r.date || '—'}</td>
+        <td class="num" data-label="Quantity">${itemsQtyHtml(r)}</td>
+        <td data-label="Item Code">${itemsCodeHtml(r)}</td>
+        <td class="desc-list" data-label="Items / Description">${itemsHtml(r)}</td>
+        <td class="num" data-label="Loan Value">₱${Number(r.principal||0).toLocaleString()}</td>
+        <td data-label="Found?"><input type="checkbox" class="found-check" data-id="${r.id}" ${r.found?'checked':''}></td>
+        <td data-label="Status"><span class="status-pill ${status}">${status.toUpperCase()}</span> ${chip}</td>
+        <td data-label="Findings &amp; Correct"><button class="findings-btn ${r.finding?'has-finding':''}" data-id="${r.id}">Findings</button></td>
+      `;
+      body.appendChild(tr);
+    });
+
+    $$('thead th').forEach(th=>{
+      const arrow = th.querySelector('.arrow');
+      if(!arrow) return;
+      arrow.textContent = th.dataset.sort === sortState.col ? (sortState.dir === 1 ? '▲' : '▼') : '';
+    });
+
+    $$('.found-check').forEach(cb=>cb.addEventListener('change', e=>{
+      const r = findRecordById(e.target.dataset.id);
+      if(!r) return;
+      r.found = e.target.checked;
+      r.actual = e.target.checked ? r.qty : null;
+      renderTable(); renderStats(); saveFullCategoryState(activeCategory);
+    }));
+    $$('.findings-btn').forEach(btn=>btn.addEventListener('click', e=>{
+      openFindingsModal(e.target.dataset.id);
+    }));
+  }
+
+  function openFindingsModal(id){
+    const r = findRecordById(id);
+    if(!r) return;
+    let overlay = document.getElementById('findings-modal-overlay');
+    if(!overlay){
+      overlay = document.createElement('div');
+      overlay.id = 'findings-modal-overlay';
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', e=>{ if(e.target === overlay) closeFindingsModal(); });
+    }
+    overlay.style.display = 'flex';
     renderFindingsModalContent(r);
-  });
-  $('#fm-validated').addEventListener('change', e=>{
-    r.validated = e.target.checked;
-    persistState();
-  });
-  $('#fm-delete-btn').addEventListener('click', ()=>{
-    if(!confirm('Remove this transaction row?')) return;
-    const data = categoryData[activeCategory];
-    data.records = data.records.filter(x=>x.id!==r.id);
-    closeFindingsModal();
-    renderTable(); renderStats(); persistState();
-  });
-  $('#fm-close-btn').addEventListener('click', closeFindingsModal);
-}
+  }
 
-$$('thead th[data-sort]').forEach(th=>{
-  th.addEventListener('click', ()=>{
-    const col = th.dataset.sort;
-    if(sortState.col === col){ sortState.dir *= -1; }
-    else { sortState = {col, dir:1}; }
+  function closeFindingsModal(){
+    const overlay = document.getElementById('findings-modal-overlay');
+    if(overlay) overlay.style.display = 'none';
+  }
+
+  function renderFindingsModalContent(r){
+    const overlay = document.getElementById('findings-modal-overlay');
+    if(!overlay) return;
+    overlay.innerHTML = `
+      <div class="findings-modal">
+        <h4>${r.ptn || 'Transaction'}</h4>
+        <div class="fm-sub">${r.date || '—'} &nbsp;·&nbsp; ${itemsLabel(r) || '—'}</div>
+
+        <label>Actual Count Found (of ${r.qty})</label>
+        <input type="number" id="fm-actual" min="0" value="${r.actual===null||r.actual===undefined?'':r.actual}" placeholder="–">
+
+        <label>Compliance Finding</label>
+        <select id="fm-finding">${findingOptionsHtml(r.finding)}</select>
+
+        <div class="fm-validated">
+          <input type="checkbox" id="fm-validated" ${r.validated?'checked':''}>
+          <label style="margin:0;">Validated / Corrected</label>
+        </div>
+
+        <div class="fm-actions">
+          <button class="del-btn" id="fm-delete-btn" style="font-size:12px;">✕ Remove this row</button>
+          <div class="right"><button class="btn ghost small" id="fm-close-btn">Close</button></div>
+        </div>
+      </div>`;
+
+    $('#fm-actual').addEventListener('input', e=>{
+      r.actual = e.target.value === '' ? null : Number(e.target.value);
+      saveFullCategoryState(activeCategory);
+    });
+    $('#fm-finding').addEventListener('change', e=>{
+      r.finding = e.target.value;
+      if(!r.finding) r.validated = false;
+      renderTable(); renderStats(); saveFullCategoryState(activeCategory);
+      renderFindingsModalContent(r);
+    });
+    $('#fm-validated').addEventListener('change', e=>{
+      r.validated = e.target.checked;
+      saveFullCategoryState(activeCategory);
+    });
+    $('#fm-delete-btn').addEventListener('click', ()=>{
+      if(!confirm('Remove this transaction row?')) return;
+      const data = categoryData[activeCategory];
+      data.records = data.records.filter(x=>x.id!==r.id);
+      closeFindingsModal();
+      renderTable(); renderStats(); saveFullCategoryState(activeCategory);
+    });
+    $('#fm-close-btn').addEventListener('click', closeFindingsModal);
+  }
+
+  $$('thead th[data-sort]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const col = th.dataset.sort;
+      if(sortState.col === col){ sortState.dir *= -1; }
+      else { sortState = {col, dir:1}; }
+      renderTable();
+    });
+  });
+
+  $('#search').addEventListener('input', renderTable);
+  $('#date-from').addEventListener('change', renderTable);
+  $('#date-to').addEventListener('change', renderTable);
+  $('#date-clear-btn').addEventListener('click', ()=>{
+    $('#search').value = '';
+    $('#date-from').value = '';
+    $('#date-to').value = '';
+    $('#filter-status').value = 'all';
+    $('#filter-finding').value = 'all';
     renderTable();
   });
-});
+  $('#filter-status').addEventListener('change', renderTable);
+  $('#filter-finding').addEventListener('change', renderTable);
 
-$('#search').addEventListener('input', renderTable);
-$('#date-from').addEventListener('change', renderTable);
-$('#date-to').addEventListener('change', renderTable);
-$('#date-clear-btn').addEventListener('click', ()=>{
-  $('#search').value = '';
-  $('#date-from').value = '';
-  $('#date-to').value = '';
-  $('#filter-status').value = 'all';
-  $('#filter-finding').value = 'all';
-  renderTable();
-});
-$('#filter-status').addEventListener('change', renderTable);
-$('#filter-finding').addEventListener('change', renderTable);
-
-$('#export-btn').addEventListener('click', ()=>{
-  if(!activeCategory || !categoryData[activeCategory]) return;
-  const rows = [['Date','Pawn Ticket','Appraiser/FLA','Item Description','Quantity','Karat','Weight','Loan Value','Found?','Status','Finding','Validated','Pawner']];
-  getFiltered().forEach(r=>{
-    const findingLabel = FINDINGS.find(f=>f.key===r.finding)?.label || '';
-    rows.push([r.date, r.ptn, r.appraiser || '', itemsLabel(r), r.qty, r.karat, r.weight, Number(r.principal||0).toLocaleString(), r.found?'Yes':'No', statusOf(r).toUpperCase(), findingLabel, r.validated?'Yes':'No', r.pawner]);
-  });
-  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const catDef = CATEGORIES.find(c=>c.key===activeCategory);
-  a.download = `QCL-subtesting-${catDef.key}-report.csv`;
-  a.click();
-});
-
-$('#export-findings-btn').addEventListener('click', ()=>{
-  if(!activeCategory || !categoryData[activeCategory]) return;
-  const flagged = getFiltered().filter(r=>r.finding);
-  if(!flagged.length){ alert('No flagged findings in the current view to export.'); return; }
-  const rows = [['Findings','Pawn Ticket','Appraiser/FLA','Loan Value','Date','Found?','Validated']];
-  flagged.forEach(r=>{
-    const findingLabel = FINDINGS.find(f=>f.key===r.finding)?.label || '';
-    rows.push([findingLabel, r.ptn, r.appraiser || '', Number(r.principal||0).toLocaleString(), r.date, r.found?'Yes':'No', r.validated?'Yes':'No']);
-  });
-  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const catDef = CATEGORIES.find(c=>c.key===activeCategory);
-  a.download = `QCL-subtesting-${catDef.key}-findings-report.csv`;
-  a.click();
-});
-
-$('#print-btn').addEventListener('click', ()=> window.print());
-
-$('#backup-all-btn').addEventListener('click', ()=>{
-  const catsWithData = CATEGORIES.filter(c=>categoryData[c.key] && categoryData[c.key].records.length);
-  if(!catsWithData.length){ alert('No data to back up yet — upload at least one Excel file first.'); return; }
-
-  const findingsSummary = FINDINGS.filter(f=>f.key).map(f=>{
-    const no = f.label.split('.')[0];
-    const label = f.label.replace(/^\d+\.\s*/,'');
-    const byCategory = {};
-    catsWithData.forEach(c=>{ byCategory[c.key] = categoryData[c.key].records.filter(r=>r.finding===f.key).length; });
-    const total = Object.values(byCategory).reduce((a,b)=>a+b,0);
-    return {no, label, byCategory, total};
+  $('#export-btn').addEventListener('click', ()=>{
+    if(!activeCategory || !categoryData[activeCategory]) return;
+    const rows = [['Date','Pawn Ticket','Appraiser/FLA','Item Description','Quantity','Karat','Weight','Loan Value','Found?','Status','Finding','Validated','Pawner']];
+    getFiltered().forEach(r=>{
+      const findingLabel = FINDINGS.find(f=>f.key===r.finding)?.label || '';
+      rows.push([r.date, r.ptn, r.appraiser || '', itemsLabel(r), r.qty, r.karat, r.weight, Number(r.principal||0).toLocaleString(), r.found?'Yes':'No', statusOf(r).toUpperCase(), findingLabel, r.validated?'Yes':'No', r.pawner]);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const catDef = CATEGORIES.find(c=>c.key===activeCategory);
+    a.download = `QCL-subtesting-${catDef.key}-report.csv`;
+    a.click();
   });
 
-  const backup = {
-    generatedAt: new Date().toISOString(),
-    branch: currentBranch || '',
-    auditDate: currentAuditDate || '',
-    categories: {},
-    findingsSummary
-  };
-  catsWithData.forEach(c=>{
-    backup.categories[c.key] = {
-      label: c.label,
-      fileName: categoryData[c.key].fileName || '',
-      records: categoryData[c.key].records
+  $('#export-findings-btn').addEventListener('click', ()=>{
+    if(!activeCategory || !categoryData[activeCategory]) return;
+    const flagged = getFiltered().filter(r=>r.finding);
+    if(!flagged.length){ alert('No flagged findings in the current view to export.'); return; }
+    const rows = [['Findings','Pawn Ticket','Appraiser/FLA','Loan Value','Date','Found?','Validated']];
+    flagged.forEach(r=>{
+      const findingLabel = FINDINGS.find(f=>f.key===r.finding)?.label || '';
+      rows.push([findingLabel, r.ptn, r.appraiser || '', Number(r.principal||0).toLocaleString(), r.date, r.found?'Yes':'No', r.validated?'Yes':'No']);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const catDef = CATEGORIES.find(c=>c.key===activeCategory);
+    a.download = `QCL-subtesting-${catDef.key}-findings-report.csv`;
+    a.click();
+  });
+
+  $('#print-btn').addEventListener('click', ()=> window.print());
+
+  $('#backup-all-btn').addEventListener('click', ()=>{
+    const catsWithData = CATEGORIES.filter(c=>categoryData[c.key] && categoryData[c.key].records.length);
+    if(!catsWithData.length){ alert('No data to back up yet — upload at least one Excel file first.'); return; }
+
+    const findingsSummary = FINDINGS.filter(f=>f.key).map(f=>{
+      const no = f.label.split('.')[0];
+      const label = f.label.replace(/^\d+\.\s*/,'');
+      const byCategory = {};
+      catsWithData.forEach(c=>{ byCategory[c.key] = categoryData[c.key].records.filter(r=>r.finding===f.key).length; });
+      const total = Object.values(byCategory).reduce((a,b)=>a+b,0);
+      return {no, label, byCategory, total};
+    });
+
+    const backup = {
+      generatedAt: new Date().toISOString(),
+      branch: currentBranch || '',
+      auditDate: currentAuditDate || '',
+      categories: {},
+      findingsSummary
     };
-  });
+    catsWithData.forEach(c=>{
+      backup.categories[c.key] = {
+        label: c.label,
+        fileName: categoryData[c.key].fileName || '',
+        records: categoryData[c.key].records
+      };
+    });
 
-  const json = JSON.stringify(backup, null, 2);
-  const blob = new Blob([json], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const dateStr = new Date().toISOString().slice(0,10);
-  const branchSlug = slugBranch(currentBranch || 'branch');
-  a.download = `QCL-Subtesting-Backup-${branchSlug}-${dateStr}.json`;
-  a.click();
-});
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const dateStr = new Date().toISOString().slice(0,10);
+    const branchSlug = slugBranch(currentBranch || 'branch');
+    a.download = `QCL-Subtesting-Backup-${branchSlug}-${dateStr}.json`;
+    a.click();
+  });
 
 </script>
 </body>
