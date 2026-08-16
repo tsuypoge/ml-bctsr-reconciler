@@ -192,7 +192,6 @@
   h1 { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; }
   .header-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
 
-  /* EXPANDED CONTAINER WIDTH TO FIT VARIOUS SCREEN RESOLUTIONS */
   .wrap { max-width: 1600px; margin: 28px auto; padding: 0 24px; width: 100%; }
 
   .btn {
@@ -335,7 +334,7 @@
   .cat-card .figures { font-size: 18px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; color: var(--text-main); }
   .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
-  /* LEDGER CONTAINER HAS HORIZONTAL SCROLL TO PREVENT OVERFLOW CUTOFF */
+  /* LEDGER CONTAINER HAS HORIZONTAL SCROLL TO PREVENT OVERFLOW CUTOFF FOR ALL CATEGORIES */
   .ledger {
     background: var(--panel-bg); 
     border-radius: var(--radius-lg);
@@ -347,7 +346,7 @@
   
   table { 
     width: 100%; 
-    min-width: 1100px; /* ENFORCES MINIMUM TABLE WIDTH SO FINDINGS ARE NEVER SQUEEZED OUT */
+    min-width: 1000px;
     border-collapse: collapse; 
     font-size: 13.5px; 
   }
@@ -358,7 +357,6 @@
     white-space: nowrap; position: sticky; top: 0; z-index: 10;
   }
   
-  /* FIXED ROW HEIGHT TO 50PX WITH VERTICAL CENTER ALIGNMENT */
   tbody td { 
     padding: 0 14px; 
     border-bottom: 1px solid #f8fafc; 
@@ -366,7 +364,6 @@
     height: 50px; 
   }
 
-  /* FULL-ROW HOVER HIGHLIGHT STYLES WITH CURSOR POINTER */
   tbody tr {
     transition: background-color 0.15s ease-in-out;
     cursor: pointer;
@@ -389,7 +386,6 @@
   .ptn .flag { color: var(--primary); }
   .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
   
-  /* PERFECT SIDE-BY-SIDE LINE ALIGNMENT STYLES WITH BALANCED VERTICAL CENTERING */
   .item-row-container {
     display: flex;
     flex-direction: column;
@@ -449,7 +445,6 @@
   .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
   .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
   
-  /* FINDINGS DROPDOWN CONTAINER */
   .findings-list { min-width: 150px; }
   .findings-toggle {
     padding: 5px 10px; border: 1.5px solid var(--primary); border-radius: 6px; background: #ffffff;
@@ -490,17 +485,13 @@
     gap: 6px;
   }
 
-  .del-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; }
-  .del-btn:hover { color: var(--mismatch); }
   .loan { font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
 
   .footer-tools { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
   .empty-note { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 20px; }
 
   .found-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--match); }
-  .actions-cell { white-space: nowrap; text-align: right; }
 
-  /* DYNAMIC CLOUD ONLINE / OFFLINE BADGE */
   .cloud-tag {
     background: #16a34a;
     color: #ffffff;
@@ -643,7 +634,6 @@
             <th style="text-align:center;">Found?</th>
             <th>Status</th>
             <th>Findings & Correct</th>
-            <th style="text-align:right;">Action</th>
           </tr>
         </thead>
         <tbody id="ledger-body"></tbody>
@@ -1331,16 +1321,12 @@
           <button class="findings-toggle${t.items.some(it=>it.finding)?' has-findings':''}" data-ti="${idx}" title="Click to view/edit findings">Findings</button>
           <div class="findings-body" data-ti="${idx}">${t.items.map((it,ii)=>findingItemHtml(it, idx, ii)).join('')}</div>
         </td>
-        <td class="actions-cell">
-          <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
-        </td>
       `;
 
-      // CLICK ROW TO TOGGLE CHECKBOX (Exc. Findings dropdown, Delete button, and editable text)
+      // CLICK ROW TO TOGGLE CHECKBOX (Exc. Findings dropdown and editable text)
       tr.addEventListener('click', (e) => {
         if (
           e.target.closest('.findings-list') ||
-          e.target.closest('.del-btn') ||
           e.target.isContentEditable ||
           e.target.tagName === 'SELECT' ||
           e.target.tagName === 'OPTION'
@@ -1406,16 +1392,6 @@
         const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
         tickets[ti].items[ii].correct = e.target.value;
         saveFullCategoryState(activeCategory);
-      });
-    });
-    $$('[data-del]').forEach(btn=>{
-      btn.addEventListener('click', e=>{
-        const i = +e.target.dataset.del;
-        if(confirm('Delete this ticket from the list?')){
-          tickets.splice(i,1);
-          saveFullCategoryState(activeCategory);
-          renderTable(); renderStats();
-        }
       });
     });
 
