@@ -382,7 +382,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin: 0 2px;
+    margin: 2px;
   }
   .btn-inv:hover {
     background: var(--primary);
@@ -1172,6 +1172,7 @@
 
         <td style="text-align:center;">
           <button class="btn-inv" title="Subasta / SR" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subasta_sr')">🏷️ Subasta/SR</button>
+          <button class="btn-inv" title="Subtest QCL" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subtest')">🧪 Subtest QCL</button>
           <button class="btn-inv" title="QCL" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'qcl')">💎 QCL</button>
         </td>
 
@@ -1302,11 +1303,14 @@
     window.location.href = 'reconciler.html';
   };
 
+  /* 🚀 LAUNCH BRANCH INVENTORY ROUTER WITH SUBTEST ADDED */
   window.launchBranchInventory = function(branchName, type) {
     let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
     localStorage.setItem('ml_activeBranch', activeB);
     if (type === 'subasta_sr') {
       window.location.href = 'subasta_sr.html';
+    } else if (type === 'subtest') {
+      window.location.href = 'subtest.html';
     } else if (type === 'qcl') {
       window.location.href = 'qcl.html';
     }
