@@ -53,6 +53,7 @@
     min-height: 100vh;
     padding-bottom: 60px;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   ::selection { background: var(--primary); color: #ffffff; }
@@ -191,7 +192,8 @@
   h1 { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; }
   .header-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
 
-  .wrap { max-width: 1280px; margin: 28px auto; padding: 0 24px; }
+  /* EXPANDED CONTAINER WIDTH TO FIT VARIOUS SCREEN RESOLUTIONS */
+  .wrap { max-width: 1600px; margin: 28px auto; padding: 0 24px; width: 100%; }
 
   .btn {
     font-family: var(--font-sans);
@@ -333,11 +335,23 @@
   .cat-card .figures { font-size: 18px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; color: var(--text-main); }
   .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
+  /* LEDGER CONTAINER HAS HORIZONTAL SCROLL TO PREVENT OVERFLOW CUTOFF */
   .ledger {
-    background: var(--panel-bg); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card); overflow: hidden; padding: 8px;
+    background: var(--panel-bg); 
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card); 
+    overflow-x: auto; 
+    padding: 8px;
+    width: 100%;
   }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  
+  table { 
+    width: 100%; 
+    min-width: 1100px; /* ENFORCES MINIMUM TABLE WIDTH SO FINDINGS ARE NEVER SQUEEZED OUT */
+    border-collapse: collapse; 
+    font-size: 13.5px; 
+  }
+  
   thead th {
     background: #ffffff; font-size: 11px; text-transform: uppercase; font-weight: 800;
     color: var(--primary); text-align: left; padding: 16px 14px; border-bottom: 2px solid var(--border);
@@ -418,7 +432,7 @@
     line-height: 1;
   }
   
-  /* INLINE DESCRIPTION + KARAT + WEIGHT STYLES */
+  /* INLINE DESCRIPTION + RED BOLD KARAT & WEIGHT STYLES */
   .item-desc {
     font-size: 13px;
     display: flex;
@@ -428,9 +442,9 @@
     white-space: nowrap;
   }
   .item-desc .meta { 
-    color: var(--text-muted); 
-    font-size: 12px; 
-    font-weight: 600; 
+    color: #dc2626; 
+    font-size: 12.5px; 
+    font-weight: 700; 
   }
   .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
   .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
