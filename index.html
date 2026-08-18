@@ -326,7 +326,6 @@
   }
   .dash-table tr:hover { background: #fffdfd; }
 
-  /* CLICKABLE BRANCH / DATE CELL STYLING */
   .clickable-assign-cell {
     cursor: pointer;
     transition: background 0.15s ease-in-out;
@@ -408,7 +407,6 @@
   .btn-delete { background: #fee2e2; color: #991b1b; }
   .btn-delete:hover { background: #fca5a5; }
 
-  /* Modal Base */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(15, 23, 42, 0.6);
@@ -570,6 +568,15 @@
   }
   .checkbox-item:last-child { border-bottom: none; }
   .checkbox-item input { accent-color: var(--primary); width: 18px; height: 18px; cursor: pointer; }
+
+  .cloud-tag {
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 800;
+  }
 </style>
 </head>
 <body>
@@ -599,7 +606,10 @@
 
 <!-- 2. DASHBOARD VIEW -->
 <div id="dashboard-view" style="display:none;">
-  <h2 class="dash-header-title">Strike Force Audit Portal</h2>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h2 class="dash-header-title" style="margin-bottom:0;">Strike Force Audit Portal</h2>
+    <span class="cloud-tag">🔥 Realtime Cloud Sync Active</span>
+  </div>
 
   <!-- 👑 MASTER ADMIN CONTROL PANEL -->
   <div class="admin-panel-card" id="admin-control-panel">
@@ -649,7 +659,6 @@
   <div class="dash-toolbar">
     <div style="display:flex; gap:10px; align-items:center;">
       <button class="btn-toolbar" onclick="goToNewReconciler()"><span>➕</span> New Entry</button>
-      <!-- 🔥 ASSIGN COMPANIONS BUTTON RIGHT NEXT TO NEW ENTRY -->
       <button class="btn-toolbar" style="color:#3b82f6;" onclick="window.triggerSelectAssignModal()"><span>👥</span> Assign Companion</button>
       <button class="btn-toolbar" id="btn-admin-panel-toggle" style="display:none; background:#1e293b; color:#fff;" onclick="toggleAdminPanelUI()">⚡ Admin Controls</button>
     </div>
@@ -888,7 +897,7 @@
 
   let systemAuditLogs = [];
 
-  // 🔥 Firebase Listeners
+  // 🔥 FIREBASE REALTIME MULTI-USER CLOUD LISTENERS
   onValue(ref(db, 'strikeForceEntries'), (snapshot) => {
     const val = snapshot.val();
     if (val) {
@@ -1122,6 +1131,7 @@
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
+    // 🌟 ENHANCED ACCESS LOGIC: Shared entries show for Creators, Companions, and Master Admin
     let visibleEntries = strikeForceEntries.filter((row) => {
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
@@ -1130,7 +1140,10 @@
         ? row.companions.map(c => c.toLowerCase().trim())
         : [(row.companion || '').toLowerCase().trim()];
 
-      return (creator && creator === currentUser) || companionsList.includes(currentUser);
+      // If no creator recorded, default to showing
+      if (!creator) return true;
+
+      return creator === currentUser || companionsList.includes(currentUser);
     });
 
     if (filterQuery) {
@@ -1142,7 +1155,7 @@
     }
 
     if (visibleEntries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found for your account (${currentUser}).</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found for your account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
       return;
     }
 
@@ -1303,7 +1316,6 @@
     window.location.href = 'reconciler.html';
   };
 
-  /* 🚀 LAUNCH BRANCH INVENTORY ROUTER WITH SUBTEST ADDED */
   window.launchBranchInventory = function(branchName, type) {
     let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
     localStorage.setItem('ml_activeBranch', activeB);
@@ -1422,7 +1434,6 @@
     }
   };
 
-  /* 🎯 EXTRACT FIRST NAME & UPDATE GREETING USER DISPLAY */
   function updateUserInfoDisplay() {
     let activeUsername = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
     let role = localStorage.getItem('ml_user_role') || 'admin';
@@ -1502,7 +1513,6 @@
     document.getElementById('login-screen').style.display = 'flex';
   };
 
-  // 🎯 RE-READ LOCALSTORAGE WHEN RETURNING FROM RECONCILER.HTML
   window.addEventListener('pageshow', () => {
     if (sessionStorage.getItem('ml_logged_in') === 'true') {
       renderDashboardTable();
