@@ -897,7 +897,42 @@
 
   let systemAuditLogs = [];
 
-  // 🔥 FIREBASE REALTIME MULTI-USER CLOUD LISTENERS
+  function slugToBranchName(slug) {
+    if (!slug) return "";
+    return slug
+      .split('-')
+      .map(word => word.toUpperCase())
+      .join(' ');
+  }
+
+  // 🌟 FIREBASE AUTO-DISCOVERY DISCOVERER FOR qclStore, subastaStore, subtestStore
+  function autoDiscoverStoreBranches(storeObj) {
+    if (!storeObj) return;
+    let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
+    let updated = false;
+
+    Object.keys(storeObj).forEach(branchSlug => {
+      let formattedBranch = slugToBranchName(branchSlug);
+      let exists = strikeForceEntries.some(e => e.branch.toUpperCase().replace(/[^A-Z0-9]/g, '') === formattedBranch.replace(/[^A-Z0-9]/g, ''));
+
+      if (!exists && formattedBranch) {
+        strikeForceEntries.unshift({
+          branch: formattedBranch,
+          cutoffDate: "Synced Cloud Audit",
+          companions: [],
+          createdBy: currentUser,
+          status: "In Progress"
+        });
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      saveEntries();
+    }
+  }
+
+  // 🔥 FIREBASE REALTIME LISTENERS
   onValue(ref(db, 'strikeForceEntries'), (snapshot) => {
     const val = snapshot.val();
     if (val) {
@@ -905,6 +940,21 @@
       localStorage.setItem('ml_strikeForceEntries', JSON.stringify(strikeForceEntries));
       renderDashboardTable();
     }
+  });
+
+  // LISTEN TO QCLSTORE & AUTO-POPULATE DASHBOARD
+  onValue(ref(db, 'qclStore'), (snapshot) => {
+    autoDiscoverStoreBranches(snapshot.val());
+  });
+
+  // LISTEN TO SUBASTASTORE & AUTO-POPULATE DASHBOARD
+  onValue(ref(db, 'subastaStore'), (snapshot) => {
+    autoDiscoverStoreBranches(snapshot.val());
+  });
+
+  // LISTEN TO SUBTESTSTORE & AUTO-POPULATE DASHBOARD
+  onValue(ref(db, 'subtestStore'), (snapshot) => {
+    autoDiscoverStoreBranches(snapshot.val());
   });
 
   onValue(ref(db, 'enrolledUsers'), (snapshot) => {
@@ -1131,7 +1181,7 @@
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
-    // 🌟 ENHANCED ACCESS LOGIC: Shared entries show for Creators, Companions, and Master Admin
+    // 🌟 ALL ENTRIES AVAILABLE FOR ALL LOGGED-IN USERS
     let visibleEntries = strikeForceEntries.filter((row) => {
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
@@ -1140,10 +1190,8 @@
         ? row.companions.map(c => c.toLowerCase().trim())
         : [(row.companion || '').toLowerCase().trim()];
 
-      // If no creator recorded, default to showing
       if (!creator) return true;
-
-      return creator === currentUser || companionsList.includes(currentUser);
+      return true; // 👈 Allow all auditors to see synced branches
     });
 
     if (filterQuery) {
@@ -1155,7 +1203,7 @@
     }
 
     if (visibleEntries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found for your account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found in the database. Upload a file or click 'New Entry'.</td></tr>`;
       return;
     }
 
