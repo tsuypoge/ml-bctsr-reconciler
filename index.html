@@ -920,7 +920,7 @@
           branch: formattedBranch,
           cutoffDate: "Synced Cloud Audit",
           companions: [],
-          createdBy: currentUser,
+          createdBy: currentUser, // Automatically tagged to creator upon discovery
           status: "In Progress"
         });
         updated = true;
@@ -942,17 +942,14 @@
     }
   });
 
-  // LISTEN TO QCLSTORE & AUTO-POPULATE DASHBOARD
   onValue(ref(db, 'qclStore'), (snapshot) => {
     autoDiscoverStoreBranches(snapshot.val());
   });
 
-  // LISTEN TO SUBASTASTORE & AUTO-POPULATE DASHBOARD
   onValue(ref(db, 'subastaStore'), (snapshot) => {
     autoDiscoverStoreBranches(snapshot.val());
   });
 
-  // LISTEN TO SUBTESTSTORE & AUTO-POPULATE DASHBOARD
   onValue(ref(db, 'subtestStore'), (snapshot) => {
     autoDiscoverStoreBranches(snapshot.val());
   });
@@ -1167,7 +1164,7 @@
     renderDashboardTable();
   };
 
-  /* 🔐 ROW-LEVEL USER FILTERED DASHBOARD RENDER */
+  /* 🔐 PERMISSION FILTER: Users only see branches they CREATED or were ASSIGNED as COMPANION */
   window.renderDashboardTable = function(filterQuery = '') {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
@@ -1181,8 +1178,8 @@
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
-    // 🌟 ALL ENTRIES AVAILABLE FOR ALL LOGGED-IN USERS
     let visibleEntries = strikeForceEntries.filter((row) => {
+      // Admin sees everything
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
       let creator = (row.createdBy || '').toLowerCase().trim();
@@ -1190,8 +1187,11 @@
         ? row.companions.map(c => c.toLowerCase().trim())
         : [(row.companion || '').toLowerCase().trim()];
 
-      if (!creator) return true;
-      return true; // 👈 Allow all auditors to see synced branches
+      // User MUST be the Creator OR assigned as Companion
+      let isCreator = creator && creator === currentUser;
+      let isCompanion = companionsList.includes(currentUser);
+
+      return isCreator || isCompanion;
     });
 
     if (filterQuery) {
@@ -1203,7 +1203,7 @@
     }
 
     if (visibleEntries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries found in the database. Upload a file or click 'New Entry'.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries assigned to account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
       return;
     }
 
