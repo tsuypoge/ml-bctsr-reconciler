@@ -487,11 +487,13 @@
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
 
+  // Robust slug generation matching index.html logic
   function slugBranch(name){
-    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
+    if(!name) return 'default';
+    return name.toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
 
-  // 🔥 Realtime Firebase Cloud Listener for Subasta/SR
+  // Realtime Firebase Cloud Listener
   function listenFirebaseSubastaStore() {
     if (!currentBranch) return;
     const branchSlug = slugBranch(currentBranch);
@@ -500,6 +502,8 @@
       const val = snapshot.val();
       if (val) {
         let changed = false;
+        let autoSelectedCategory = activeCategory;
+
         Object.keys(val).forEach(catKey => {
           if (val[catKey] && val[catKey].tickets) {
             categoryData[catKey] = {
@@ -507,6 +511,7 @@
               fileName: val[catKey].fileName || '(cloud-synced)'
             };
             changed = true;
+            if(!autoSelectedCategory) autoSelectedCategory = catKey;
 
             const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
             if(card){
@@ -517,11 +522,17 @@
           }
         });
 
-        if (changed && activeCategory && categoryData[activeCategory]) {
-          tickets = categoryData[activeCategory].tickets;
-          renderCategoryTabs();
-          renderTable();
-          renderStats();
+        if (changed) {
+          if (!activeCategory || !categoryData[activeCategory]) {
+            activeCategory = autoSelectedCategory;
+          }
+          if(activeCategory && categoryData[activeCategory]){
+            tickets = categoryData[activeCategory].tickets;
+            $('#dashboard').classList.add('show');
+            renderCategoryTabs();
+            renderTable();
+            renderStats();
+          }
         }
       }
     });
@@ -530,9 +541,15 @@
   function syncSubastaCategoryToFirebase(catKey) {
     if (!currentBranch || !categoryData[catKey]) return;
     const branchSlug = slugBranch(currentBranch);
+
+    // Sanitize values to avoid Firebase 'undefined' crash
+    const cleanTickets = JSON.parse(JSON.stringify(categoryData[catKey].tickets, (key, value) => {
+      return value === undefined ? null : value;
+    }));
+
     set(ref(db, `subastaStore/${branchSlug}/${catKey}`), {
-      tickets: categoryData[catKey].tickets,
-      fileName: categoryData[catKey].fileName,
+      tickets: cleanTickets,
+      fileName: categoryData[catKey].fileName || '(uploaded-file)',
       lastUpdated: new Date().toISOString()
     }).catch(e => console.warn("Firebase sync fallback local:", e));
   }
@@ -546,15 +563,11 @@
     renderStats();
   });
 
-  $('#branch-confirm-btn').addEventListener('click', ()=>{
-    const val = $('#branch-input').value.trim();
-    if(!val){ alert('Please enter branch name.'); return; }
-    const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
-    if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"?`)) return;
-
+  function setBranchAndInitialize(val) {
     currentBranch = val;
     currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
     $('#audit-date-input').value = currentAuditDate;
+    $('#branch-input').value = currentBranch;
     $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
     rememberBranch(currentBranch);
     rememberAuditDate(currentAuditDate);
@@ -565,8 +578,10 @@
     $$('.cat-upload-card').forEach(card=>{
       card.classList.remove('done');
       const key = card.dataset.cat;
-      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-      card.querySelector('.cat-file-input').value = '';
+      const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
+      if(statusEl) statusEl.textContent = 'Not uploaded yet';
+      const fileInput = card.querySelector('.cat-file-input');
+      if(fileInput) fileInput.value = '';
     });
     $('#category-tabs').innerHTML = '';
     $('#category-tabs').classList.remove('show');
@@ -576,6 +591,15 @@
 
     listenFirebaseSubastaStore();
     autoRestoreBranch();
+  }
+
+  $('#branch-confirm-btn').addEventListener('click', ()=>{
+    const val = $('#branch-input').value.trim();
+    if(!val){ alert('Please enter branch name.'); return; }
+    const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
+    if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"?`)) return;
+
+    setBranchAndInitialize(val);
   });
 
   (async ()=>{
@@ -584,13 +608,9 @@
     const remembered = activeB || await recallBranch();
     const rememberedDate = await recallAuditDate();
     if(rememberedDate) $('#audit-date-input').value = rememberedDate;
+
     if(remembered){
-      $('#branch-input').value = remembered;
-      currentBranch = remembered;
-      currentAuditDate = $('#audit-date-input').value;
-      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
-      listenFirebaseSubastaStore();
-      autoRestoreBranch();
+      setBranchAndInitialize(remembered);
     }
   })();
 
@@ -626,11 +646,11 @@
       categoryData[catKey] = {tickets: catTickets, fileName: file.name};
 
       saveFullCategoryState(catKey);
-      syncSubastaCategoryToFirebase(catKey);
 
       const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
-      card.classList.add('done');
-      document.querySelector(`[data-cat-status="${catKey}"]`).textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
+      if(card) card.classList.add('done');
+      const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+      if(statusEl) statusEl.textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
 
       setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed.`);
       if(unparsedLines.length){
@@ -693,14 +713,14 @@
     if(headerIdx === -1) return {tickets:[], unparsed: rows.map(r=>r.join(' | '))};
 
     const header = rows[headerIdx];
-    cols.date   = findHeaderCol(header, ['receiving date','date']);
-    cols.qty    = findHeaderCol(header, ['qty']);
+    cols.date    = findHeaderCol(header, ['receiving date','date']);
+    cols.qty     = findHeaderCol(header, ['qty']);
     cols.catcode = findHeaderCol(header, ['item category code']);
-    cols.code   = findHeaderCol(header, ['item code']);
-    cols.desc   = findHeaderCol(header, ['description']);
-    cols.wt     = findHeaderCol(header, ['weight']);
-    cols.karat  = findHeaderCol(header, ['karat']);
-    cols.price  = findHeaderCol(header, ['price']);
+    cols.code    = findHeaderCol(header, ['item code']);
+    cols.desc    = findHeaderCol(header, ['description']);
+    cols.wt      = findHeaderCol(header, ['weight']);
+    cols.karat   = findHeaderCol(header, ['karat']);
+    cols.price   = findHeaderCol(header, ['price']);
 
     const tickets = [];
     const unparsed = [];
@@ -790,11 +810,11 @@
       if(ok && !firstRestored) firstRestored = c.key;
     }
     if(firstRestored){
-      activeCategory = firstRestored;
-      loadCategory(firstRestored);
+      if(!activeCategory) activeCategory = firstRestored;
+      loadCategory(activeCategory);
       renderCategoryTabs();
       renderStats();
-      setStatus(`Restored saved data for branch "${currentBranch}".`);
+      setStatus(`Loaded saved data for branch "${currentBranch}".`);
     }
   }
 
@@ -815,6 +835,7 @@
   }
 
   function loadCategory(catKey){
+    if(!categoryData[catKey]) return;
     activeCategory = catKey;
     tickets = categoryData[catKey].tickets;
     reportKey = computeReportKey(catKey);
@@ -860,7 +881,7 @@
         <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
         <td><input type="number" min="0" class="actual-input" data-idx="${idx}" value="${t.actual===null||t.actual===undefined?'':t.actual}" placeholder="—"></td>
         <td>${statusBadge(st)}</td>
-        <td class="loan">${t.loan ? '₱'+t.loan.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
+        <td class="loan">${t.loan ? '₱'+Number(t.loan).toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
         <td class="actions-cell">
           <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
         </td>
@@ -1002,7 +1023,7 @@
       <div style="padding:8px 0; border-bottom:1px solid var(--border);">
         <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})<br>
         <span style="color:var(--text-muted);">${h.desc}</span><br>
-        Price ₱${Number(h.loan).toLocaleString()}
+        Price ₱${Number(h.loan||0).toLocaleString()}
         · ${h.actual===null||h.actual===undefined ? 'Pending' : 'Counted: '+h.actual}
       </div>
     `).join('');
@@ -1225,8 +1246,10 @@
     $$('.cat-upload-card').forEach(card=>{
       card.classList.remove('done');
       const key = card.dataset.cat;
-      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-      card.querySelector('.cat-file-input').value = '';
+      const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
+      if(statusEl) statusEl.textContent = 'Not uploaded yet';
+      const fileInput = card.querySelector('.cat-file-input');
+      if(fileInput) fileInput.value = '';
     });
     $('#category-tabs').innerHTML = '';
     $('#category-tabs').classList.remove('show');
