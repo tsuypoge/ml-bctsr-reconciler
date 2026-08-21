@@ -645,14 +645,18 @@
 
       categoryData[catKey] = {tickets: catTickets, fileName: file.name};
 
+      // 1. Save locally
       saveFullCategoryState(catKey);
+
+      // 2. 🔥 Direct Realtime Sync to Firebase Cloud
+      syncSubastaCategoryToFirebase(catKey);
 
       const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
       if(card) card.classList.add('done');
       const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
       if(statusEl) statusEl.textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
 
-      setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed.`);
+      setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed and synced to cloud.`);
       if(unparsedLines.length){
         $('#debug-toggle-wrap').style.display='block';
         $('#debug-panel').textContent = unparsedLines.join('\n');
