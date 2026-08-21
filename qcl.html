@@ -778,8 +778,13 @@
             tickets = categoryData[activeCategory].tickets;
             $('#dashboard').classList.add('show');
             renderCategoryTabs();
-            renderTable();
-            renderStats();
+            
+            // Gi-prevent ang re-render kung nag-type sa search box
+            const isSearching = document.activeElement && document.activeElement.id === 'search';
+            if (!isSearching) {
+              renderTable();
+              renderStats();
+            }
             setStatus(`Synced cloud data for branch "${currentBranch}".`);
           }
         }
@@ -905,7 +910,6 @@
       categoryData[catKey] = {tickets: catTickets, fileName: file.name};
 
       saveFullCategoryState(catKey);
-      syncQCLCategoryToFirebase(catKey);
 
       const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
       card.classList.add('done');
@@ -1147,6 +1151,7 @@
       fileName: categoryData[catKey].fileName
     });
     localStorage.setItem(computeDataKey(catKey), payload);
+    // Real-time Push directly into Firebase
     syncQCLCategoryToFirebase(catKey);
   }
 
@@ -1210,6 +1215,7 @@
   }
 
   function persistCounts(){
+    // I-save ang estado sa local ug i-push dayon kini sa Firebase
     saveFullCategoryState(activeCategory);
   }
 
