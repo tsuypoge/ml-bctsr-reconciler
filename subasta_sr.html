@@ -702,7 +702,8 @@
 
   async function parseExcelFile(file){
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:'array'});
+    // Read with codepage UTF-8 (65001) for robust CSV parsing
+    const wb = XLSX.read(buf, {type:'array', codepage: 65001});
     const sheetName = wb.SheetNames[0];
     const sheet = wb.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
@@ -729,6 +730,15 @@
     const tickets = [];
     const unparsed = [];
 
+    // Helper to parse numbers containing formatted commas like "681,300.00"
+    const parseNumber = (val) => {
+      if (val === null || val === undefined) return 0;
+      if (typeof val === 'number') return val;
+      const cleanStr = String(val).replace(/,/g, '').trim();
+      const num = Number(cleanStr);
+      return isNaN(num) ? 0 : num;
+    };
+
     for(let i=headerIdx+1;i<rows.length;i++){
       const row = rows[i];
       if(!row || row.every(c=>String(c||'').trim()==='')) continue;
@@ -739,10 +749,10 @@
 
       if(/^total\b/i.test(rawCode) || /^total\b/i.test(desc)) continue;
 
-      const qty = cols.qty>=0 ? (Number(row[cols.qty]) || (desc?1:0)) : (desc?1:0);
-      const wt = cols.wt>=0 ? (Number(row[cols.wt]) || 0) : 0;
-      const karat = cols.karat>=0 ? (Number(row[cols.karat]) || 0) : 0;
-      const price = cols.price>=0 ? (Number(row[cols.price]) || 0) : 0;
+      const qty = cols.qty>=0 ? (parseNumber(row[cols.qty]) || (desc?1:0)) : (desc?1:0);
+      const wt = cols.wt>=0 ? parseNumber(row[cols.wt]) : 0;
+      const karat = cols.karat>=0 ? parseNumber(row[cols.karat]) : 0;
+      const price = cols.price>=0 ? parseNumber(row[cols.price]) : 0;
 
       if(rawCode && desc){
         const date = formatExcelDate(cols.date>=0 ? row[cols.date] : '');
