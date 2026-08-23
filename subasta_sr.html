@@ -331,7 +331,7 @@
 </head>
 <body>
 
-<!-- TEXT OCR CAMERA SCANNER OVERLAY -->
+<!-- TEXT OCR CAMERA SCANNER OVERLAY WITH SCAN BUTTON -->
 <div id="scan-overlay" style="display:none; position:fixed; inset:0; z-index:998; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
   <div style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
     <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 6px;">📷 Scan Item Code Tag</h2>
@@ -344,9 +344,13 @@
     
     <div id="scan-result" style="margin-top:12px; font-family:var(--font-mono); font-size:13px; color:var(--primary); font-weight:700; min-height:18px;">⚡ Point camera at tag numbers...</div>
     
-    <div style="margin-top:14px;">
-      <button class="btn ghost" id="scan-close-btn" style="background:#f1f5f9; color:#334155; border:none; padding:12px; width:100%; justify-content:center;">
-        Close Camera
+    <!-- SCAN BUTTON AT CLOSE BUTTON -->
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn" id="manual-ocr-scan-btn" style="flex:1; background:var(--primary); color:#ffffff; justify-content:center; padding:12px;">
+        ⚡ Scan / Capture Now
+      </button>
+      <button class="btn ghost" id="scan-close-btn" style="background:#f1f5f9; color:#334155; border:none; padding:12px;">
+        Close
       </button>
     </div>
   </div>
@@ -939,14 +943,11 @@
     body.innerHTML = '';
     let shown = 0;
 
-    // Check if there are still pending tickets in current list
     const hasPendingTickets = tickets.some(t => statusOf(t) === 'pending');
 
-    // Create sorted map preserving original index order
     let sortedTickets = tickets.map((t, originalIndex) => ({ ticket: t, originalIndex }));
 
     if (hasPendingTickets) {
-      // WHILE AUDIT IN PROGRESS: Matched/Counted items move to the VERY TOP
       sortedTickets.sort((a, b) => {
         const statusA = statusOf(a.ticket);
         const statusB = statusOf(b.ticket);
@@ -956,7 +957,6 @@
         return a.originalIndex - b.originalIndex;
       });
     } else {
-      // WHEN ALL MATCHED (NO PENDING LEFT): Sort back by Original Item Code / Number Count
       sortedTickets.sort((a, b) => a.originalIndex - b.originalIndex);
     }
 
@@ -1280,6 +1280,54 @@
       videoStream = null;
     }
   }
+
+  // Manual Capture / Force OCR Scan Button Handler
+  $('#manual-ocr-scan-btn').addEventListener('click', async () => {
+    const video = $('#cam-video');
+    if (!video || !video.videoWidth) return;
+
+    $('#scan-result').style.color = 'var(--primary)';
+    $('#scan-result').textContent = '🔄 Capturing & Processing Text...';
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    if (!ocrWorker) {
+      ocrWorker = await Tesseract.createWorker('eng');
+    }
+
+    const { data: { text } } = await ocrWorker.recognize(canvas);
+    const numberMatches = text.match(/\b\d{10,25}\b/g) || text.match(/\b\d{5,}-\d+\b/g);
+
+    if (numberMatches) {
+      const detectedCode = numberMatches[0].replace(/[^0-9]/g, '');
+      const success = markScannedCodeAsCounted(detectedCode);
+
+      if (success) {
+        playSuccessBeep();
+        $('#scan-result').style.color = '#16a34a';
+        $('#scan-result').textContent = `✓ OCR MATCH: ${detectedCode}`;
+
+        if(scanMode === 'toolbar'){
+          $('#search').value = detectedCode;
+        } else {
+          $('#global-search-input').value = detectedCode;
+          runGlobalSearch();
+        }
+
+        setTimeout(() => closeScanner(), 1000);
+      } else {
+        $('#scan-result').style.color = '#dc2626';
+        $('#scan-result').textContent = `⚠️ Scanned "${detectedCode}" — Not in list`;
+      }
+    } else {
+      $('#scan-result').style.color = '#dc2626';
+      $('#scan-result').textContent = '⚠️ Could not read clear numbers. Hold steady & retry.';
+    }
+  });
 
   $('#scan-btn').addEventListener('click', ()=> openScanner('toolbar'));
   $('#global-scan-btn').addEventListener('click', ()=> openScanner('global'));
