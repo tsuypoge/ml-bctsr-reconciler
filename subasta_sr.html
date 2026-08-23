@@ -25,6 +25,7 @@
     --text-main: #1e293b;
     --text-muted: #64748b;
     --border: #e2e8f0;
+    --border-subtle: #f1f5f9;
 
     --match: #16a34a;
     --match-bg: #f0fdf4;
@@ -37,6 +38,8 @@
     --font-mono: 'IBM Plex Mono', monospace;
 
     --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 18px;
@@ -53,6 +56,8 @@
     padding-bottom: 60px;
     -webkit-font-smoothing: antialiased;
   }
+
+  ::selection { background: var(--primary); color: #ffffff; }
 
   /* Header Bar */
   header {
@@ -73,8 +78,25 @@
     gap: 12px;
   }
 
-  .header-title-box { display: flex; align-items: center; gap: 14px; }
+  .header-title-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
   .header-logo-img { height: 48px; width: auto; object-fit: contain; }
+
+  .logo-badge {
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 18px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    letter-spacing: -0.5px;
+    box-shadow: var(--shadow-sm);
+  }
+
   h1 { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; }
   .header-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
 
@@ -98,13 +120,24 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
 
-  .btn:hover { background: #f8fafc; transform: translateY(-1px); }
-  .btn.ghost { background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3); box-shadow: none; }
+  .btn:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+  .btn:active { transform: translateY(0); }
+
+  .btn.ghost {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: none;
+  }
+  .btn.ghost:hover { background: #ffffff; color: var(--primary); border-color: #ffffff; }
+
   .btn.small { padding: 7px 13px; font-size: 12px; }
   .btn-dashboard { background: #1e293b; color: #ffffff; }
+  .btn-dashboard:hover { background: #0f172a; color: #ffffff; }
 
   input[type=file] { display: none; }
 
+  /* Branch Box & Search Box Cards */
   .branch-box {
     background: var(--panel-bg);
     border-radius: var(--radius-lg);
@@ -122,8 +155,11 @@
     font-family: var(--font-sans);
     font-size: 13.5px;
     outline: none;
+    transition: border-color 0.2s;
   }
+  .input-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
 
+  /* Category Uploads */
   .cat-uploads { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
   .cat-upload-card {
     flex: 1; min-width: 240px;
@@ -133,11 +169,17 @@
     padding: 24px 20px;
     text-align: center;
     border: 2px dashed var(--border);
+    transition: all 0.2s;
   }
   .cat-upload-card.done { border-style: solid; border-color: var(--match); background: #f0fdf4; }
+  .cat-upload-card h3 { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+  .cat-upload-card .cat-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .cat-upload-card .cat-status { margin-top: 12px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .cat-upload-card.done .cat-status { color: var(--match); font-weight: 800; }
 
-  #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; }
+  #status-line { margin-top: 14px; font-size: 12.5px; color: #ffffff; text-align: center; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
+  /* Tabs */
   .tabs {
     display: none; margin-top: 24px; gap: 10px; flex-wrap: wrap;
     position: sticky; top: 0; z-index: 50;
@@ -150,9 +192,13 @@
     background: rgba(255,255,255,0.85); border: none; border-radius: var(--radius-sm);
     padding: 12px 16px; cursor: pointer; transition: all 0.2s; opacity: 0.6;
   }
+  .tab.enabled { cursor: pointer; opacity: 1; }
+  .tab.disabled { cursor: not-allowed; }
   .tab.active { background: #ffffff; opacity: 1; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
   .tab .t-name { font-size: 15px; font-weight: 800; color: var(--primary); }
+  .tab .t-count { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
 
+  /* Dashboard Stats */
   #dashboard { display: none; margin-top: 24px; }
   #dashboard.show { display: block; }
 
@@ -163,7 +209,7 @@
     box-shadow: var(--shadow-card); padding: 16px 20px;
   }
   .stat-chip .num { font-size: 26px; font-weight: 800; font-family: var(--font-mono); color: var(--primary); }
-  .stat-chip .lab { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; }
+  .stat-chip .lab { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 800; margin-top: 2px; }
   .stat-chip.match .num { color: var(--match); }
   .stat-chip.mismatch .num { color: var(--mismatch); }
   .stat-chip.pending .num { color: var(--pending); }
@@ -174,7 +220,11 @@
     background: var(--panel-bg); border-left: 4px solid var(--primary);
     border-radius: var(--radius-md); padding: 14px 18px; box-shadow: var(--shadow-card);
   }
+  .cat-card .name { font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--primary); letter-spacing: 0.5px; }
+  .cat-card .figures { font-size: 18px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; color: var(--text-main); }
+  .cat-card .figures small { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
+  /* Toolbar */
   .toolbar {
     display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
     background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-card);
@@ -184,8 +234,13 @@
     border: 1.5px solid var(--border); border-radius: var(--radius-sm);
     font-family: var(--font-sans); font-size: 13px; outline: none;
   }
-  select { padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-weight: 700; }
+  #search:focus { border-color: var(--primary); }
+  select {
+    padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
+  }
 
+  /* Ledger Table */
   .ledger {
     background: var(--panel-bg); border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card); overflow: hidden; padding: 8px;
@@ -194,18 +249,73 @@
   thead th {
     background: #ffffff; font-size: 11px; text-transform: uppercase; font-weight: 800;
     color: var(--primary); text-align: left; padding: 16px 14px; border-bottom: 2px solid var(--border);
+    white-space: nowrap; position: sticky; top: 0; z-index: 10;
   }
   tbody td { padding: 12px 14px; border-bottom: 1px solid #f8fafc; vertical-align: top; }
-  .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); }
+  tbody tr:hover { background: #fffdfd; }
+  .ptn { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); white-space: nowrap; }
+  .ptn .flag { color: var(--primary); }
+  .date { font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; }
+  .desc-list { font-size: 13px; line-height: 1.5; }
+  .desc-list .code {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    background: #f1f5f9; color: var(--primary); border-radius: 4px; padding: 1px 6px; margin-right: 6px;
+  }
+  .desc-text[contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; }
+  .desc-text[contenteditable="true"]:focus { border-bottom-color: var(--primary); }
+  .desc-list .meta { color: var(--text-muted); font-size: 11.5px; font-weight: 600; }
+  
+  .expected { font-family: var(--font-mono); font-size: 14px; text-align: center; color: var(--text-muted); font-weight: 700; }
+  .actual-input {
+    width: 60px; text-align: center; font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+    background: #f8fafc; border: 1.5px solid var(--border); border-radius: 6px; color: var(--text-main); padding: 5px 4px;
+  }
+  .actual-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1); }
 
   .status-badge {
     display: inline-block; font-size: 11px; text-transform: uppercase;
-    padding: 4px 10px; border-radius: 20px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px; font-weight: 700; white-space: nowrap;
   }
   .status-badge.match { background: var(--match-bg); color: var(--match); border: 1px solid var(--match); }
+  .status-badge.mismatch { background: var(--mismatch-bg); color: var(--mismatch); border: 1px solid var(--mismatch); }
   .status-badge.pending { background: var(--pending-bg); color: var(--pending); border: 1px solid var(--pending); }
+  .stamp {
+    display: inline-block; font-weight: 800; font-size: 10px; color: var(--match);
+    border: 1.5px solid var(--match); border-radius: 4px; padding: 1px 6px; transform: rotate(-4deg); margin-left: 6px;
+  }
 
-  /* Dedicated Scanner Mode (Mobile View) Styles */
+  .del-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; }
+  .del-btn:hover { color: var(--mismatch); }
+  .loan { font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+
+  .footer-tools { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+  .empty-note { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 20px; }
+
+  .found-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--match); }
+  .actions-cell { white-space: nowrap; text-align: right; }
+
+  .cloud-tag {
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 800;
+  }
+
+  /* Camera Video & OCR Guide Box Overlay */
+  #cam-video-wrap {
+    position: relative; width: 100%; height: 220px; background: #000;
+    border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+  }
+  #cam-video { width: 100%; height: 100%; object-fit: cover; }
+  .cam-guide-box {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 85%; height: 50px; border: 2px dashed #16a34a;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.4); border-radius: 8px; pointer-events: none;
+  }
+
+  /* DEDICATED PHONE SCANNER MODE STYLES */
   body.scanner-mode header,
   body.scanner-mode .wrap > *:not(#scan-overlay),
   body.scanner-mode #qr-modal-overlay {
@@ -224,43 +334,42 @@
     padding: 16px !important;
   }
 
-  #cam-video-wrap {
-    position: relative; width: 100%; height: 260px; background: #000;
-    border-radius: 12px; overflow: hidden; margin-bottom: 12px;
-  }
-  #cam-video { width: 100%; height: 100%; object-fit: cover; }
-  .cam-guide-box {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 85%; height: 55px; border: 2px dashed #16a34a;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.4); border-radius: 8px; pointer-events: none;
-  }
+  @media print {
+    header, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap, .btn-dashboard, .branch-box { display: none !important; }
+    body { background: #fff; color: #000; }
+    .ledger { border: none; box-shadow: none; }
+    thead th { background: #eee; color: #000; position: static; }
+    tbody td { color: #000; border-color: #ccc; }
+    .status-badge, .stamp { display: none !important; }
 
-  .cloud-tag { background: #16a34a; color: #ffffff; font-size: 11px; padding: 5px 12px; border-radius: 20px; font-weight: 800; }
+    body.print-missing-mode tr[data-status="match"] {
+      display: none !important;
+    }
+  }
 </style>
 </head>
 <body>
 
-<!-- TEXT OCR CAMERA SCANNER OVERLAY -->
+<!-- TEXT OCR CAMERA SCANNER OVERLAY WITH SCAN BUTTON -->
 <div id="scan-overlay" style="display:none; position:fixed; inset:0; z-index:998; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
-  <div class="scan-card-container" style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:24px 20px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
-    <div>
-      <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 4px;">📱 Mobile Tag Scanner</h2>
-      <p style="font-size:12px; color:var(--text-muted); margin:0 0 12px;">Itutok ang rectangle guide box sa mga numero sa tag.</p>
-    </div>
+  <div class="scan-card-container" style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
+    <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 6px;">📷 Scan Item Code Tag</h2>
+    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 12px;">Itutok ang rectangle guide box sa mga numero sa tag.</p>
     
     <div id="cam-video-wrap">
       <video id="cam-video" autoplay playsinline muted></video>
       <div class="cam-guide-box"></div>
     </div>
     
-    <div id="scan-result" style="margin-top:8px; font-family:var(--font-mono); font-size:14px; color:var(--primary); font-weight:800; min-height:22px; padding:8px; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">⚡ Point camera at tag numbers...</div>
+    <div id="scan-result" style="margin-top:12px; font-family:var(--font-mono); font-size:13px; color:var(--primary); font-weight:700; min-height:18px;">⚡ Point camera at tag numbers...</div>
     
-    <div style="display:flex; gap:10px; margin-top:12px;">
-      <button class="btn" id="manual-ocr-scan-btn" style="flex:1; background:var(--primary); color:#ffffff; justify-content:center; padding:12px; font-size:14px;">
-        ⚡ Capture / Scan Now
+    <!-- SCAN BUTTON AT CLOSE BUTTON -->
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn" id="manual-ocr-scan-btn" style="flex:1; background:var(--primary); color:#ffffff; justify-content:center; padding:12px;">
+        ⚡ Scan / Capture Now
       </button>
       <button class="btn ghost" id="scan-close-btn" style="background:#f1f5f9; color:#334155; border:none; padding:12px;">
-        Exit
+        Close
       </button>
     </div>
   </div>
@@ -279,11 +388,12 @@
   </div>
 </div>
 
-<!-- HEADER BAR -->
+<!-- HEADER BAR WITH LOGO AND MOBILE SYNC QR -->
 <header>
   <div class="header-content">
     <div class="header-title-box">
-      <img src="logo.png" class="header-logo-img" alt="M Lhuillier Logo" onerror="this.style.display='none';">
+      <img src="logo.png" class="header-logo-img" alt="M Lhuillier Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="logo-badge" style="display:none;">ML</div>
       <div>
         <h1>Showroom / Subasta Physical Inventory Check</h1>
         <div class="header-sub">Automated Item Verification & Audit Engine</div>
@@ -300,32 +410,33 @@
 
 <div class="wrap">
 
+  <!-- TOP ACTION BAR WITH BACK TO DASHBOARD -->
   <div style="display:flex; justify-content:flex-start; align-items:center; margin-bottom:20px;">
-    <button class="btn btn-dashboard" onclick="window.location.href='index.html'">
+    <button class="btn btn-dashboard" onclick="window.location.href='index.html'" title="Return to Main Dashboard">
       <span>⬅️</span> Back to Dashboard
     </button>
   </div>
 
-  <!-- BRANCH CARD -->
+  <!-- BRANCH SELECTOR CARD -->
   <div class="branch-box" id="branch-box">
     <h3>🏢 Which branch is this?</h3>
-    <p>Each branch keeps its own separate inventory data. Select or enter your branch name.</p>
+    <p>Each branch keeps its own separate inventory data. Select or enter your branch name to prevent data mixing.</p>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <input type="text" id="branch-input" class="input-control" placeholder="e.g. ML Catarman..." style="flex:1; min-width:200px;">
+      <input type="text" id="branch-input" class="input-control" placeholder="e.g. ML Catarman, ML Liloan 3..." style="flex:1; min-width:200px;">
       <input type="date" id="audit-date-input" class="input-control">
       <button class="btn" id="branch-confirm-btn" style="background:var(--primary); color:#ffffff;">Start / Switch Branch</button>
     </div>
     <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
-  <!-- SEARCH BOX -->
+  <!-- GLOBAL SEARCH BOX -->
   <div class="branch-box" id="global-search-box">
     <h3>🔎 Search Item Code (All Categories)</h3>
-    <p>Look up an item code across Showroom and Subasta simultaneously.</p>
+    <p>Look up an item code or description across Showroom and Subasta simultaneously.</p>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <input type="text" id="global-search-input" class="input-control" placeholder="Type item code..." style="flex:1; min-width:200px;">
+      <input type="text" id="global-search-input" class="input-control" placeholder="Type full or partial item code / description..." style="flex:1; min-width:200px;">
       <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search</button>
-      <button class="btn ghost" id="global-scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Open Phone Scanner</button>
+      <button class="btn ghost" id="global-scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Scan Tag Text</button>
     </div>
     <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
   </div>
@@ -358,6 +469,11 @@
     <button class="btn ghost small" id="new-day-btn" style="background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4);">🔄 New Day (Clear Branch Data)</button>
   </div>
 
+  <div id="debug-toggle-wrap" style="display:none; text-align:center; margin-top:10px;">
+    <span class="debug-toggle" id="debug-toggle" style="color:#fff; cursor:pointer; font-size:12px; text-decoration:underline;">View lines that couldn't be parsed (debug)</span>
+    <div id="debug-panel" style="display:none; background:#fff; padding:12px; border-radius:8px; margin-top:8px; text-align:left; font-size:11px; max-height:150px; overflow:auto;"></div>
+  </div>
+
   <!-- CATEGORY TABS -->
   <div class="tabs" id="category-tabs"></div>
 
@@ -368,11 +484,12 @@
 
     <div class="toolbar">
       <input type="text" id="search" placeholder="Search: item code, or description...">
-      <button class="btn ghost small" id="scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Open Phone Scanner</button>
+      <button class="btn ghost small" id="scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Scan Tag Text</button>
       <select id="filter-status">
         <option value="all">All Status</option>
         <option value="pending">Pending</option>
         <option value="match">Match</option>
+        <option value="mismatch">Mismatch</option>
       </select>
     </div>
 
@@ -389,6 +506,7 @@
             <th>Actual Count</th>
             <th>Status</th>
             <th>Price</th>
+            <th style="text-align:right;">Action</th>
           </tr>
         </thead>
         <tbody id="ledger-body"></tbody>
@@ -399,6 +517,7 @@
     <div class="footer-tools">
       <button class="btn ghost" id="reset-counts-btn" style="color:var(--text-main); background:#fff;">Clear Actual Counts</button>
       <button class="btn ghost" id="export-btn" style="color:var(--text-main); background:#fff;">Export Discrepancy (CSV)</button>
+      <button class="btn ghost" id="print-missing-btn" style="color:var(--text-main); background:#fff;">Print Missing/Shortage</button>
       <button class="btn" id="print-btn" style="background:var(--primary); color:#fff;">Print (All)</button>
     </div>
   </div>
@@ -432,6 +551,8 @@
   let categoryData = {};
   let activeCategory = null;
   let tickets = [];
+  let unparsedLines = [];
+  let reportKey = '';
   let currentBranch = '';
   let currentAuditDate = '';
 
@@ -439,6 +560,7 @@
   let ocrWorker = null;
   let ocrInterval = null;
   let scanCooldown = false;
+  let scanMode = null;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
@@ -460,7 +582,7 @@
     return name.toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
 
-  // Realtime Firebase Sync Listener
+  // Realtime Firebase Listener
   function listenFirebaseSubastaStore() {
     if (!currentBranch) return;
     const branchSlug = slugBranch(currentBranch);
@@ -520,31 +642,75 @@
     }).catch(e => console.warn("Firebase sync fallback local:", e));
   }
 
+  $('#audit-date-input').addEventListener('change', e=>{
+    currentAuditDate = e.target.value;
+    rememberAuditDate(currentAuditDate);
+    if(currentBranch){
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+    }
+    renderStats();
+  });
+
   function setBranchAndInitialize(val) {
     currentBranch = val;
     currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
+    $('#audit-date-input').value = currentAuditDate;
     $('#branch-input').value = currentBranch;
     $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate}`;
+    rememberBranch(currentBranch);
+    rememberAuditDate(currentAuditDate);
+
+    categoryData = {};
+    tickets = [];
+    activeCategory = null;
+    $$('.cat-upload-card').forEach(card=>{
+      card.classList.remove('done');
+      const key = card.dataset.cat;
+      const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
+      if(statusEl) statusEl.textContent = 'Not uploaded yet';
+      const fileInput = card.querySelector('.cat-file-input');
+      if(fileInput) fileInput.value = '';
+    });
+    $('#category-tabs').innerHTML = '';
+    $('#category-tabs').classList.remove('show');
+    $('#dashboard').classList.remove('show');
+    $('#global-search-input').value = '';
+    $('#global-search-results').innerHTML = '';
 
     listenFirebaseSubastaStore();
     autoRestoreBranch();
   }
 
+  $('#branch-confirm-btn').addEventListener('click', ()=>{
+    const val = $('#branch-input').value.trim();
+    if(!val){ alert('Please enter branch name.'); return; }
+    const switching = currentBranch && slugBranch(val) !== slugBranch(currentBranch);
+    if(switching && !confirm(`Switch from "${currentBranch}" to "${val}"?`)) return;
+
+    setBranchAndInitialize(val);
+  });
+
   (async ()=>{
+    let activeB = localStorage.getItem('ml_activeBranch');
+    $('#audit-date-input').value = new Date().toISOString().slice(0,10);
+    
     const params = new URLSearchParams(window.location.search);
     const urlBranch = params.get('branch');
     const urlDate = params.get('date');
     const isModeScanner = params.get('mode') === 'scanner' || params.get('autoscan') === 'true';
 
-    $('#audit-date-input').value = urlDate || new Date().toISOString().slice(0,10);
-    const rememberedBranch = urlBranch || localStorage.getItem('ml_activeBranch') || 'ML Branch';
+    const remembered = urlBranch || activeB || await recallBranch();
+    const rememberedDate = urlDate || await recallAuditDate();
+    if(rememberedDate) $('#audit-date-input').value = rememberedDate;
 
-    setBranchAndInitialize(rememberedBranch);
+    if(remembered){
+      setBranchAndInitialize(remembered);
+    }
 
     // DEDICATED PHONE SCANNER MODE TRIGGER
     if (isModeScanner) {
       document.body.classList.add('scanner-mode');
-      setTimeout(() => openScanner(), 600);
+      setTimeout(() => openScanner('toolbar'), 600);
     }
   })();
 
@@ -559,59 +725,139 @@
     });
   });
 
+  function setStatus(msg){ $('#status-line').textContent = msg; }
+
   async function handleFile(file, catKey){
-    $('#status-line').textContent = 'Reading Excel file...';
+    setStatus('Reading Excel file...');
     try{
       const parsed = await parseExcelFile(file);
-      if(!parsed.tickets.length) return;
-      
+      unparsedLines = parsed.unparsed;
+      if(!parsed.tickets.length){
+        setStatus('No item rows found. Check file headers.');
+        return;
+      }
       const catTickets = parsed.tickets.map((t,i)=>({
-        id: catKey+'_'+i, ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
-        expected: t.items.reduce((a,it)=>a+it.pcs,0), actual: null
+        id: catKey+'_'+i,
+        ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
+        expected: t.items.reduce((a,it)=>a+it.pcs,0),
+        actual: null
       }));
 
       categoryData[catKey] = {tickets: catTickets, fileName: file.name};
+
       saveFullCategoryState(catKey);
       syncSubastaCategoryToFirebase(catKey);
 
       const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
       if(card) card.classList.add('done');
+      const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+      if(statusEl) statusEl.textContent = `✓ ${catTickets.length} tickets — ${file.name}`;
+
+      setStatus(`Read ${file.name}: ${catTickets.length} tickets parsed and synced to cloud.`);
+      if(unparsedLines.length){
+        $('#debug-toggle-wrap').style.display='block';
+        $('#debug-panel').textContent = unparsedLines.join('\n');
+      }
+
       activeCategory = catKey;
       loadCategory(catKey);
       renderCategoryTabs();
-    }catch(err){ console.error(err); }
+    }catch(err){
+      console.error(err);
+      setStatus('Error reading file: ' + err.message);
+    }
+  }
+
+  function formatExcelDate(val){
+    if(val === null || val === undefined || val === '') return '';
+    if(val instanceof Date && !isNaN(val)){
+      const mm = String(val.getUTCMonth()+1).padStart(2,'0');
+      const dd = String(val.getUTCDate()).padStart(2,'0');
+      const yyyy = val.getUTCFullYear();
+      return `${mm}/${dd}/${yyyy}`;
+    }
+    if(typeof val === 'number'){
+      const days = Math.round(val);
+      const d = new Date((days - 25569) * 86400 * 1000);
+      if(!isNaN(d)){
+        const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+        const dd = String(d.getUTCDate()).padStart(2,'0');
+        const yyyy = d.getUTCFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+      }
+    }
+    return String(val).trim();
+  }
+
+  function findHeaderCol(headerRow, candidates){
+    for(let i=0;i<headerRow.length;i++){
+      const cell = String(headerRow[i]||'').toLowerCase().trim();
+      if(candidates.some(c=>cell.includes(c))) return i;
+    }
+    return -1;
   }
 
   async function parseExcelFile(file){
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, {type:'array', codepage: 65001});
-    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const sheetName = wb.SheetNames[0];
+    const sheet = wb.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
 
     let headerIdx = -1, cols = {};
     for(let i=0;i<rows.length;i++){
       const row = rows[i].map(c=>String(c||'').toLowerCase());
-      if(row.some(c=>c.includes('item code')) && row.some(c=>c.includes('description'))){ headerIdx = i; break; }
+      const hasCode = row.some(c=>c.includes('item code'));
+      const hasDesc = row.some(c=>c.includes('description'));
+      if(hasCode && hasDesc){ headerIdx = i; break; }
     }
-    if(headerIdx === -1) return {tickets:[]};
+    if(headerIdx === -1) return {tickets:[], unparsed: rows.map(r=>r.join(' | '))};
 
     const header = rows[headerIdx];
-    cols.code = header.findIndex(c=>String(c||'').toLowerCase().includes('item code'));
-    cols.desc = header.findIndex(c=>String(c||'').toLowerCase().includes('description'));
-    cols.price = header.findIndex(c=>String(c||'').toLowerCase().includes('price'));
+    cols.date    = findHeaderCol(header, ['receiving date','date']);
+    cols.qty     = findHeaderCol(header, ['qty']);
+    cols.catcode = findHeaderCol(header, ['item category code']);
+    cols.code    = findHeaderCol(header, ['item code']);
+    cols.desc    = findHeaderCol(header, ['description']);
+    cols.wt      = findHeaderCol(header, ['weight']);
+    cols.karat   = findHeaderCol(header, ['karat']);
+    cols.price   = findHeaderCol(header, ['price']);
 
     const tickets = [];
+    const unparsed = [];
+
+    const parseNumber = (val) => {
+      if (val === null || val === undefined) return 0;
+      if (typeof val === 'number') return val;
+      const cleanStr = String(val).replace(/,/g, '').trim();
+      const num = Number(cleanStr);
+      return isNaN(num) ? 0 : num;
+    };
+
     for(let i=headerIdx+1;i<rows.length;i++){
       const row = rows[i];
+      if(!row || row.every(c=>String(c||'').trim()==='')) continue;
+
       const rawCode = cols.code>=0 ? String(row[cols.code]||'').trim() : '';
       const desc = cols.desc>=0 ? String(row[cols.desc]||'').trim() : '';
-      const price = cols.price>=0 ? Number(row[cols.price]) || 0 : 0;
+      const catCode = cols.catcode>=0 ? String(row[cols.catcode]||'').trim() : '';
+
+      if(/^total\b/i.test(rawCode) || /^total\b/i.test(desc)) continue;
+
+      const qty = cols.qty>=0 ? (parseNumber(row[cols.qty]) || (desc?1:0)) : (desc?1:0);
+      const wt = cols.wt>=0 ? parseNumber(row[cols.wt]) : 0;
+      const karat = cols.karat>=0 ? parseNumber(row[cols.karat]) : 0;
+      const price = cols.price>=0 ? parseNumber(row[cols.price]) : 0;
 
       if(rawCode && desc){
-        tickets.push({ ptn: rawCode, date:'', items:[{code:'', desc, pcs:1}], loan: price });
+        const date = formatExcelDate(cols.date>=0 ? row[cols.date] : '');
+        tickets.push({ ptn: rawCode, date, items:[{code:catCode, desc, pcs:qty, wt, karat}], loan: price });
+      } else if(desc || rawCode){
+        unparsed.push(row.join(' | '));
       }
     }
-    return {tickets};
+
+    return {tickets, unparsed};
   }
 
   function renderCategoryTabs(){
@@ -620,22 +866,29 @@
     CATEGORIES.forEach(c=>{
       const data = categoryData[c.key];
       const div = document.createElement('div');
-      div.className = 'tab' + (data?' enabled':' disabled') + (c.key===activeCategory?' active':'');
-      div.innerHTML = `<div class="t-name">${c.label}</div>`;
-      if(data) div.addEventListener('click', ()=>{ loadCategory(c.key); renderCategoryTabs(); });
+      const enabled = !!data;
+      div.className = 'tab' + (enabled?' enabled':' disabled') + (c.key===activeCategory?' active':'');
+      div.innerHTML = `<div class="t-name">${c.label}</div><div class="t-count">${data ? data.tickets.length+' tickets' : 'not uploaded yet'}</div>`;
+      if(enabled) div.addEventListener('click', ()=>{ loadCategory(c.key); renderCategoryTabs(); });
       wrap.appendChild(div);
     });
     wrap.classList.add('show');
   }
 
-  function computeReportKey(catKey){ return 'srinventory:' + slugBranch(currentBranch) + ':' + catKey; }
-  function computeDataKey(catKey){ return computeReportKey(catKey) + ':full'; }
+  function computeReportKey(catKey){
+    return 'srinventory:' + slugBranch(currentBranch) + ':' + catKey;
+  }
+  function computeDataKey(catKey){
+    return computeReportKey(catKey) + ':full';
+  }
 
   async function saveFullCategoryState(catKey){
     if(!catKey || !categoryData[catKey]) return;
-    localStorage.setItem(computeDataKey(catKey), JSON.stringify({
-      tickets: categoryData[catKey].tickets, fileName: categoryData[catKey].fileName
-    }));
+    const payload = JSON.stringify({
+      tickets: categoryData[catKey].tickets,
+      fileName: categoryData[catKey].fileName
+    });
+    localStorage.setItem(computeDataKey(catKey), payload);
     syncSubastaCategoryToFirebase(catKey);
   }
 
@@ -644,9 +897,19 @@
       const raw = localStorage.getItem(computeDataKey(catKey));
       if(!raw) return false;
       const saved = JSON.parse(raw);
+      if(!saved.tickets || !saved.tickets.length) return false;
       categoryData[catKey] = {tickets: saved.tickets, fileName: saved.fileName || '(restored)'};
+
+      const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
+      if(card){
+        card.classList.add('done');
+        const statusEl = document.querySelector(`[data-cat-status="${catKey}"]`);
+        if(statusEl) statusEl.textContent = `✓ ${saved.tickets.length} tickets — restored`;
+      }
       return true;
-    }catch(e){ return false; }
+    }catch(e){
+      return false;
+    }
   }
 
   async function autoRestoreBranch(){
@@ -660,15 +923,37 @@
       loadCategory(activeCategory);
       renderCategoryTabs();
       renderStats();
+      setStatus(`Loaded saved data for branch "${currentBranch}".`);
     }
+  }
+
+  const REMEMBERED_BRANCH_KEY = 'srinventory:remembered-branch';
+  async function rememberBranch(name){
+    try{ localStorage.setItem(REMEMBERED_BRANCH_KEY, name); }catch(e){}
+  }
+  async function recallBranch(){
+    try{ return localStorage.getItem(REMEMBERED_BRANCH_KEY) || ''; }catch(e){ return ''; }
+  }
+
+  const REMEMBERED_AUDIT_DATE_KEY = 'srinventory:remembered-audit-date';
+  async function rememberAuditDate(dateStr){
+    try{ localStorage.setItem(REMEMBERED_AUDIT_DATE_KEY, dateStr); }catch(e){}
+  }
+  async function recallAuditDate(){
+    try{ return localStorage.getItem(REMEMBERED_AUDIT_DATE_KEY) || ''; }catch(e){ return ''; }
   }
 
   function loadCategory(catKey){
     if(!categoryData[catKey]) return;
     activeCategory = catKey;
     tickets = categoryData[catKey].tickets;
+    reportKey = computeReportKey(catKey);
     $('#dashboard').classList.add('show');
     renderTable();
+  }
+
+  function persistCounts(){
+    saveFullCategoryState(activeCategory);
   }
 
   function statusOf(t){
@@ -678,66 +963,175 @@
 
   // --- REALTIME DYNAMIC SORTING RENDER TABLE FUNCTION ---
   function renderTable(){
+    const q = $('#search').value.trim().toLowerCase();
+    const filterStatus = $('#filter-status').value;
     const body = $('#ledger-body');
     body.innerHTML = '';
+    let shown = 0;
 
     const hasPendingTickets = tickets.some(t => statusOf(t) === 'pending');
+
     let sortedTickets = tickets.map((t, originalIndex) => ({ ticket: t, originalIndex }));
 
     if (hasPendingTickets) {
-      // WHILE AUDIT IN PROGRESS: Matched/Counted items move to the VERY TOP
       sortedTickets.sort((a, b) => {
         const statusA = statusOf(a.ticket);
         const statusB = statusOf(b.ticket);
+
         if (statusA === 'match' && statusB !== 'match') return -1;
         if (statusA !== 'match' && statusB === 'match') return 1;
         return a.originalIndex - b.originalIndex;
       });
     } else {
-      // WHEN ALL MATCHED: Sort back by Original Item Code order
       sortedTickets.sort((a, b) => a.originalIndex - b.originalIndex);
     }
 
     sortedTickets.forEach(({ ticket: t, originalIndex }) => {
       const st = statusOf(t);
+      if(filterStatus !== 'all' && st !== filterStatus) return;
+      if(q){
+        const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
+        if(!hay.includes(q)) return;
+      }
+      shown++;
       const tr = document.createElement('tr');
+
+      const flagged = /\*/.test(t.ptn);
+      tr.dataset.status = st;
       const isFound = st === 'match';
 
       tr.innerHTML = `
         <td class="num">${originalIndex + 1}</td>
-        <td class="ptn">${t.ptn}</td>
+        <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
         <td class="date">${t.date||'—'}</td>
-        <td class="desc-list">${t.items.map(it=>it.desc).join(', ')}</td>
+        <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${originalIndex}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
         <td class="expected">${t.expected}</td>
         <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${originalIndex}" ${isFound?'checked':''}></td>
-        <td><input type="number" class="actual-input" data-idx="${originalIndex}" value="${t.actual===null||t.actual===undefined?'':t.actual}"></td>
-        <td>${isFound ? '<span class="status-badge match">Match</span>' : '<span class="status-badge pending">Pending</span>'}</td>
-        <td class="loan">₱${Number(t.loan||0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+        <td><input type="number" min="0" class="actual-input" data-idx="${originalIndex}" value="${t.actual===null||t.actual===undefined?'':t.actual}" placeholder="—"></td>
+        <td>${statusBadge(st)}</td>
+        <td class="loan">${t.loan ? '₱'+Number(t.loan).toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
+        <td class="actions-cell">
+          <button class="del-btn" data-del="${originalIndex}" title="Delete">✕</button>
+        </td>
       `;
       body.appendChild(tr);
+    });
+
+    $('#empty-note').style.display = shown ? 'none' : 'block';
+
+    $$('.actual-input').forEach(inp=>{
+      inp.addEventListener('input', e=>{
+        const i = +e.target.dataset.idx;
+        tickets[i].actual = e.target.value === '' ? null : Number(e.target.value);
+        persistCounts();
+        renderStats();
+        renderTable();
+      });
     });
 
     $$('.found-check').forEach(chk=>{
       chk.addEventListener('change', e=>{
         const i = +e.target.dataset.idx;
         tickets[i].actual = e.target.checked ? tickets[i].expected : null;
-        saveFullCategoryState(activeCategory);
+        persistCounts();
         renderStats();
         renderTable();
       });
     });
+
+    $$('.desc-text').forEach(el=>{
+      el.addEventListener('blur', e=>{
+        const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
+        tickets[ti].items[ii].desc = e.target.textContent.trim();
+        saveFullCategoryState(activeCategory);
+      });
+    });
+
+    $$('[data-del]').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        const i = +e.target.dataset.del;
+        if(confirm('Delete this ticket from the list?')){
+          tickets.splice(i,1);
+          saveFullCategoryState(activeCategory);
+          renderTable(); 
+          renderStats();
+        }
+      });
+    });
+
+    renderStats();
+  }
+
+  function statusBadge(st){
+    if(st==='match') return `<span class="status-badge match">Match</span><span class="stamp">✓ OK</span>`;
+    if(st==='mismatch') return `<span class="status-badge mismatch">Mismatch</span>`;
+    return `<span class="status-badge pending">Pending</span>`;
   }
 
   function renderStats(){
     const total = tickets.length;
-    const matched = tickets.filter(t => statusOf(t) === 'match').length;
-    const pending = total - matched;
+    
+    const totalAmt = tickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+    
+    const matchedTickets = tickets.filter(t => statusOf(t) === 'match');
+    const matched = matchedTickets.length;
+    const matchAmt = matchedTickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+
+    const mismatchedTickets = tickets.filter(t => statusOf(t) === 'mismatch');
+    const mismatched = mismatchedTickets.length;
+    const mismatchAmt = mismatchedTickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+
+    const pendingTickets = tickets.filter(t => statusOf(t) === 'pending');
+    const pending = pendingTickets.length;
+    const pendingAmt = pendingTickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+
+    const fmt = num => '₱' + num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
     $('#stats-row').innerHTML = `
-      <div class="stat-chip"><div class="num">${total}</div><div class="lab">Total Tickets</div></div>
-      <div class="stat-chip match"><div class="num">${matched}</div><div class="lab">Match</div></div>
-      <div class="stat-chip pending"><div class="num">${pending}</div><div class="lab">Pending</div></div>
+      <div class="stat-chip">
+        <div class="num">${total}</div>
+        <div class="lab">Total Tickets</div>
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-top:4px;">${fmt(totalAmt)}</div>
+      </div>
+      <div class="stat-chip match">
+        <div class="num">${matched}</div>
+        <div class="lab">Match</div>
+        <div style="font-size:12px; font-weight:700; color:var(--match); margin-top:4px;">${fmt(matchAmt)}</div>
+      </div>
+      <div class="stat-chip mismatch">
+        <div class="num">${mismatched}</div>
+        <div class="lab">Mismatch</div>
+        <div style="font-size:12px; font-weight:700; color:var(--mismatch); margin-top:4px;">${fmt(mismatchAmt)}</div>
+      </div>
+      <div class="stat-chip pending">
+        <div class="num">${pending}</div>
+        <div class="lab">Pending</div>
+        <div style="font-size:12px; font-weight:700; color:var(--pending); margin-top:4px;">${fmt(pendingAmt)}</div>
+      </div>
+      <div class="stat-chip">
+        <div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div>
+        <div class="lab">Audit Date</div>
+      </div>
     `;
+
+    const cats = {};
+    tickets.forEach(t=>{
+      t.items.forEach(it=>{
+        const cat = categoryOf(it.code);
+        if(!cats[cat]) cats[cat] = {expected:0, counted:0};
+        cats[cat].expected += it.pcs;
+      });
+      if(t.actual !== null && t.actual !== undefined){
+        const primaryCat = categoryOf(t.items[0].code);
+        cats[primaryCat].counted += Number(t.actual);
+      }
+    });
+    $('#cat-row').innerHTML = Object.entries(cats).map(([name,v])=>`
+      <div class="cat-card">
+        <div class="name">${name}</div>
+        <div class="figures">${v.counted} <small>/ ${v.expected} pcs</small></div>
+      </div>
+    `).join('');
   }
 
   function markScannedCodeAsCounted(scannedCode) {
@@ -748,9 +1142,10 @@
     
     if (hit) {
       hit.actual = hit.expected;
-      saveFullCategoryState(activeCategory);
+      persistCounts();
       renderStats();
       renderTable();
+      setStatus(`✓ Scanned & Counted: ${hit.ptn}`);
       return true;
     } 
 
@@ -767,14 +1162,73 @@
       });
     });
 
-    if (foundGlobal && activeCategory) { renderStats(); renderTable(); return true; }
+    if (foundGlobal) {
+      if (activeCategory) { renderStats(); renderTable(); }
+      setStatus(`✓ Scanned & Counted across categories: ${cleanCode}`);
+      return true;
+    }
+
+    setStatus(`⚠️ Scanned "${cleanCode}" — not found in inventory.`);
     return false;
   }
 
-  // --- CONTINUOUS RAPID SCANNING PHONE ENGINE ---
-  async function openScanner(){
+  $('#search').addEventListener('input', renderTable);
+
+  $('#search').addEventListener('keydown', e=>{
+    if(e.key !== 'Enter') return;
+    const scanned = $('#search').value.trim();
+    if(!scanned) return;
+    markScannedCodeAsCounted(scanned);
+    $('#search').select();
+  });
+  $('#filter-status').addEventListener('change', renderTable);
+
+  function runGlobalSearch(){
+    const q = $('#global-search-input').value.trim().toLowerCase();
+    const box = $('#global-search-results');
+    if(!q){ box.innerHTML = ''; return; }
+
+    const hits = [];
+    CATEGORIES.forEach(c=>{
+      const data = categoryData[c.key];
+      if(!data) return;
+      data.tickets.forEach(t=>{
+        const hay = (t.ptn + ' ' + t.items.map(i=>i.desc).join(' ')).toLowerCase();
+        if(hay.includes(q)){
+          hits.push({label: c.label, ptn: t.ptn, date: t.date, desc: t.items.map(i=>i.desc).join(', '), loan: t.loan, actual: t.actual});
+        }
+      });
+    });
+
+    if(!hits.length){
+      box.innerHTML = `<span style="color:var(--text-muted);">No matches in any uploaded category.</span>`;
+      return;
+    }
+    box.innerHTML = hits.map(h=>`
+      <div style="padding:8px 0; border-bottom:1px solid var(--border);">
+        <b>${h.ptn}</b> — ${h.label} (${h.date || 'no date'})<br>
+        <span style="color:var(--text-muted);">${h.desc}</span><br>
+        Price ₱${Number(h.loan||0).toLocaleString()}
+        · ${h.actual===null||h.actual===undefined ? 'Pending' : 'Counted: '+h.actual}
+      </div>
+    `).join('');
+  }
+
+  $('#global-search-btn').addEventListener('click', runGlobalSearch);
+  $('#global-search-input').addEventListener('keydown', e=>{
+    if(e.key !== 'Enter') return;
+    runGlobalSearch();
+    const scanned = $('#global-search-input').value.trim();
+    if(!scanned) return;
+    markScannedCodeAsCounted(scanned);
+    $('#global-search-input').select();
+  });
+
+  // --- TESSERACT.JS TEXT/NUMBER OCR SCANNING ENGINE ---
+  async function openScanner(mode){
+    scanMode = mode;
     $('#scan-result').style.color = 'var(--primary)';
-    $('#scan-result').textContent = '⏳ Initializing Phone Camera...';
+    $('#scan-result').textContent = '⏳ Initializing Text OCR Engine...';
     $('#scan-overlay').style.display = 'flex';
     
     await startTextOcrCamera();
@@ -799,13 +1253,17 @@
           video: { facingMode: { exact: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
       } catch (fallbackErr) {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
       }
 
       video.srcObject = videoStream;
       await video.play();
 
-      if (!ocrWorker) ocrWorker = await Tesseract.createWorker('eng');
+      if (!ocrWorker) {
+        ocrWorker = await Tesseract.createWorker('eng');
+      }
 
       $('#scan-result').textContent = '⚡ Point camera at tag numbers...';
 
@@ -820,6 +1278,7 @@
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
+        
         const numberMatches = text.match(/\b\d{10,25}\b/g) || text.match(/\b\d{5,}-\d+\b/g);
 
         if (numberMatches) {
@@ -831,9 +1290,16 @@
             playSuccessBeep();
             
             $('#scan-result').style.color = '#16a34a';
-            $('#scan-result').textContent = `✓ MATCHED & SYNCED: ${detectedCode}`;
+            $('#scan-result').textContent = `✓ OCR MATCH: ${detectedCode}`;
 
-            // CONTINUOUS SCANNING: Rapid 1.2s reset without closing camera
+            if(scanMode === 'toolbar'){
+              $('#search').value = detectedCode;
+            } else {
+              $('#global-search-input').value = detectedCode;
+              runGlobalSearch();
+            }
+
+            // RAPID CONTINUOUS SCANNING RESET WITHOUT CLOSING CAMERA
             setTimeout(() => {
               scanCooldown = false;
               $('#scan-result').style.color = 'var(--primary)';
@@ -844,11 +1310,12 @@
             $('#scan-result').textContent = `⚠️ Not In List: ${detectedCode}`;
           }
         }
-      }, 800);
+      }, 900);
 
     } catch(err) {
+      console.error("Camera stream error:", err);
       $('#scan-result').style.color = '#dc2626';
-      $('#scan-result').textContent = '⚠️ Cannot open camera.';
+      $('#scan-result').textContent = '⚠️ Cannot load camera stream. Check permissions.';
     }
   }
 
@@ -860,6 +1327,7 @@
     }
   }
 
+  // Manual Capture / Force OCR Scan Button Handler
   $('#manual-ocr-scan-btn').addEventListener('click', async () => {
     const video = $('#cam-video');
     if (!video || !video.videoWidth) return;
@@ -869,10 +1337,13 @@
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    if (!ocrWorker) ocrWorker = await Tesseract.createWorker('eng');
+    if (!ocrWorker) {
+      ocrWorker = await Tesseract.createWorker('eng');
+    }
 
     const { data: { text } } = await ocrWorker.recognize(canvas);
     const numberMatches = text.match(/\b\d{10,25}\b/g) || text.match(/\b\d{5,}-\d+\b/g);
@@ -884,43 +1355,218 @@
       if (success) {
         playSuccessBeep();
         $('#scan-result').style.color = '#16a34a';
-        $('#scan-result').textContent = `✓ MATCHED & SYNCED: ${detectedCode}`;
+        $('#scan-result').textContent = `✓ OCR MATCH: ${detectedCode}`;
+
+        if(scanMode === 'toolbar'){
+          $('#search').value = detectedCode;
+        } else {
+          $('#global-search-input').value = detectedCode;
+          runGlobalSearch();
+        }
       } else {
         $('#scan-result').style.color = '#dc2626';
-        $('#scan-result').textContent = `⚠️ Not In List: ${detectedCode}`;
+        $('#scan-result').textContent = `⚠️ Scanned "${detectedCode}" — Not in list`;
       }
     } else {
       $('#scan-result').style.color = '#dc2626';
-      $('#scan-result').textContent = '⚠️ Could not read clear numbers.';
+      $('#scan-result').textContent = '⚠️ Could not read clear numbers. Hold steady & retry.';
     }
   });
 
-  $('#scan-btn').addEventListener('click', openScanner);
-  $('#global-scan-btn').addEventListener('click', openScanner);
+  $('#scan-btn').addEventListener('click', ()=> openScanner('toolbar'));
+  $('#global-scan-btn').addEventListener('click', ()=> openScanner('global'));
   $('#scan-close-btn').addEventListener('click', closeScanner);
 
-  // Mobile Sync QR Generator
+  // Mobile Sync QR Generator Engine
   $('#mobile-sync-qr-btn').addEventListener('click', () => {
-    if (!currentBranch) return;
+    if (!currentBranch) {
+      alert('Please select or enter a branch first.');
+      return;
+    }
+
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('branch', currentBranch);
-    if (currentAuditDate) currentUrl.searchParams.set('date', currentAuditDate);
+    if (currentAuditDate) {
+      currentUrl.searchParams.set('date', currentAuditDate);
+    }
     currentUrl.searchParams.set('mode', 'scanner');
 
     const syncUrl = currentUrl.toString();
+
     $('#mobile-qr-link').textContent = syncUrl;
     $('#qr-modal-overlay').style.display = 'flex';
 
     const qrContainer = $('#mobile-qr-container');
     qrContainer.innerHTML = '';
-    new QRCode(qrContainer, { text: syncUrl, width: 200, height: 200 });
+    
+    new QRCode(qrContainer, {
+      text: syncUrl,
+      width: 200,
+      height: 200,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
   });
 
   $('#qr-modal-close-btn').addEventListener('click', () => {
     $('#qr-modal-overlay').style.display = 'none';
   });
 
+  $('#reset-counts-btn').addEventListener('click', async ()=>{
+    if(!confirm('Clear all actual counts?')) return;
+    tickets.forEach(t=> t.actual = null);
+    saveFullCategoryState(activeCategory);
+    renderTable();
+  });
+
+  $('#export-btn').addEventListener('click', ()=>{
+    const rows = [['Item Code','Date','Description','System Pcs','Actual Count','Status','Amount']];
+    tickets.forEach(t=>{
+      const st = statusOf(t);
+      if(st === 'match') return;
+      rows.push([t.ptn, t.date, t.items.map(i=>i.desc).join(' | '), t.expected, t.actual ?? '', st, t.loan ?? '']);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'application/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'discrepancy-report.csv';
+    a.click();
+  });
+
   $('#print-btn').addEventListener('click', ()=> window.print());
+
+  $('#print-missing-btn').addEventListener('click', ()=>{
+    const missingCount = tickets.filter(t=>statusOf(t)!=='match').length;
+    if(missingCount === 0){ alert('Everything has been checked!'); return; }
+    document.body.classList.add('print-missing-mode');
+    window.print();
+    setTimeout(()=> document.body.classList.remove('print-missing-mode'), 500);
+  });
+
+  $('#debug-toggle').addEventListener('click', ()=>{
+    const panel = $('#debug-panel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  $('#backup-json-btn').addEventListener('click', ()=>{
+    if(!currentBranch){ alert('Please set your branch name first.'); return; }
+    const backup = {
+      app: 'Showroom/Subasta Inventory',
+      exportedAt: new Date().toISOString(),
+      branch: currentBranch,
+      auditDate: currentAuditDate,
+      categories: {}
+    };
+    CATEGORIES.forEach(c=>{
+      if(categoryData[c.key]){
+        backup.categories[c.key] = {
+          tickets: categoryData[c.key].tickets,
+          fileName: categoryData[c.key].fileName
+        };
+      }
+    });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `sr-inventory-backup-${slugBranch(currentBranch)}-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  $('#restore-json-btn').addEventListener('click', ()=>{
+    $('#restore-json-input').click();
+  });
+
+  $('#restore-json-input').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const backup = JSON.parse(text);
+      if(!backup || !backup.categories){ alert('Invalid backup file.'); return; }
+
+      if(backup.branch){
+        currentBranch = backup.branch;
+        $('#branch-input').value = currentBranch;
+        rememberBranch(currentBranch);
+      }
+      if(backup.auditDate){
+        currentAuditDate = backup.auditDate;
+        $('#audit-date-input').value = currentAuditDate;
+        rememberAuditDate(currentAuditDate);
+      }
+      $('#branch-current').textContent = `✓ Active Branch: ${currentBranch} | Audit Date: ${currentAuditDate || '—'}`;
+
+      let firstCat = null;
+      for(const key of Object.keys(backup.categories)){
+        const catInfo = backup.categories[key];
+        if(!catInfo || !catInfo.tickets) continue;
+        categoryData[key] = {tickets: catInfo.tickets, fileName: catInfo.fileName || '(restored)'};
+        saveFullCategoryState(key);
+        const card = document.querySelector(`.cat-upload-card[data-cat="${key}"]`);
+        if(card){
+          card.classList.add('done');
+          const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
+          if(statusEl) statusEl.textContent = `✓ ${catInfo.tickets.length} tickets — restored`;
+        }
+        if(!firstCat) firstCat = key;
+      }
+      if(firstCat){
+        activeCategory = firstCat;
+        loadCategory(firstCat);
+        renderCategoryTabs();
+        renderStats();
+        setStatus('Restored from backup file successfully.');
+      }
+    }catch(err){
+      console.error(err);
+      alert('Could not read file.');
+    } finally {
+      e.target.value = '';
+    }
+  });
+
+  // Clear Branch Data (New Day) Handler
+  $('#new-day-btn').addEventListener('click', async ()=>{
+    if(!currentBranch){ alert('Please set your branch name first.'); return; }
+    if(!confirm(`Clear all data for "${currentBranch}"?`)) return;
+
+    const branchSlug = slugBranch(currentBranch);
+
+    CATEGORIES.forEach(c => {
+      localStorage.removeItem(computeDataKey(c.key));
+      localStorage.removeItem(computeReportKey(c.key));
+    });
+
+    set(ref(db, `subastaStore/${branchSlug}`), null);
+
+    categoryData = {};
+    tickets = [];
+    activeCategory = null;
+    unparsedLines = [];
+
+    $$('.cat-upload-card').forEach(card=>{
+      card.classList.remove('done');
+      const key = card.dataset.cat;
+      const statusEl = document.querySelector(`[data-cat-status="${key}"]`);
+      if(statusEl) statusEl.textContent = 'Not uploaded yet';
+      const fileInput = card.querySelector('.cat-file-input');
+      if(fileInput) fileInput.value = '';
+    });
+    $('#category-tabs').innerHTML = '';
+    $('#category-tabs').classList.remove('show');
+    $('#dashboard').classList.remove('show');
+    $('#global-search-input').value = '';
+    $('#global-search-results').innerHTML = '';
+    setStatus(`Cleared data for branch "${currentBranch}".`);
+  });
+
 </script>
 </body>
 </html>
