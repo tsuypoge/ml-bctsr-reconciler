@@ -318,14 +318,24 @@
 </head>
 <body>
 
-<!-- BARCODE CAMERA SCANNER OVERLAY -->
+<!-- BARCODE CAMERA SCANNER OVERLAY WITH MANUAL CAPTURE BUTTON -->
 <div id="scan-overlay" style="display:none; position:fixed; inset:0; z-index:998; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
   <div style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
     <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 6px;">📷 Scan Item Code</h2>
-    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 16px;">Point your camera at the item tag's barcode.</p>
+    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 12px;">Point your camera at the item tag's barcode.</p>
+    
     <div id="qr-reader" style="width:100%; border-radius:12px; overflow:hidden;"></div>
-    <div id="scan-result" style="margin-top:14px; font-family:var(--font-mono); font-size:13px; color:var(--primary); font-weight:700; min-height:18px;"></div>
-    <button class="btn ghost" id="scan-close-btn" style="margin-top:16px; background:#f1f5f9; color:#334155; border:none;">Close Scanner</button>
+    <div id="scan-result" style="margin-top:12px; font-family:var(--font-mono); font-size:13px; color:var(--primary); font-weight:700; min-height:18px;"></div>
+    
+    <!-- MANUAL CAPTURE & CLOSE BUTTONS -->
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn" id="manual-capture-btn" style="flex:1; background:var(--primary); color:#ffffff; justify-content:center; padding:12px;">
+        ⚡ Capture / Scan Now
+      </button>
+      <button class="btn ghost" id="scan-close-btn" style="background:#f1f5f9; color:#334155; border:none; padding:12px;">
+        Close
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1230,6 +1240,35 @@
     
     closeScanner();
   }
+
+  // Manual Capture / Force Scan Button Handler
+  $('#manual-capture-btn').addEventListener('click', () => {
+    if (!html5QrInstance) return;
+    
+    $('#scan-result').style.color = 'var(--primary)';
+    $('#scan-result').textContent = '🔄 Capturing frame...';
+
+    const videoEl = document.querySelector('#qr-reader video');
+    if (videoEl) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth || 1280;
+      canvas.height = videoEl.videoHeight || 720;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], "capture.png", { type: "image/png" });
+        try {
+          const decodedText = await html5QrInstance.scanFile(file, true);
+          onScanDecoded(decodedText);
+        } catch (err) {
+          $('#scan-result').style.color = '#dc2626';
+          $('#scan-result').textContent = '⚠️ Could not read barcode. Adjust camera focus.';
+        }
+      }, 'image/png');
+    }
+  });
 
   $('#scan-btn').addEventListener('click', ()=> openScanner('toolbar'));
   $('#global-scan-btn').addEventListener('click', ()=> openScanner('global'));
