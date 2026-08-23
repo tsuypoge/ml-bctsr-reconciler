@@ -931,6 +931,7 @@
     return Number(t.actual) === t.expected ? 'match' : 'mismatch';
   }
 
+  // --- DYNAMIC SORTING RENDER TABLE FUNCTION ---
   function renderTable(){
     const q = $('#search').value.trim().toLowerCase();
     const filterStatus = $('#filter-status').value;
@@ -938,7 +939,28 @@
     body.innerHTML = '';
     let shown = 0;
 
-    tickets.forEach((t, idx)=>{
+    // Check if there are still pending tickets in current list
+    const hasPendingTickets = tickets.some(t => statusOf(t) === 'pending');
+
+    // Create sorted map preserving original index order
+    let sortedTickets = tickets.map((t, originalIndex) => ({ ticket: t, originalIndex }));
+
+    if (hasPendingTickets) {
+      // WHILE AUDIT IN PROGRESS: Matched/Counted items move to the VERY TOP
+      sortedTickets.sort((a, b) => {
+        const statusA = statusOf(a.ticket);
+        const statusB = statusOf(b.ticket);
+
+        if (statusA === 'match' && statusB !== 'match') return -1;
+        if (statusA !== 'match' && statusB === 'match') return 1;
+        return a.originalIndex - b.originalIndex;
+      });
+    } else {
+      // WHEN ALL MATCHED (NO PENDING LEFT): Sort back by Original Item Code / Number Count
+      sortedTickets.sort((a, b) => a.originalIndex - b.originalIndex);
+    }
+
+    sortedTickets.forEach(({ ticket: t, originalIndex }) => {
       const st = statusOf(t);
       if(filterStatus !== 'all' && st !== filterStatus) return;
       if(q){
@@ -951,18 +973,19 @@
       const flagged = /\*/.test(t.ptn);
       tr.dataset.status = st;
       const isFound = st === 'match';
+
       tr.innerHTML = `
-        <td class="num">${idx+1}</td>
+        <td class="num">${originalIndex + 1}</td>
         <td class="ptn">${t.ptn.replace(/\*/g,'')}${flagged?' <span class="flag">*</span>':''}</td>
         <td class="date">${t.date||'—'}</td>
-        <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${idx}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
+        <td class="desc-list">${t.items.map((it,ii)=>`<div class="desc-item"><span class="code">${it.code}</span><span class="desc-text" contenteditable="true" data-ti="${originalIndex}" data-ii="${ii}">${it.desc}</span><span class="meta">${it.karat?` — ${it.karat}K`:''}${it.wt?`, ${it.wt}g`:''}</span></div>`).join('')}</td>
         <td class="expected">${t.expected}</td>
-        <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${idx}" ${isFound?'checked':''}></td>
-        <td><input type="number" min="0" class="actual-input" data-idx="${idx}" value="${t.actual===null||t.actual===undefined?'':t.actual}" placeholder="—"></td>
+        <td style="text-align:center;"><input type="checkbox" class="found-check" data-idx="${originalIndex}" ${isFound?'checked':''}></td>
+        <td><input type="number" min="0" class="actual-input" data-idx="${originalIndex}" value="${t.actual===null||t.actual===undefined?'':t.actual}" placeholder="—"></td>
         <td>${statusBadge(st)}</td>
         <td class="loan">${t.loan ? '₱'+Number(t.loan).toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</td>
         <td class="actions-cell">
-          <button class="del-btn" data-del="${idx}" title="Delete">✕</button>
+          <button class="del-btn" data-del="${originalIndex}" title="Delete">✕</button>
         </td>
       `;
       body.appendChild(tr);
@@ -976,26 +999,20 @@
         tickets[i].actual = e.target.value === '' ? null : Number(e.target.value);
         persistCounts();
         renderStats();
-        const tr = e.target.closest('tr');
-        const st = statusOf(tickets[i]);
-        tr.dataset.status = st;
-        tr.querySelector('.found-check').checked = (st === 'match');
-        tr.querySelector('td:nth-child(8)').innerHTML = statusBadge(st);
+        renderTable();
       });
     });
+
     $$('.found-check').forEach(chk=>{
       chk.addEventListener('change', e=>{
         const i = +e.target.dataset.idx;
         tickets[i].actual = e.target.checked ? tickets[i].expected : null;
         persistCounts();
         renderStats();
-        const tr = e.target.closest('tr');
-        const st = statusOf(tickets[i]);
-        tr.dataset.status = st;
-        tr.querySelector('.actual-input').value = tickets[i].actual === null ? '' : tickets[i].actual;
-        tr.querySelector('td:nth-child(8)').innerHTML = statusBadge(st);
+        renderTable();
       });
     });
+
     $$('.desc-text').forEach(el=>{
       el.addEventListener('blur', e=>{
         const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
@@ -1003,13 +1020,15 @@
         saveFullCategoryState(activeCategory);
       });
     });
+
     $$('[data-del]').forEach(btn=>{
       btn.addEventListener('click', e=>{
         const i = +e.target.dataset.del;
         if(confirm('Delete this ticket from the list?')){
           tickets.splice(i,1);
           saveFullCategoryState(activeCategory);
-          renderTable(); renderStats();
+          renderTable(); 
+          renderStats();
         }
       });
     });
@@ -1220,7 +1239,6 @@
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
         
-        // Match numbers with length 10 or more (handles 21-digit ML item codes)
         const numberMatches = text.match(/\b\d{10,25}\b/g) || text.match(/\b\d{5,}-\d+\b/g);
 
         if (numberMatches) {
