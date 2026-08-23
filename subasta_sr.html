@@ -986,16 +986,49 @@
 
   function renderStats(){
     const total = tickets.length;
-    const matched = tickets.filter(t=>statusOf(t)==='match').length;
-    const mismatched = tickets.filter(t=>statusOf(t)==='mismatch').length;
-    const pending = total - matched - mismatched;
+    
+    // Total amounts calculation
+    const totalAmt = tickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+    
+    const matchedTickets = tickets.filter(t => statusOf(t) === 'match');
+    const matched = matchedTickets.length;
+    const matchAmt = matchedTickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+
+    const mismatchedTickets = tickets.filter(t => statusOf(t) === 'mismatch');
+    const mismatched = mismatchedTickets.length;
+    const mismatchAmt = mismatchedTickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+
+    const pendingTickets = tickets.filter(t => statusOf(t) === 'pending');
+    const pending = pendingTickets.length;
+    const pendingAmt = pendingTickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
+
+    const fmt = num => '₱' + num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
     $('#stats-row').innerHTML = `
-      <div class="stat-chip"><div class="num">${total}</div><div class="lab">Total Tickets</div></div>
-      <div class="stat-chip match"><div class="num">${matched}</div><div class="lab">Match</div></div>
-      <div class="stat-chip mismatch"><div class="num">${mismatched}</div><div class="lab">Mismatch</div></div>
-      <div class="stat-chip pending"><div class="num">${pending}</div><div class="lab">Pending</div></div>
-      <div class="stat-chip"><div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div><div class="lab">Audit Date</div></div>
+      <div class="stat-chip">
+        <div class="num">${total}</div>
+        <div class="lab">Total Tickets</div>
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-top:4px;">${fmt(totalAmt)}</div>
+      </div>
+      <div class="stat-chip match">
+        <div class="num">${matched}</div>
+        <div class="lab">Match</div>
+        <div style="font-size:12px; font-weight:700; color:var(--match); margin-top:4px;">${fmt(matchAmt)}</div>
+      </div>
+      <div class="stat-chip mismatch">
+        <div class="num">${mismatched}</div>
+        <div class="lab">Mismatch</div>
+        <div style="font-size:12px; font-weight:700; color:var(--mismatch); margin-top:4px;">${fmt(mismatchAmt)}</div>
+      </div>
+      <div class="stat-chip pending">
+        <div class="num">${pending}</div>
+        <div class="lab">Pending</div>
+        <div style="font-size:12px; font-weight:700; color:var(--pending); margin-top:4px;">${fmt(pendingAmt)}</div>
+      </div>
+      <div class="stat-chip">
+        <div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div>
+        <div class="lab">Audit Date</div>
+      </div>
     `;
 
     const cats = {};
