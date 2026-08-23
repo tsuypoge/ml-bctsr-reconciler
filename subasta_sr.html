@@ -310,7 +310,6 @@
     tbody td { color: #000; border-color: #ccc; }
     .status-badge, .stamp { display: none !important; }
 
-    /* Print missing filter logic */
     body.print-missing-mode tr[data-status="match"] {
       display: none !important;
     }
@@ -1051,22 +1050,54 @@
     `).join('');
   }
 
+  // Automatic match & mark counted function
+  function markScannedCodeAsCounted(scannedCode) {
+    if (!scannedCode) return false;
+    const cleanCode = scannedCode.trim();
+    
+    // 1. Search in active category tickets
+    let hit = tickets.find(t => t.ptn === cleanCode || t.ptn.includes(cleanCode));
+    
+    if (hit) {
+      hit.actual = hit.expected;
+      persistCounts();
+      renderStats();
+      renderTable();
+      setStatus(`✓ Scanned & Counted: ${hit.ptn}`);
+      return true;
+    } 
+
+    // 2. Global search across all categories if not found in current tab
+    let foundGlobal = false;
+    CATEGORIES.forEach(c => {
+      const data = categoryData[c.key];
+      if (!data) return;
+      data.tickets.forEach(t => {
+        if (t.ptn === cleanCode || t.ptn.includes(cleanCode)) {
+          t.actual = t.expected;
+          saveFullCategoryState(c.key);
+          foundGlobal = true;
+        }
+      });
+    });
+
+    if (foundGlobal) {
+      if (activeCategory) { renderStats(); renderTable(); }
+      setStatus(`✓ Scanned & Counted across categories: ${cleanCode}`);
+      return true;
+    }
+
+    setStatus(`⚠️ Scanned "${cleanCode}" — not found in inventory.`);
+    return false;
+  }
+
   $('#search').addEventListener('input', renderTable);
 
   $('#search').addEventListener('keydown', e=>{
     if(e.key !== 'Enter') return;
     const scanned = $('#search').value.trim();
     if(!scanned) return;
-    const hit = tickets.find(t=> t.ptn === scanned || t.ptn.includes(scanned));
-    if(hit){
-      hit.actual = hit.expected;
-      persistCounts();
-      renderStats();
-      renderTable();
-      setStatus(`Scanned: ${hit.ptn} — marked as counted.`);
-    } else {
-      setStatus(`Scanned "${scanned}" — not found in the current tab.`);
-    }
+    markScannedCodeAsCounted(scanned);
     $('#search').select();
   });
   $('#filter-status').addEventListener('change', renderTable);
@@ -1108,26 +1139,11 @@
     runGlobalSearch();
     const scanned = $('#global-search-input').value.trim();
     if(!scanned) return;
-    const exactHits = [];
-    CATEGORIES.forEach(c=>{
-      const data = categoryData[c.key];
-      if(!data) return;
-      data.tickets.forEach(t=>{
-        if(t.ptn === scanned) exactHits.push({cat: c.key, ticket: t});
-      });
-    });
-    if(exactHits.length === 1){
-      const {cat, ticket} = exactHits[0];
-      ticket.actual = ticket.expected;
-      saveFullCategoryState(cat);
-      if(cat === activeCategory){ renderStats(); renderTable(); }
-      runGlobalSearch();
-      setStatus(`Scanned: ${ticket.ptn} — marked as counted.`);
-    }
+    markScannedCodeAsCounted(scanned);
     $('#global-search-input').select();
   });
 
-  // Optimized High-Density Barcode Camera Scanner Engine
+  // Camera Barcode Scanner Engine (iOS/Android High-Res Code128 Optimized)
   let html5QrInstance = null;
   let scanMode = null;
 
@@ -1141,13 +1157,16 @@
     $('#scan-overlay').style.display = 'flex';
     html5QrInstance = new Html5Qrcode('qr-reader');
     
-    // Rectangular configuration optimized for long Code-128 jewelry barcodes
+    // High performance config targeting 1D Code128 barcodes
     const config = { 
-      fps: 20, 
-      qrbox: { width: 320, height: 150 },
-      experimentalFeatures: {
-        useBarCodeDetectorIfSupported: true
-      }
+      fps: 25, 
+      qrbox: { width: 330, height: 140 },
+      videoConstraints: {
+        facingMode: "environment",
+        width: { min: 1280, ideal: 1920 },
+        height: { min: 720, ideal: 1080 }
+      },
+      formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.QR_CODE ]
     };
 
     html5QrInstance.start(
@@ -1175,22 +1194,17 @@
 
   function onScanDecoded(decodedText){
     $('#scan-result').textContent = 'Scanned: ' + decodedText;
+    
+    // Automatic mark as counted upon detection
+    const success = markScannedCodeAsCounted(decodedText);
+    
     if(scanMode === 'toolbar'){
       $('#search').value = decodedText;
-      renderTable();
-      const hit = tickets.find(t=> t.ptn === decodedText || t.ptn.includes(decodedText));
-      if(hit){
-        $('#scan-result').textContent = `Found: ${hit.ptn} — marked as counted.`;
-        hit.actual = hit.expected;
-        persistCounts();
-        renderStats();
-      } else {
-        $('#scan-result').textContent = `Scanned "${decodedText}" — not in current tab.`;
-      }
     } else {
       $('#global-search-input').value = decodedText;
       runGlobalSearch();
     }
+    
     closeScanner();
   }
 
