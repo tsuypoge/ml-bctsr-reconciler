@@ -334,6 +334,23 @@
     padding: 16px !important;
   }
 
+  /* LAST SCANNED ITEM BANNER CARD */
+  .last-scanned-card {
+    display: none;
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: #f0fdf4;
+    border: 2px solid #16a34a;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+  }
+  .last-scanned-card.show { display: block; animation: fadeInBanner 0.3s ease-in-out; }
+
+  @keyframes fadeInBanner {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   @media print {
     header, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap, .btn-dashboard, .branch-box { display: none !important; }
     body { background: #fff; color: #000; }
@@ -426,6 +443,7 @@
     <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
+  <!-- SEARCH BOX CARD WITH LAST SCANNED BANNER -->
   <div class="branch-box" id="global-search-box">
     <h3>🔎 Search Item Code (All Categories)</h3>
     <p>Look up an item code or description across Showroom and Subasta simultaneously.</p>
@@ -434,6 +452,18 @@
       <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search</button>
       <button class="btn ghost" id="global-scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Scan Tag Text</button>
     </div>
+
+    <!-- NEW LAST SCANNED ITEM BANNER -->
+    <div class="last-scanned-card" id="last-scanned-banner">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-size:11px; text-transform:uppercase; font-weight:900; color:#16a34a; letter-spacing:0.5px;">✓ LAST SCANNED / MATCHED ITEM</span>
+        <span class="status-badge match">MATCHED ✓</span>
+      </div>
+      <div style="font-family:var(--font-mono); font-size:15px; font-weight:800; color:#0f172a;" id="last-item-code">—</div>
+      <div style="font-size:13px; color:#334155; font-weight:600; margin-top:2px;" id="last-item-desc">—</div>
+      <div style="font-family:var(--font-mono); font-size:14px; font-weight:800; color:var(--primary); margin-top:4px;" id="last-item-price">—</div>
+    </div>
+
     <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
   </div>
 
@@ -613,6 +643,7 @@
             renderCategoryTabs();
             renderTable();
             renderStats();
+            updateLastScannedBannerFromLatest();
           }
         }
       }
@@ -668,6 +699,7 @@
     $('#dashboard').classList.remove('show');
     $('#global-search-input').value = '';
     $('#global-search-results').innerHTML = '';
+    $('#last-scanned-banner').classList.remove('show');
 
     listenFirebaseSubastaStore();
     autoRestoreBranch();
@@ -731,7 +763,8 @@
         id: catKey+'_'+i,
         ptn: t.ptn, date: t.date, items: t.items, loan: t.loan,
         expected: t.items.reduce((a,it)=>a+it.pcs,0),
-        actual: null
+        actual: null,
+        lastScannedAt: 0
       }));
 
       categoryData[catKey] = {tickets: catTickets, fileName: file.name};
@@ -914,6 +947,7 @@
       loadCategory(activeCategory);
       renderCategoryTabs();
       renderStats();
+      updateLastScannedBannerFromLatest();
       setStatus(`Loaded saved data for branch "${currentBranch}".`);
     }
   }
@@ -952,7 +986,42 @@
     return Number(t.actual) === t.expected ? 'match' : 'mismatch';
   }
 
-  // --- STRICT IN-PROGRESS TOP-SORTING RENDER TABLE FUNCTION ---
+  // UPDATE LAST SCANNED BANNER DISPLAY
+  function updateLastScannedBanner(ticket) {
+    if (!ticket) return;
+    const banner = $('#last-scanned-banner');
+    const descText = ticket.items.map(i=>i.desc).join(' | ');
+    const priceText = ticket.loan ? '₱' + Number(ticket.loan).toLocaleString(undefined, {minimumFractionDigits:2}) : '₱0.00';
+
+    $('#last-item-code').textContent = ticket.ptn;
+    $('#last-item-desc').textContent = descText || '(No Description)';
+    $('#last-item-price').textContent = priceText;
+
+    banner.classList.add('show');
+  }
+
+  function updateLastScannedBannerFromLatest() {
+    let latestTicket = null;
+    let latestTime = 0;
+
+    Object.keys(categoryData).forEach(catKey => {
+      const data = categoryData[catKey];
+      if (data && data.tickets) {
+        data.tickets.forEach(t => {
+          if (statusOf(t) === 'match' && (t.lastScannedAt || 0) > latestTime) {
+            latestTime = t.lastScannedAt;
+            latestTicket = t;
+          }
+        });
+      }
+    });
+
+    if (latestTicket) {
+      updateLastScannedBanner(latestTicket);
+    }
+  }
+
+  // --- STRICT MOST-RECENT SCANNED MATCHES TO TOP SORTING ENGINE ---
   function renderTable(){
     const q = $('#search').value.trim().toLowerCase();
     const filterStatus = $('#filter-status').value;
@@ -965,17 +1034,22 @@
     let sortedTickets = tickets.map((t, originalIndex) => ({ ticket: t, originalIndex }));
 
     if (hasPendingTickets) {
-      // WHILE AUDIT IN PROGRESS: ALL MATCHED/COUNTED ITEMS GO DIRECTLY TO TOP ROW
       sortedTickets.sort((a, b) => {
         const isMatchA = statusOf(a.ticket) === 'match';
         const isMatchB = statusOf(b.ticket) === 'match';
 
-        if (isMatchA && !isMatchB) return -1; // Move Match up
-        if (!isMatchA && isMatchB) return 1;  // Keep Pending down
+        if (isMatchA && !isMatchB) return -1;
+        if (!isMatchA && isMatchB) return 1;
+        
+        if (isMatchA && isMatchB) {
+          const timeA = a.ticket.lastScannedAt || 0;
+          const timeB = b.ticket.lastScannedAt || 0;
+          if (timeA !== timeB) return timeB - timeA;
+        }
+        
         return a.originalIndex - b.originalIndex;
       });
     } else {
-      // WHEN ALL MATCHED (NO PENDING): Restore original array order
       sortedTickets.sort((a, b) => a.originalIndex - b.originalIndex);
     }
 
@@ -1016,9 +1090,11 @@
       inp.addEventListener('input', e=>{
         const i = +e.target.dataset.idx;
         tickets[i].actual = e.target.value === '' ? null : Number(e.target.value);
+        tickets[i].lastScannedAt = Date.now();
         persistCounts();
         renderStats();
         renderTable();
+        updateLastScannedBanner(tickets[i]);
       });
     });
 
@@ -1026,9 +1102,11 @@
       chk.addEventListener('change', e=>{
         const i = +e.target.dataset.idx;
         tickets[i].actual = e.target.checked ? tickets[i].expected : null;
+        tickets[i].lastScannedAt = Date.now();
         persistCounts();
         renderStats();
         renderTable();
+        updateLastScannedBanner(tickets[i]);
       });
     });
 
@@ -1127,7 +1205,7 @@
     `).join('');
   }
 
-  // FORCE RE-RENDER ON MATCHING SCAN
+  // UPDATE LAST SCANNED BANNER AND TOP ROW PLACEMENT
   function markScannedCodeAsCounted(scannedCode) {
     if (!scannedCode) return false;
     const cleanCode = scannedCode.trim();
@@ -1136,9 +1214,11 @@
     
     if (hit) {
       hit.actual = hit.expected;
+      hit.lastScannedAt = Date.now();
       persistCounts();
       renderStats();
-      renderTable(); // Triggers table re-sort and pushes matched item to TOP
+      renderTable();
+      updateLastScannedBanner(hit);
       setStatus(`✓ Scanned & Counted: ${hit.ptn}`);
       return true;
     } 
@@ -1150,7 +1230,9 @@
       data.tickets.forEach(t => {
         if (t.ptn === cleanCode || t.ptn.includes(cleanCode)) {
           t.actual = t.expected;
+          t.lastScannedAt = Date.now();
           saveFullCategoryState(c.key);
+          updateLastScannedBanner(t);
           foundGlobal = true;
         }
       });
@@ -1408,9 +1490,10 @@
 
   $('#reset-counts-btn').addEventListener('click', async ()=>{
     if(!confirm('Clear all actual counts?')) return;
-    tickets.forEach(t=> t.actual = null);
+    tickets.forEach(t=> { t.actual = null; t.lastScannedAt = 0; });
     saveFullCategoryState(activeCategory);
     renderTable();
+    $('#last-scanned-banner').classList.remove('show');
   });
 
   $('#export-btn').addEventListener('click', ()=>{
@@ -1421,7 +1504,7 @@
       rows.push([t.ptn, t.date, t.items.map(i=>i.desc).join(' | '), t.expected, t.actual ?? '', st, t.loan ?? '']);
     });
     const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], {type:'text/csv'});
+    const blob = new Blob([csv], {type:'application/csv'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'discrepancy-report.csv';
@@ -1515,6 +1598,7 @@
         loadCategory(firstCat);
         renderCategoryTabs();
         renderStats();
+        updateLastScannedBannerFromLatest();
         setStatus('Restored from backup file successfully.');
       }
     }catch(err){
@@ -1556,6 +1640,7 @@
     $('#dashboard').classList.remove('show');
     $('#global-search-input').value = '';
     $('#global-search-results').innerHTML = '';
+    $('#last-scanned-banner').classList.remove('show');
     setStatus(`Cleared data for branch "${currentBranch}".`);
   });
 
