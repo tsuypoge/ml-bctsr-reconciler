@@ -322,12 +322,11 @@
 <div id="scan-overlay" style="display:none; position:fixed; inset:0; z-index:998; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
   <div style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
     <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 6px;">📷 Scan Item Code</h2>
-    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 12px;">Point your camera at the item tag's barcode.</p>
+    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 12px;">Point camera at the item tag's barcode (6-10 inches away).</p>
     
     <div id="qr-reader" style="width:100%; border-radius:12px; overflow:hidden;"></div>
     <div id="scan-result" style="margin-top:12px; font-family:var(--font-mono); font-size:13px; color:var(--primary); font-weight:700; min-height:18px;"></div>
     
-    <!-- MANUAL CAPTURE & CLOSE BUTTONS -->
     <div style="display:flex; gap:10px; margin-top:14px;">
       <button class="btn" id="manual-capture-btn" style="flex:1; background:var(--primary); color:#ffffff; justify-content:center; padding:12px;">
         ⚡ Capture / Scan Now
@@ -652,7 +651,6 @@
     let activeB = localStorage.getItem('ml_activeBranch');
     $('#audit-date-input').value = new Date().toISOString().slice(0,10);
     
-    // Auto-load URL Search Params if scanned via Mobile Sync QR
     const params = new URLSearchParams(window.location.search);
     const urlBranch = params.get('branch');
     const urlDate = params.get('date');
@@ -1008,7 +1006,6 @@
   function renderStats(){
     const total = tickets.length;
     
-    // Total amounts calculation
     const totalAmt = tickets.reduce((acc, t) => acc + (Number(t.loan) || 0), 0);
     
     const matchedTickets = tickets.filter(t => statusOf(t) === 'match');
@@ -1072,12 +1069,10 @@
     `).join('');
   }
 
-  // Automatic match & mark counted function
   function markScannedCodeAsCounted(scannedCode) {
     if (!scannedCode) return false;
     const cleanCode = scannedCode.trim();
     
-    // 1. Search in active category tickets
     let hit = tickets.find(t => t.ptn === cleanCode || t.ptn.includes(cleanCode));
     
     if (hit) {
@@ -1089,7 +1084,6 @@
       return true;
     } 
 
-    // 2. Global search across all categories if not found in current tab
     let foundGlobal = false;
     CATEGORIES.forEach(c => {
       const data = categoryData[c.key];
@@ -1165,7 +1159,7 @@
     $('#global-search-input').select();
   });
 
-  // Camera Barcode Scanner Engine (High-Resolution Code128 Optimized)
+  // OPTION 1 FIX: ADVANCED BARCODE SCANNER ENGINE WITH NATIVE DETECTOR API FALLBACK
   let html5QrInstance = null;
   let scanMode = null;
 
@@ -1181,16 +1175,24 @@
     
     html5QrInstance = new Html5Qrcode('qr-reader');
     
-    // Config targeting 1D Code128 long barcodes
+    // Wider rectangular box (340x110) tailored for 21-digit Code 128 high-density barcodes
     const config = { 
-      fps: 25, 
-      qrbox: { width: 330, height: 140 },
+      fps: 30, 
+      qrbox: { width: 340, height: 110 },
       videoConstraints: {
         facingMode: "environment",
         width: { min: 1280, ideal: 1920 },
-        height: { min: 720, ideal: 1080 }
+        height: { min: 720, ideal: 1080 },
+        advanced: [{ focusMode: "continuous" }]
       },
-      formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.QR_CODE ]
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
+      },
+      formatsToSupport: [ 
+        Html5QrcodeSupportedFormats.CODE_128, 
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.QR_CODE 
+      ]
     };
 
     html5QrInstance.start(
@@ -1219,7 +1221,6 @@
   function onScanDecoded(decodedText){
     const cleanCode = decodedText.trim();
     
-    // Automatic match & mark counted upon detection
     const success = markScannedCodeAsCounted(cleanCode);
     
     if (success) {
@@ -1241,20 +1242,37 @@
     closeScanner();
   }
 
-  // Manual Capture / Force Scan Button Handler
+  // Enhanced Frame Binarization Snapshot for Manual Capture Button
   $('#manual-capture-btn').addEventListener('click', () => {
     if (!html5QrInstance) return;
     
     $('#scan-result').style.color = 'var(--primary)';
-    $('#scan-result').textContent = '🔄 Capturing frame...';
+    $('#scan-result').textContent = '🔄 Processing High-Res Frame...';
 
     const videoEl = document.querySelector('#qr-reader video');
     if (videoEl) {
       const canvas = document.createElement('canvas');
-      canvas.width = videoEl.videoWidth || 1280;
-      canvas.height = videoEl.videoHeight || 720;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      
+      const vWidth = videoEl.videoWidth || 1920;
+      const vHeight = videoEl.videoHeight || 1080;
+      canvas.width = vWidth;
+      canvas.height = vHeight;
+      
+      // Draw high-resolution frame
+      ctx.drawImage(videoEl, 0, 0, vWidth, vHeight);
+
+      // Contrast enhancement filter for thin 1D barcodes
+      const imgData = ctx.getImageData(0, 0, vWidth, vHeight);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        let v = (avg > 120) ? 255 : 0; // High contrast thresholding
+        data[i] = v;
+        data[i + 1] = v;
+        data[i + 2] = v;
+      }
+      ctx.putImageData(imgData, 0, 0);
 
       canvas.toBlob(async (blob) => {
         if (!blob) return;
@@ -1263,8 +1281,17 @@
           const decodedText = await html5QrInstance.scanFile(file, true);
           onScanDecoded(decodedText);
         } catch (err) {
-          $('#scan-result').style.color = '#dc2626';
-          $('#scan-result').textContent = '⚠️ Could not read barcode. Adjust camera focus.';
+          // Retry scanning without filter if contrast filter fails
+          canvas.toBlob(async (rawBlob) => {
+            const rawFile = new File([rawBlob], "raw_capture.png", { type: "image/png" });
+            try {
+              const rawDecodedText = await html5QrInstance.scanFile(rawFile, true);
+              onScanDecoded(rawDecodedText);
+            } catch (rawErr) {
+              $('#scan-result').style.color = '#dc2626';
+              $('#scan-result').textContent = '⚠️ Could not read barcode. Keep camera 6-10 inches away.';
+            }
+          });
         }
       }, 'image/png');
     }
@@ -1428,23 +1455,20 @@
     }
   });
 
-  // Updated New Day Handler with Full Firebase Cleanup
+  // Clear Branch Data (New Day) Handler
   $('#new-day-btn').addEventListener('click', async ()=>{
     if(!currentBranch){ alert('Please set your branch name first.'); return; }
     if(!confirm(`Clear all data for "${currentBranch}"?`)) return;
 
     const branchSlug = slugBranch(currentBranch);
 
-    // Clear LocalStorage entries
     CATEGORIES.forEach(c => {
       localStorage.removeItem(computeDataKey(c.key));
       localStorage.removeItem(computeReportKey(c.key));
     });
 
-    // Reset Firebase Node
     set(ref(db, `subastaStore/${branchSlug}`), null);
 
-    // Clear Memory
     categoryData = {};
     tickets = [];
     activeCategory = null;
