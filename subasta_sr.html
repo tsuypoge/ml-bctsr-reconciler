@@ -338,7 +338,7 @@
     <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 12px;">Itutok ang rectangle guide box sa mga numero sa tag.</p>
     
     <div id="cam-video-wrap">
-      <video id="cam-video" autoplay playsinline></video>
+      <video id="cam-video" autoplay playsinline muted></video>
       <div class="cam-guide-box"></div>
     </div>
     
@@ -1198,7 +1198,7 @@
     $('#global-search-input').select();
   });
 
-  // --- TESSERACT.JS TEXT/NUMBER OCR SCANNING ENGINE ---
+  // --- TESSERACT.JS TEXT/NUMBER OCR SCANNING ENGINE WITH CAMERA FALLBACK ---
   async function openScanner(mode){
     scanMode = mode;
     $('#scan-result').style.color = 'var(--primary)';
@@ -1216,10 +1216,19 @@
   async function startTextOcrCamera() {
     try {
       const video = $('#cam-video');
-      videoStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
+      
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+      } catch (fallbackErr) {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
+      }
+
       video.srcObject = videoStream;
+      await video.play();
 
       if (!ocrWorker) {
         ocrWorker = await Tesseract.createWorker('eng');
@@ -1231,7 +1240,7 @@
       const ctx = canvas.getContext('2d');
 
       ocrInterval = setInterval(async () => {
-        if (scanCooldown || !video.videoWidth) return;
+        if (scanCooldown || !video.videoWidth || video.paused) return;
 
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -1268,8 +1277,9 @@
       }, 900);
 
     } catch(err) {
-      alert("Camera error: " + err.message);
-      closeScanner();
+      console.error("Camera stream error:", err);
+      $('#scan-result').style.color = '#dc2626';
+      $('#scan-result').textContent = '⚠️ Cannot load camera. Check permissions or close background camera apps.';
     }
   }
 
