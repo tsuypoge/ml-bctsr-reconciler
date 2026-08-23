@@ -226,7 +226,7 @@
 
   /* Toolbar */
   .toolbar {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;
     background: var(--panel-bg); padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-card);
   }
   #search {
@@ -238,6 +238,23 @@
   select {
     padding: 10px 14px; border: 1.5px solid var(--border);
     border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
+  }
+
+  /* LAST SCANNED DISPLAY BANNER BELOW SEARCH BAR */
+  .scanned-banner {
+    display: none;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    background: #f0fdf4;
+    border: 2px solid #16a34a;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+  }
+  .scanned-banner.show { display: block; animation: bannerPop 0.25s ease-out; }
+
+  @keyframes bannerPop {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   /* Ledger Table */
@@ -334,25 +351,8 @@
     padding: 16px !important;
   }
 
-  /* LAST SCANNED ITEM BANNER CARD */
-  .last-scanned-card {
-    display: none;
-    margin-top: 14px;
-    padding: 14px 18px;
-    background: #f0fdf4;
-    border: 2px solid #16a34a;
-    border-radius: var(--radius-md);
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
-  }
-  .last-scanned-card.show { display: block; animation: fadeInBanner 0.3s ease-in-out; }
-
-  @keyframes fadeInBanner {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
   @media print {
-    header, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap, .btn-dashboard, .branch-box { display: none !important; }
+    header, .cat-uploads, .tabs, .toolbar, .footer-tools, #debug-toggle-wrap, .btn-dashboard, .branch-box, .scanned-banner { display: none !important; }
     body { background: #fff; color: #000; }
     .ledger { border: none; box-shadow: none; }
     thead th { background: #eee; color: #000; position: static; }
@@ -443,7 +443,6 @@
     <div id="branch-current" style="margin-top:12px; font-size:13px; font-weight:700; color:var(--primary);"></div>
   </div>
 
-  <!-- SEARCH BOX CARD WITH LAST SCANNED BANNER -->
   <div class="branch-box" id="global-search-box">
     <h3>🔎 Search Item Code (All Categories)</h3>
     <p>Look up an item code or description across Showroom and Subasta simultaneously.</p>
@@ -452,18 +451,6 @@
       <button class="btn" id="global-search-btn" style="background:var(--primary); color:#ffffff;">Search</button>
       <button class="btn ghost" id="global-scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Scan Tag Text</button>
     </div>
-
-    <!-- NEW LAST SCANNED ITEM BANNER -->
-    <div class="last-scanned-card" id="last-scanned-banner">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <span style="font-size:11px; text-transform:uppercase; font-weight:900; color:#16a34a; letter-spacing:0.5px;">✓ LAST SCANNED / MATCHED ITEM</span>
-        <span class="status-badge match">MATCHED ✓</span>
-      </div>
-      <div style="font-family:var(--font-mono); font-size:15px; font-weight:800; color:#0f172a;" id="last-item-code">—</div>
-      <div style="font-size:13px; color:#334155; font-weight:600; margin-top:2px;" id="last-item-desc">—</div>
-      <div style="font-family:var(--font-mono); font-size:14px; font-weight:800; color:var(--primary); margin-top:4px;" id="last-item-price">—</div>
-    </div>
-
     <div id="global-search-results" style="margin-top:14px; font-size:13px;"></div>
   </div>
 
@@ -504,6 +491,7 @@
     <div class="stats-row" id="stats-row"></div>
     <div class="cat-row" id="cat-row"></div>
 
+    <!-- MAIN TOOLBAR SEARCH BAR -->
     <div class="toolbar">
       <input type="text" id="search" placeholder="Search: item code, or description...">
       <button class="btn ghost small" id="scan-btn" style="background:#f1f5f9; color:#334155; border:none;">📷 Scan Tag Text</button>
@@ -513,6 +501,21 @@
         <option value="match">Match</option>
         <option value="mismatch">Mismatch</option>
       </select>
+    </div>
+
+    <!-- LAST SCANNED / MATCHED ITEM DISPLAY BANNER UNDER TABLE SEARCH BAR -->
+    <div class="scanned-banner" id="last-scanned-banner">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-size:11px; text-transform:uppercase; font-weight:900; color:#16a34a; letter-spacing:0.5px;">✓ LAST SCANNED / MATCHED ITEM DETAILS</span>
+        <span class="status-badge match">MATCHED ✓</span>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; align-items:center;">
+        <div>
+          <div style="font-family:var(--font-mono); font-size:15px; font-weight:800; color:#0f172a;" id="last-item-code">—</div>
+          <div style="font-size:13px; color:#334155; font-weight:600; margin-top:2px;" id="last-item-desc">—</div>
+        </div>
+        <div style="font-family:var(--font-mono); font-size:16px; font-weight:800; color:var(--primary);" id="last-item-price">—</div>
+      </div>
     </div>
 
     <div class="ledger">
@@ -986,7 +989,7 @@
     return Number(t.actual) === t.expected ? 'match' : 'mismatch';
   }
 
-  // UPDATE LAST SCANNED BANNER DISPLAY
+  // UPDATE LAST SCANNED BANNER DISPLAY UNDER TABLE SEARCH BAR
   function updateLastScannedBanner(ticket) {
     if (!ticket) return;
     const banner = $('#last-scanned-banner');
