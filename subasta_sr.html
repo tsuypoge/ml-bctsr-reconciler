@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
   :root {
@@ -72,6 +73,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .header-title-box {
@@ -294,7 +297,7 @@
     background: #16a34a;
     color: #ffffff;
     font-size: 11px;
-    padding: 3px 10px;
+    padding: 5px 12px;
     border-radius: 20px;
     font-weight: 800;
   }
@@ -306,11 +309,17 @@
     thead th { background: #eee; color: #000; position: static; }
     tbody td { color: #000; border-color: #ccc; }
     .status-badge, .stamp { display: none !important; }
+
+    /* Print missing filter logic */
+    body.print-missing-mode tr[data-status="match"] {
+      display: none !important;
+    }
   }
 </style>
 </head>
 <body>
 
+<!-- BARCODE CAMERA SCANNER OVERLAY -->
 <div id="scan-overlay" style="display:none; position:fixed; inset:0; z-index:998; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
   <div style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
     <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 6px;">📷 Scan Item Code</h2>
@@ -321,7 +330,20 @@
   </div>
 </div>
 
-<!-- HEADER BAR WITH LOGO -->
+<!-- MOBILE SYNC QR MODAL -->
+<div id="qr-modal-overlay" style="display:none; position:fixed; inset:0; z-index:999; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:380px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
+    <h2 style="font-size:18px; font-weight:800; color:var(--primary); margin:0 0 6px;">📱 Mobile Sync QR</h2>
+    <p style="font-size:12px; color:var(--text-muted); margin:0 0 16px;">Scan this QR code with your phone camera to quickly open and sync this branch session.</p>
+    
+    <div id="mobile-qr-container" style="display:flex; justify-content:center; padding:15px; background:#fff; border-radius:12px; border:1px solid var(--border);"></div>
+    
+    <div id="mobile-qr-link" style="margin-top:12px; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); word-break:break-all;"></div>
+    <button class="btn ghost" id="qr-modal-close-btn" style="margin-top:16px; background:#f1f5f9; color:#334155; border:none; width:100%;">Close</button>
+  </div>
+</div>
+
+<!-- HEADER BAR WITH LOGO AND MOBILE SYNC QR -->
 <header>
   <div class="header-content">
     <div class="header-title-box">
@@ -332,7 +354,12 @@
         <div class="header-sub">Automated Item Verification & Audit Engine</div>
       </div>
     </div>
-    <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <button class="btn" id="mobile-sync-qr-btn" style="background:#0f172a; color:#ffffff; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:700;">
+        <span>📱</span> Mobile Sync QR
+      </button>
+      <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
+    </div>
   </div>
 </header>
 
@@ -452,7 +479,7 @@
 
 </div>
 
-<!-- 🔥 FIREBASE REALTIME MULTI-USER SYNC ENGINE -->
+<!-- FIREBASE REALTIME MULTI-USER SYNC ENGINE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -487,13 +514,12 @@
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-  // Robust slug generation matching index.html logic
   function slugBranch(name){
     if(!name) return 'default';
     return name.toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'default';
   }
 
-  // Realtime Firebase Cloud Listener
+  // Realtime Firebase Listener
   function listenFirebaseSubastaStore() {
     if (!currentBranch) return;
     const branchSlug = slugBranch(currentBranch);
@@ -542,7 +568,6 @@
     if (!currentBranch || !categoryData[catKey]) return;
     const branchSlug = slugBranch(currentBranch);
 
-    // Sanitize values to avoid Firebase 'undefined' crash
     const cleanTickets = JSON.parse(JSON.stringify(categoryData[catKey].tickets, (key, value) => {
       return value === undefined ? null : value;
     }));
@@ -605,8 +630,14 @@
   (async ()=>{
     let activeB = localStorage.getItem('ml_activeBranch');
     $('#audit-date-input').value = new Date().toISOString().slice(0,10);
-    const remembered = activeB || await recallBranch();
-    const rememberedDate = await recallAuditDate();
+    
+    // Auto-load URL Search Params if scanned via Mobile Sync QR
+    const params = new URLSearchParams(window.location.search);
+    const urlBranch = params.get('branch');
+    const urlDate = params.get('date');
+
+    const remembered = urlBranch || activeB || await recallBranch();
+    const rememberedDate = urlDate || await recallAuditDate();
     if(rememberedDate) $('#audit-date-input').value = rememberedDate;
 
     if(remembered){
@@ -645,10 +676,7 @@
 
       categoryData[catKey] = {tickets: catTickets, fileName: file.name};
 
-      // 1. Save locally
       saveFullCategoryState(catKey);
-
-      // 2. 🔥 Direct Realtime Sync to Firebase Cloud
       syncSubastaCategoryToFirebase(catKey);
 
       const card = document.querySelector(`.cat-upload-card[data-cat="${catKey}"]`);
@@ -702,7 +730,6 @@
 
   async function parseExcelFile(file){
     const buf = await file.arrayBuffer();
-    // Read with codepage UTF-8 (65001) for robust CSV parsing
     const wb = XLSX.read(buf, {type:'array', codepage: 65001});
     const sheetName = wb.SheetNames[0];
     const sheet = wb.Sheets[sheetName];
@@ -730,7 +757,6 @@
     const tickets = [];
     const unparsed = [];
 
-    // Helper to parse numbers containing formatted commas like "681,300.00"
     const parseNumber = (val) => {
       if (val === null || val === undefined) return 0;
       if (typeof val === 'number') return val;
@@ -1068,7 +1094,7 @@
     $('#global-search-input').select();
   });
 
-  // Camera QR/Barcode scanner
+  // Camera QR/Barcode Scanner Engine
   let html5QrInstance = null;
   let scanMode = null;
 
@@ -1129,6 +1155,41 @@
   $('#scan-btn').addEventListener('click', ()=> openScanner('toolbar'));
   $('#global-scan-btn').addEventListener('click', ()=> openScanner('global'));
   $('#scan-close-btn').addEventListener('click', closeScanner);
+
+  // Mobile Sync QR Generator Engine
+  $('#mobile-sync-qr-btn').addEventListener('click', () => {
+    if (!currentBranch) {
+      alert('Please select or enter a branch first.');
+      return;
+    }
+
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('branch', currentBranch);
+    if (currentAuditDate) {
+      currentUrl.searchParams.set('date', currentAuditDate);
+    }
+
+    const syncUrl = currentUrl.toString();
+
+    $('#mobile-qr-link').textContent = syncUrl;
+    $('#qr-modal-overlay').style.display = 'flex';
+
+    const qrContainer = $('#mobile-qr-container');
+    qrContainer.innerHTML = '';
+    
+    new QRCode(qrContainer, {
+      text: syncUrl,
+      width: 200,
+      height: 200,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  });
+
+  $('#qr-modal-close-btn').addEventListener('click', () => {
+    $('#qr-modal-overlay').style.display = 'none';
+  });
 
   $('#reset-counts-btn').addEventListener('click', async ()=>{
     if(!confirm('Clear all actual counts?')) return;
@@ -1249,9 +1310,23 @@
     }
   });
 
+  // Updated New Day Handler with Full Firebase Cleanup
   $('#new-day-btn').addEventListener('click', async ()=>{
     if(!currentBranch){ alert('Please set your branch name first.'); return; }
     if(!confirm(`Clear all data for "${currentBranch}"?`)) return;
+
+    const branchSlug = slugBranch(currentBranch);
+
+    // Clear LocalStorage entries
+    CATEGORIES.forEach(c => {
+      localStorage.removeItem(computeDataKey(c.key));
+      localStorage.removeItem(computeReportKey(c.key));
+    });
+
+    // Reset Firebase Node
+    set(ref(db, `subastaStore/${branchSlug}`), null);
+
+    // Clear Memory
     categoryData = {};
     tickets = [];
     activeCategory = null;
