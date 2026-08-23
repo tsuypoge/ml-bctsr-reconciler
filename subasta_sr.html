@@ -323,7 +323,7 @@
 <div id="scan-overlay" style="display:none; position:fixed; inset:0; z-index:998; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
   <div style="background:var(--panel-bg); border-radius:var(--radius-lg); padding:26px 22px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-card);">
     <h2 style="font-size:20px; font-weight:800; color:var(--primary); margin:0 0 6px;">📷 Scan Item Code</h2>
-    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 16px;">Point your camera at the item tag's QR code or barcode.</p>
+    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 16px;">Point your camera at the item tag's barcode.</p>
     <div id="qr-reader" style="width:100%; border-radius:12px; overflow:hidden;"></div>
     <div id="scan-result" style="margin-top:14px; font-family:var(--font-mono); font-size:13px; color:var(--primary); font-weight:700; min-height:18px;"></div>
     <button class="btn ghost" id="scan-close-btn" style="margin-top:16px; background:#f1f5f9; color:#334155; border:none;">Close Scanner</button>
@@ -1127,7 +1127,7 @@
     $('#global-search-input').select();
   });
 
-  // Camera QR/Barcode Scanner Engine
+  // Optimized High-Density Barcode Camera Scanner Engine
   let html5QrInstance = null;
   let scanMode = null;
 
@@ -1140,7 +1140,16 @@
     $('#scan-result').textContent = '';
     $('#scan-overlay').style.display = 'flex';
     html5QrInstance = new Html5Qrcode('qr-reader');
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    // Rectangular configuration optimized for long Code-128 jewelry barcodes
+    const config = { 
+      fps: 20, 
+      qrbox: { width: 320, height: 150 },
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
+      }
+    };
+
     html5QrInstance.start(
       { facingMode: 'environment' },
       config,
