@@ -456,12 +456,12 @@
   .findings-body.show { display: block; }
   .finding-item { margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; }
   
-  .finding-select, .correct-select {
+  .finding-select, .correct-select, .appraiser-input {
     width: 100%; min-width: 140px; font-size: 11.5px; font-weight: 600;
     padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 6px;
     background: #ffffff; color: var(--text-main); outline: none;
   }
-  .finding-select:focus, .correct-select:focus {
+  .finding-select:focus, .correct-select:focus, .appraiser-input:focus {
     border-color: var(--primary);
   }
 
@@ -486,6 +486,9 @@
   }
 
   .loan { font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+  .ledger-total-row { background: var(--panel-2, #f4f4f4); border-top: 2px solid var(--primary); }
+  .ledger-total-row td { padding: 12px 10px !important; font-size: 14px; }
+  .ledger-total-row .loan { font-size: 15px; color: var(--primary); }
 
   .footer-tools { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
   .empty-note { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 20px; }
@@ -637,6 +640,13 @@
           </tr>
         </thead>
         <tbody id="ledger-body"></tbody>
+        <tfoot>
+          <tr class="ledger-total-row">
+            <td colspan="6" style="text-align:right;font-weight:700;">TOTAL LOAN VALUE</td>
+            <td class="loan" id="ledger-total-loan"></td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
       </table>
       <div class="empty-note" id="empty-note" style="display:none;">No matching results found.</div>
     </div>
@@ -1228,7 +1238,8 @@
     'Wrong Item Code',
     'Wrong Quantity',
     'Wrong Description',
-    'Wrong Weight'
+    'Wrong Weight',
+    'Non Attachment / Not Updated Prenda'
   ];
 
   function correctOptionsFor(finding){
@@ -1258,6 +1269,7 @@
   function findingItemHtml(it, ti, ii){
     const finding = it.finding || '';
     const correct = it.correct || '';
+    const appraiser = it.appraiser || '';
     return `<div class="finding-item">
       <select class="finding-select" data-ti="${ti}" data-ii="${ii}">
         <option value="">— Select Findings —</option>
@@ -1266,6 +1278,7 @@
       <select class="correct-select" data-ti="${ti}" data-ii="${ii}">
         ${correctOptionsHtml(finding, correct)}
       </select>
+      <input type="text" class="appraiser-input" data-ti="${ti}" data-ii="${ii}" placeholder="FLA / Appraiser Name" value="${appraiser.replace(/"/g,'&quot;')}">
     </div>`;
   }
 
@@ -1276,6 +1289,7 @@
     const body = $('#ledger-body');
     body.innerHTML = '';
     let shown = 0;
+    let shownLoanTotal = 0;
 
     tickets.forEach((t, idx)=>{
       const st = statusOf(t);
@@ -1285,6 +1299,7 @@
         if(!hay.includes(q)) return;
       }
       shown++;
+      shownLoanTotal += Number(t.loan) || 0;
       const tr = document.createElement('tr');
 
       const flagged = /\*/.test(t.ptn);
@@ -1351,6 +1366,7 @@
     });
 
     $('#empty-note').style.display = shown ? 'none' : 'block';
+    $('#ledger-total-loan').textContent = '₱'+shownLoanTotal.toLocaleString(undefined,{minimumFractionDigits:2});
 
     $$('.found-check').forEach(chk=>{
       chk.addEventListener('change', e=>{
@@ -1400,6 +1416,13 @@
         saveFullCategoryState(activeCategory);
       });
     });
+    $$('.appraiser-input').forEach(inp=>{
+      inp.addEventListener('input', e=>{
+        const ti = +e.target.dataset.ti, ii = +e.target.dataset.ii;
+        tickets[ti].items[ii].appraiser = e.target.value;
+        saveFullCategoryState(activeCategory);
+      });
+    });
 
     renderStats();
   }
@@ -1413,11 +1436,17 @@
     const total = tickets.length;
     const matched = tickets.filter(t=>statusOf(t)==='match').length;
     const pending = total - matched;
+    const foundLoan = tickets.filter(t=>statusOf(t)==='match').reduce((sum,t)=>sum+(Number(t.loan)||0),0);
+    const pendingLoan = tickets.filter(t=>statusOf(t)!=='match').reduce((sum,t)=>sum+(Number(t.loan)||0),0);
+    const totalLoan = tickets.reduce((sum,t)=>sum+(Number(t.loan)||0),0);
 
     $('#stats-row').innerHTML = `
       <div class="stat-chip"><div class="num">${total}</div><div class="lab">Total Tickets</div></div>
+      <div class="stat-chip"><div class="num" style="font-size:16px;">₱${totalLoan.toLocaleString(undefined,{minimumFractionDigits:2})}</div><div class="lab">Total Loan Value</div></div>
       <div class="stat-chip match"><div class="num">${matched}</div><div class="lab">Found</div></div>
+      <div class="stat-chip match"><div class="num" style="font-size:16px;">₱${foundLoan.toLocaleString(undefined,{minimumFractionDigits:2})}</div><div class="lab">Found Loan Value</div></div>
       <div class="stat-chip pending"><div class="num">${pending}</div><div class="lab">Pending</div></div>
+      <div class="stat-chip pending"><div class="num" style="font-size:16px;">₱${pendingLoan.toLocaleString(undefined,{minimumFractionDigits:2})}</div><div class="lab">Pending Loan Value</div></div>
       <div class="stat-chip"><div class="num" style="font-size:16px;">${currentAuditDate||'—'}</div><div class="lab">Audit Date</div></div>
     `;
 
@@ -1453,7 +1482,7 @@
   });
 
   $('#export-btn').addEventListener('click', ()=>{
-    const rows = [['Pawn Ticket #','Date','Principal Amount','Item Code','Description','Quantity','Karat','Weight','Findings','Correct','Status']];
+    const rows = [['Pawn Ticket #','Date','Principal Amount','Item Code','Description','Quantity','Karat','Weight','Findings','Correct','FLA / Appraiser','Status']];
     tickets.forEach(t=>{
       const flaggedItems = t.items.filter(i=>i.finding);
       if(!flaggedItems.length) return;
@@ -1462,7 +1491,7 @@
         rows.push([
           t.ptn, t.date, t.loan ?? '', it.code || '', it.desc || '', it.pcs || 1,
           it.karat ? it.karat+'K' : '', it.wt ?? '',
-          it.finding || '', it.correct || '', st
+          it.finding || '', it.correct || '', it.appraiser || '', st
         ]);
       });
     });
