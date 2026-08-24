@@ -1666,6 +1666,7 @@
     }, 600);
   };
 
+  // 🔄 REFRESH / LISTENERS FOR AUTOMATIC DASHBOARD RE-RENDER
   window.addEventListener('pageshow', () => {
     if (sessionStorage.getItem('ml_logged_in') === 'true') {
       renderDashboardTable();
@@ -1678,7 +1679,12 @@
     }
   });
 
-  // 🔄 REFRESH / LOCALSTORAGE LISTENER FOR AUTOMATIC DASHBOARD RE-RENDER
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && sessionStorage.getItem('ml_logged_in') === 'true') {
+      renderDashboardTable();
+    }
+  });
+
   window.addEventListener('storage', (e) => {
     if (e.key === 'ml_strikeForceEntries') {
       renderDashboardTable();
