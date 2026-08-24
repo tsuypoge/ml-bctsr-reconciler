@@ -131,6 +131,7 @@
   tbody td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:rgba(163,36,28,0.045);}
+  tbody tr.row-clickable{cursor:pointer;}
   .ptn{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;white-space:nowrap;}
   .date{font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap;}
   .num{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
@@ -154,11 +155,32 @@
     font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1px solid #f0cfcd;
     color:var(--brass);background:var(--panel-2);white-space:nowrap;}
 
+  .found-cell{display:flex;align-items:center;justify-content:flex-start;cursor:pointer;padding:10px;margin:-10px;min-height:22px;}
   .found-check{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:5px;
-    border:1.5px solid var(--line);background:#fff;cursor:pointer;position:relative;flex-shrink:0;}
+    border:1.5px solid var(--line);background:#fff;cursor:pointer;position:relative;flex-shrink:0;pointer-events:none;}
   .found-check:checked{background:#1a7d3a;border-color:#1a7d3a;}
   .found-check:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     color:#fff;font-size:14px;font-weight:700;line-height:1;}
+  .warn-chip{display:inline-flex;align-items:center;gap:2px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1px solid #f0dcb0;
+    color:#b8801a;background:#fff6e6;white-space:nowrap;cursor:help;}
+  .alert-chip{display:inline-flex;align-items:center;gap:2px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1.5px solid var(--brass);
+    color:#fff;background:var(--brass);white-space:nowrap;cursor:help;animation:alert-pulse 1.6s ease-in-out infinite;}
+  @keyframes alert-pulse{0%,100%{box-shadow:0 0 0 0 rgba(163,36,28,0.35);}50%{box-shadow:0 0 0 4px rgba(163,36,28,0);}}
+
+  .prenda-summary-card{background:var(--panel);border:1.5px solid #f0dcb0;border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:20px;}
+  .prenda-summary-card h4{margin:0 0 4px;font-family:'Fraunces',serif;font-size:14.5px;color:#b8801a;}
+  .prenda-summary-card .ps-sub{font-size:12px;color:var(--parchment-dim);margin:0 0 12px;}
+  .ps-table-wrap{overflow-x:auto;}
+  table.ps-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.ps-table thead th{background:#fff6e6;color:#b8801a;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:8px 9px;border-bottom:1px solid #f0dcb0;white-space:nowrap;}
+  table.ps-table tbody td{padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.ps-table tbody tr:last-child td{border-bottom:none;}
+  table.ps-table .ps-ptn{font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap;}
+  table.ps-table tbody tr.ps-exact{background:var(--panel-2);}
 
   .findings-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.04em;
     background:#fff;color:var(--brass);border:1.5px solid var(--brass);border-radius:6px;padding:7px 14px;
@@ -228,7 +250,7 @@
 <header class="cover">
   <div class="eyebrow">QCL Subtesting Report</div>
   <h1>Non-Compliance Review</h1>
-  <p>Upload the monthly Re-appraise, Renew, and Redeem reports (Excel). Filter by date range, check off items physically found, and flag compliance findings per ticket before exporting.</p>
+  <p>Upload the monthly Re-appraise, Renew, and Redeem reports (Excel). Filter by date range, check off items physically found, and flag compliance findings per ticket before exporting. Optionally upload Prenda (new loans) to auto-flag Redeem items that match a same-day Prenda item by item code, karat, and weight.</p>
 </header>
 
 <div class="wrap">
@@ -273,6 +295,13 @@
       <input type="file" class="cat-file-input" data-cat="redeem" accept=".xlsx,.xls,.csv">
       <div class="cat-status" data-cat-status="redeem">Not uploaded yet</div>
     </div>
+    <div class="cat-upload-card" data-cat="prenda">
+      <h3>Prenda <span style="font-weight:400;">(optional)</span></h3>
+      <p class="cat-sub">New loan report — used to cross-check Redeem for same-day re-pawns</p>
+      <button class="btn small cat-upload-btn" data-cat="prenda">Choose Excel File</button>
+      <input type="file" class="cat-file-input" data-cat="prenda" accept=".xlsx,.xls,.csv">
+      <div class="cat-status" data-cat-status="prenda">Not uploaded yet</div>
+    </div>
   </div>
   <div id="status-line"></div>
 
@@ -281,6 +310,9 @@
   <div id="dashboard">
     <div class="stats-row" id="stats-row"></div>
     <div class="findings-breakdown" id="findings-breakdown"></div>
+    <div class="prenda-summary-card" id="prenda-match-summary" style="display:none;"></div>
+    <div class="prenda-summary-card" id="amla-summary" style="display:none;"></div>
+    <div class="prenda-summary-card" id="ptn-integrity-panel" style="display:none;"></div>
 
     <div class="toolbar">
       <input type="text" id="search" placeholder="Search: pawn ticket, item description, pawner...">
@@ -299,6 +331,11 @@
         <option value="flagged">Has Finding</option>
         <option value="none">No Finding</option>
         <option value="unvalidated">Not Yet Validated</option>
+      </select>
+      <select id="filter-prenda">
+        <option value="all">All (Prenda Match)</option>
+        <option value="matched">⚠ Matched in Prenda</option>
+        <option value="unmatched">No Prenda Match</option>
       </select>
     </div>
 
@@ -360,6 +397,7 @@
     {key:'reappraise', label:'Re-appraise', dateCandidates:['date re-appraise'], ptnCandidates:['old (previous) ptn','old ptn'], principalCandidates:['old principal amount']},
     {key:'renew',      label:'Renew',       dateCandidates:['date term extended'], ptnCandidates:['pawn ticket number'], principalCandidates:['principal amount']},
     {key:'redeem',     label:'Redeem',      dateCandidates:['date redeemed'], ptnCandidates:['pawn ticket number'], principalCandidates:['principal amount']},
+    {key:'prenda',     label:'Prenda (New Loans)', dateCandidates:['date loan granted'], ptnCandidates:['pawn ticket number'], principalCandidates:['principal amount']},
   ];
 
   const FINDINGS = [
@@ -416,6 +454,8 @@
             const availableKeys = Object.keys(categoryData);
             if (availableKeys.length > 0) activeCategory = availableKeys[0];
           }
+
+          runAllFraudChecks();
 
           if (activeCategory && categoryData[activeCategory]) {
             renderCategoryTabs();
@@ -475,6 +515,7 @@
       const ok = restoreCategoryFromStorage(c.key);
       if(ok && !firstRestored) firstRestored = c.key;
     }
+    runAllFraudChecks();
     if(firstRestored){
       activeCategory = firstRestored;
       renderCategoryTabs();
@@ -590,6 +631,8 @@
       qty:        findHeaderCol(header, ['quantity']),
       karat:      findHeaderCol(header, ['karat']),
       weight:     findHeaderCol(header, ['weight']),
+      oldWeight:  findHeaderCol(header, ['old weight','previous weight']),
+      oldKarat:   findHeaderCol(header, ['old karat','previous karat']),
       pawner:     findHeaderCol(header, ['pawner']),
       principal:  findHeaderCol(header, catDef.principalCandidates),
       appraiser:  findHeaderCol(header, ['appraiser/fla','appraiser / fla','appraiser','fla']),
@@ -609,19 +652,22 @@
       const qty     = cols.qty>=0    ? toNum(row[cols.qty])    : 0;
       const karat   = cols.karat>=0  ? toNum(row[cols.karat])  : 0;
       const weight  = cols.weight>=0 ? toNum(row[cols.weight]) : 0;
+      const oldWeight = cols.oldWeight>=0 ? toNum(row[cols.oldWeight]) : 0;
+      const oldKarat  = cols.oldKarat>=0  ? toNum(row[cols.oldKarat])  : 0;
       const pawner  = cols.pawner>=0 ? String(row[cols.pawner]||'').trim() : '';
       const principal = cols.principal>=0 ? toNum(row[cols.principal]) : 0;
       const appraiser = cols.appraiser>=0 ? String(row[cols.appraiser]||'').trim() : '';
 
       const key = ptn + '|' + date;
       if(!map.has(key)){
-        map.set(key, {date, ptn, pawner, appraiser, items:[], qty:0, weight:0, principal:0});
+        map.set(key, {date, ptn, pawner, appraiser, items:[], qty:0, weight:0, oldWeight:0, principal:0});
         order.push(key);
       }
       const rec = map.get(key);
-      if(desc) rec.items.push({desc, code, qty, karat, weight});
+      if(desc) rec.items.push({desc, code, qty, karat, weight, oldWeight, oldKarat});
       rec.qty += qty;
       rec.weight += weight;
+      rec.oldWeight += oldWeight;
       rec.principal = principal || rec.principal;
       rec.appraiser = appraiser || rec.appraiser;
     }
@@ -631,6 +677,10 @@
       const karats = [...new Set(rec.items.map(it=>it.karat).filter(k=>k))];
       rec.karat = karats.length === 1 ? karats[0] : (karats.length ? karats.join(', ') : '');
       rec.weight = Math.round(rec.weight * 100) / 100;
+      rec.oldWeight = Math.round(rec.oldWeight * 100) / 100;
+      rec.hasOldWeightData = cols.oldWeight >= 0 && rec.oldWeight > 0;
+      rec.weightLoss = rec.hasOldWeightData && rec.oldWeight > rec.weight
+        ? Math.round((rec.oldWeight - rec.weight) * 100) / 100 : 0;
       rec.id = catDef.key + '_' + idx;
       rec.actual = null;
       rec.found = false;
@@ -642,6 +692,340 @@
   }
 
   function setStatus(msg){ $('#status-line').textContent = msg; }
+
+  /* ============================================================
+     ADDITIONAL FRAUD / RED-FLAG DETECTION
+     ============================================================ */
+
+  function numKey(n){ return Math.round(Number(n||0)*100)/100; }
+
+  // Groups a record's line items by item code + karat, summing weight &
+  // quantity per group — so a ticket with an item split into 2 pieces, or
+  // several pieces merged into one, still compares as a single total.
+  // Description is intentionally NOT part of the grouping/match key —
+  // only Item Code, Karat, and Weight are used.
+  function groupByCodeKarat(items){
+    const map = new Map();
+    items.forEach(it=>{
+      const code = String(it.code||'').trim().toLowerCase();
+      const karatKey = numKey(it.karat);
+      const key = code + '|' + karatKey;
+      if(!map.has(key)) map.set(key, {code:it.code, karat:it.karat, weight:0, qty:0, descs:[]});
+      const g = map.get(key);
+      g.weight += Number(it.weight||0);
+      g.qty += Number(it.qty||0);
+      if(it.desc) g.descs.push(it.desc);
+    });
+    map.forEach(g=>{ g.weight = Math.round(g.weight*100)/100; });
+    return map;
+  }
+
+  const WEIGHT_TOLERANCE = 0.1; // grams — catches items nudged by ~0.1g to dodge an exact-match check
+
+  let prendaMatchSummary = []; // flat list of matched-item detail rows, for the summary panel + export
+
+  // Flags Redeem transactions that have items (same Item Code + Karat,
+  // total weight within ±0.1g) also appearing in a Prenda (new loan)
+  // record on the SAME date — matched by Item Code + Karat + Weight per
+  // group (so a split or merged item still counts as a match). Item
+  // Description is intentionally excluded from the matching, regardless
+  // of quantity or customer name. Red-flagged when the Prenda (re-pawn)
+  // loan value is HIGHER than the original Redeem loan value for that
+  // same item — a possible sign the item was redeemed then re-pawned for
+  // more, which needs a closer look. This is only a heads-up flag for the
+  // branch/auditor to review, not an automatic finding.
+  function crossCheckPrenda(){
+    const redeemData = categoryData['redeem'];
+    if(!redeemData) return;
+    const prendaData = categoryData['prenda'];
+
+    redeemData.records.forEach(r=>{ r.prendaMatch = null; r.prendaAmountIncreased = false; });
+    prendaMatchSummary = [];
+
+    if(prendaData){
+      // date -> array of per-code-karat totals for every Prenda ticket on that date
+      const prendaByDate = new Map();
+      prendaData.records.forEach(pr=>{
+        const groups = groupByCodeKarat(pr.items);
+        if(!prendaByDate.has(pr.date)) prendaByDate.set(pr.date, []);
+        groups.forEach(g=>{
+          prendaByDate.get(pr.date).push({...g, ptn:pr.ptn, pawner:pr.pawner, date:pr.date, principal:pr.principal});
+        });
+      });
+
+      redeemData.records.forEach(r=>{
+        const matchedPtns = new Set();
+        let hasAmountIncrease = false;
+        const rGroups = groupByCodeKarat(r.items);
+        const candidates = prendaByDate.get(r.date) || [];
+        rGroups.forEach(rg=>{
+          candidates.forEach(pg=>{
+            const rCode = String(rg.code||'').trim().toLowerCase();
+            const pCode = String(pg.code||'').trim().toLowerCase();
+            if(rCode !== pCode) return;
+            if(numKey(pg.karat) !== numKey(rg.karat)) return;
+            if(Math.abs(pg.weight - rg.weight) > WEIGHT_TOLERANCE) return;
+            matchedPtns.add(pg.ptn);
+            const amountIncreased = numKey(pg.principal) > numKey(r.principal);
+            if(amountIncreased) hasAmountIncrease = true;
+            const splitOrMerge = rg.qty !== pg.qty;
+            prendaMatchSummary.push({
+              redeemPtn: r.ptn, redeemDate: r.date, redeemPawner: r.pawner, redeemPrincipal: r.principal,
+              itemCode: rg.code, karat: rg.karat, weight: rg.weight, qty: rg.qty,
+              prendaPtn: pg.ptn, prendaPawner: pg.pawner, prendaDate: pg.date, prendaPrincipal: pg.principal,
+              prendaCode: pg.code, prendaKarat: pg.karat, prendaWeight: pg.weight, prendaQty: pg.qty,
+              weightDiff: Math.round((pg.weight - rg.weight)*100)/100,
+              amountIncreased, splitOrMerge,
+            });
+          });
+        });
+        r.prendaMatch = matchedPtns.size ? Array.from(matchedPtns) : null;
+        r.prendaAmountIncreased = hasAmountIncrease;
+      });
+    }
+
+    if(activeCategory==='redeem'){ renderTable(); renderStats(); }
+  }
+
+  function renderPrendaMatchSummary(){
+    const el = $('#prenda-match-summary');
+    if(!el) return;
+    if(activeCategory !== 'redeem' || !categoryData['prenda'] || !prendaMatchSummary.length){
+      el.style.display = 'none';
+      el.innerHTML = '';
+      return;
+    }
+    el.style.display = 'block';
+    const sorted = prendaMatchSummary.slice().sort((a,b)=>{
+      if(b.amountIncreased !== a.amountIncreased) return b.amountIncreased - a.amountIncreased;
+      const ad = parseUSDate(a.redeemDate) || new Date(0), bd = parseUSDate(b.redeemDate) || new Date(0);
+      return ad - bd;
+    });
+    const redFlagCount = sorted.filter(m=>m.amountIncreased).length;
+    el.innerHTML = `
+      <h4>⚠ Prenda Match Summary ${redFlagCount ? `<span class="alert-chip" style="margin-left:8px;vertical-align:2px;">🚩 ${redFlagCount} Red Flag${redFlagCount>1?'s':''}</span>` : ''}</h4>
+      <p class="ps-sub">Items redeemed that match a Prenda (new loan) item by Item Code, Karat, and total weight (±${WEIGHT_TOLERANCE}g tolerance) on the SAME date — matched even if the item was split into more pieces or merged into fewer, regardless of customer name. Item Description is not used for matching. 🔀 means the piece count changed between redeem and re-pawn. Rows with a 🚩 mean the re-pawned loan value went UP compared to the original redeem — the stronger red flag to check first.</p>
+      <div class="ps-table-wrap">
+      <table class="ps-table">
+        <thead><tr>
+          <th>Redeem PTN</th><th>Date</th><th>Redeem Item Code</th><th>Redeem Karat</th><th>Redeem Weight</th><th>Redeem Qty</th>
+          <th>Redeem Customer</th><th>Redeem Loan Value</th><th>Prenda PTN</th><th>Prenda Item Code</th><th>Prenda Karat</th><th>Prenda Weight</th><th>Weight Diff</th><th>Prenda Qty</th><th>Prenda Customer</th><th>Prenda Loan Value</th><th>Alert</th>
+        </tr></thead>
+        <tbody>
+          ${sorted.map(m=>`
+            <tr class="${m.amountIncreased ? 'ps-exact' : ''}">
+              <td class="ps-ptn">${m.redeemPtn || '—'}</td>
+              <td>${m.redeemDate || '—'}</td>
+              <td>${m.itemCode || '—'}</td>
+              <td>${m.karat ? m.karat+'K' : '—'}</td>
+              <td>${m.weight ? m.weight+'g' : '—'}</td>
+              <td>${m.qty}</td>
+              <td>${m.redeemPawner || '—'}</td>
+              <td>₱${Number(m.redeemPrincipal||0).toLocaleString()}</td>
+              <td class="ps-ptn">${m.prendaPtn || '—'}</td>
+              <td>${m.prendaCode || '—'}</td>
+              <td>${m.prendaKarat ? m.prendaKarat+'K' : '—'}</td>
+              <td>${m.prendaWeight ? m.prendaWeight+'g' : '—'}</td>
+              <td>${m.weightDiff > 0 ? '+' : ''}${m.weightDiff}g</td>
+              <td>${m.prendaQty}${m.splitOrMerge ? ' <span title="Piece count changed between redeem and re-pawn">🔀</span>' : ''}</td>
+              <td>${m.prendaPawner || '—'}</td>
+              <td>₱${Number(m.prendaPrincipal||0).toLocaleString()}</td>
+              <td>${m.amountIncreased ? `<span class="alert-chip" title="Loan value went up from ₱${Number(m.redeemPrincipal||0).toLocaleString()} (redeem) to ₱${Number(m.prendaPrincipal||0).toLocaleString()} (prenda) for the same item">🚩 Amount Increased</span>` : `<span class="warn-chip">⚠ Item Match</span>`}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      </div>
+      <div class="footer-tools" style="margin-top:12px;">
+        <button class="btn ghost small" id="export-prenda-btn">Export Prenda Matches (CSV)</button>
+      </div>
+    `;
+    $('#export-prenda-btn').addEventListener('click', ()=>{
+      const rows = [['Redeem PTN','Redeem Date','Redeem Item Code','Redeem Karat','Redeem Weight','Redeem Qty','Redeem Customer','Redeem Loan Value','Prenda PTN','Prenda Item Code','Prenda Karat','Prenda Weight','Weight Diff','Prenda Qty','Prenda Customer','Prenda Loan Value','Split/Merged?','Amount Increased?']];
+      sorted.forEach(m=>{
+        rows.push([m.redeemPtn, m.redeemDate, m.itemCode, m.karat, m.weight, m.qty, m.redeemPawner, m.redeemPrincipal, m.prendaPtn, m.prendaCode, m.prendaKarat, m.prendaWeight, m.weightDiff, m.prendaQty, m.prendaPawner, m.prendaPrincipal, m.splitOrMerge?'Yes':'No', m.amountIncreased?'Yes':'No']);
+      });
+      const csv = rows.map(r=>r.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `QCL-prenda-match-summary.csv`;
+      a.click();
+    });
+  }
+
+  const AMLA_THRESHOLD = 500000; // BSP/AMLA covered-transaction threshold (₱)
+  let amlaGroups = []; // summary rows for the AMLA panel
+
+  // AMLA / BSP threshold — flags when a single customer's transactions
+  // (added up across ALL uploaded categories) hit ₱500,000+ on the SAME
+  // date. Catches both a single big transaction AND several smaller ones
+  // split up to dodge the threshold (structuring).
+  function computeAmlaFlags(){
+    amlaGroups = [];
+    Object.values(categoryData).forEach(cd=> cd.records.forEach(r=>{ r.amlaFlag = null; }));
+
+    const groups = new Map();
+    CATEGORIES.forEach(c=>{
+      const cd = categoryData[c.key];
+      if(!cd) return;
+      cd.records.forEach(r=>{
+        if(!r.pawner || !r.date) return;
+        const key = r.pawner.trim().toLowerCase() + '|' + r.date;
+        if(!groups.has(key)) groups.set(key, {pawner:r.pawner, date:r.date, total:0, items:[]});
+        const g = groups.get(key);
+        g.total += Number(r.principal||0);
+        g.items.push({catKey:c.key, catLabel:c.label, rec:r});
+      });
+    });
+
+    groups.forEach(g=>{
+      if(g.total < AMLA_THRESHOLD) return;
+      const structuring = g.items.length > 1;
+      g.items.forEach(it=> it.rec.amlaFlag = {total:g.total, count:g.items.length, structuring});
+      amlaGroups.push({pawner:g.pawner, date:g.date, total:g.total, count:g.items.length, structuring,
+        categories: [...new Set(g.items.map(it=>it.catLabel))].join(', ')});
+    });
+    amlaGroups.sort((a,b)=> b.total - a.total);
+  }
+
+  function renderAmlaSummary(){
+    const el = $('#amla-summary');
+    if(!el) return;
+    if(!amlaGroups.length){ el.style.display='none'; el.innerHTML=''; return; }
+    el.style.display = 'block';
+    el.innerHTML = `
+      <h4>🏦 AMLA / BSP Threshold Alerts <span class="alert-chip" style="margin-left:8px;vertical-align:2px;">🚩 ${amlaGroups.length}</span></h4>
+      <p class="ps-sub">Customers with ₱${AMLA_THRESHOLD.toLocaleString()}+ in combined transactions on the same date (across all uploaded reports) — a BSP/AMLA covered transaction, or possible structuring if split across several smaller transactions.</p>
+      <div class="ps-table-wrap">
+      <table class="ps-table">
+        <thead><tr><th>Customer</th><th>Date</th><th>Total Amount</th><th># Transactions</th><th>Report(s)</th><th>Alert</th></tr></thead>
+        <tbody>
+          ${amlaGroups.map(g=>`
+            <tr class="ps-exact">
+              <td>${g.pawner}</td>
+              <td>${g.date}</td>
+              <td>₱${g.total.toLocaleString()}</td>
+              <td>${g.count}</td>
+              <td>${g.categories}</td>
+              <td>${g.structuring
+                ? `<span class="alert-chip" title="Total hit the threshold only when several transactions on the same date are added together">🚩 Possible Structuring</span>`
+                : `<span class="alert-chip" title="A single transaction already meets the covered-transaction threshold">🚩 High-Value</span>`}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      </div>
+    `;
+  }
+
+  let ptnIntegrity = {}; // catKey -> {duplicates:[], gaps:[]}
+
+  // Duplicate / missing Pawn Ticket Number check for the given category.
+  // Duplicates = same PTN used on more than one date (unexpected for
+  // Redeem/Prenda; worth a look for Re-appraise/Renew too). Gaps = missing
+  // numbers in an otherwise sequential PTN series (e.g. ...-01026, ...-01028
+  // with no ...-01027) — a possible sign of a voided/hidden transaction.
+  function computePtnIntegrity(catKey){
+    const cd = categoryData[catKey];
+    if(!cd){ delete ptnIntegrity[catKey]; return; }
+
+    const byPtn = new Map();
+    cd.records.forEach(r=>{
+      if(!r.ptn) return;
+      if(!byPtn.has(r.ptn)) byPtn.set(r.ptn, []);
+      byPtn.get(r.ptn).push(r.date);
+    });
+    const duplicates = [];
+    byPtn.forEach((dates,ptn)=>{
+      if(dates.length > 1) duplicates.push({ptn, dates});
+    });
+
+    // Group PTNs by their non-numeric prefix, look for gaps in the
+    // trailing numeric sequence.
+    const seqGroups = new Map();
+    const seen = new Set();
+    cd.records.forEach(r=>{
+      if(!r.ptn || seen.has(r.ptn)) return;
+      seen.add(r.ptn);
+      const m = r.ptn.match(/^(.*?)(\d+)$/);
+      if(!m) return;
+      const prefix = m[1];
+      const num = parseInt(m[2],10);
+      const width = m[2].length;
+      if(!seqGroups.has(prefix)) seqGroups.set(prefix, {nums:[], width});
+      seqGroups.get(prefix).nums.push(num);
+    });
+    const gaps = [];
+    seqGroups.forEach((g,prefix)=>{
+      if(g.nums.length < 2) return;
+      const nums = [...new Set(g.nums)].sort((a,b)=>a-b);
+      const missing = [];
+      for(let n=nums[0]; n<nums[nums.length-1]; n++){
+        if(!nums.includes(n)) missing.push(prefix + String(n).padStart(g.width,'0'));
+      }
+      if(missing.length) gaps.push({prefix, from:prefix+String(nums[0]).padStart(g.width,'0'),
+        to:prefix+String(nums[nums.length-1]).padStart(g.width,'0'), missing});
+    });
+
+    ptnIntegrity[catKey] = {duplicates, gaps};
+  }
+
+  function renderPtnIntegrityPanel(){
+    const el = $('#ptn-integrity-panel');
+    if(!el) return;
+    const info = activeCategory ? ptnIntegrity[activeCategory] : null;
+    if(!info || (!info.duplicates.length && !info.gaps.length)){ el.style.display='none'; el.innerHTML=''; return; }
+    el.style.display = 'block';
+    const dupRows = info.duplicates.map(d=>`<li><span class="ps-ptn">${d.ptn}</span> — used on ${d.dates.length} different dates: ${d.dates.join(', ')}</li>`).join('');
+    const gapRows = info.gaps.map(g=>`<li>Between <span class="ps-ptn">${g.from}</span> and <span class="ps-ptn">${g.to}</span> — missing ${g.missing.length} ticket number${g.missing.length>1?'s':''}: ${g.missing.slice(0,12).join(', ')}${g.missing.length>12?` …and ${g.missing.length-12} more`:''}</li>`).join('');
+    el.innerHTML = `
+      <h4>🔢 PTN Integrity Check — ${CATEGORIES.find(c=>c.key===activeCategory)?.label||''}</h4>
+      <p class="ps-sub">Checks for duplicate ticket numbers and gaps in the ticket-number sequence within this report.</p>
+      ${info.duplicates.length ? `<p style="margin:10px 0 4px;font-weight:700;color:#b8801a;font-size:12.5px;">⚠ Duplicate Ticket Numbers (${info.duplicates.length})</p><ul style="margin:0 0 8px;padding-left:18px;font-size:12.5px;">${dupRows}</ul>` : ''}
+      ${info.gaps.length ? `<p style="margin:10px 0 4px;font-weight:700;color:var(--brass);font-size:12.5px;">🚩 Missing Ticket Numbers (${info.gaps.reduce((s,g)=>s+g.missing.length,0)})</p><ul style="margin:0;padding-left:18px;font-size:12.5px;">${gapRows}</ul>` : ''}
+    `;
+  }
+
+  // Suspicious price-per-gram — for each karat found in this category,
+  // computes the median ₱/gram across all its transactions, then flags any
+  // transaction whose ₱/gram is far from that median (possible over- or
+  // under-valuation of the item).
+  function computePriceOutliers(catKey){
+    const cd = categoryData[catKey];
+    if(!cd) return;
+    const byKarat = new Map();
+    cd.records.forEach(r=>{
+      r.priceOutlier = null;
+      const karat = numKey(r.karat);
+      if(!karat || !r.weight) return;
+      const ppg = r.principal / r.weight;
+      if(!isFinite(ppg) || ppg<=0) return;
+      if(!byKarat.has(karat)) byKarat.set(karat, []);
+      byKarat.get(karat).push({r, ppg});
+    });
+    byKarat.forEach(list=>{
+      if(list.length < 3) return; // need enough data points for a meaningful median
+      const sorted = list.map(x=>x.ppg).slice().sort((a,b)=>a-b);
+      const mid = Math.floor(sorted.length/2);
+      const median = sorted.length%2 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2;
+      list.forEach(x=>{
+        const ratio = x.ppg / median;
+        if(ratio >= 1.4 || ratio <= 0.6){
+          x.r.priceOutlier = {ppg: Math.round(x.ppg), median: Math.round(median), ratio: Math.round(ratio*100)/100};
+        }
+      });
+    });
+  }
+
+  // Runs every detection check. Call after any upload, restore, or cloud sync.
+  function runAllFraudChecks(){
+    crossCheckPrenda();
+    CATEGORIES.forEach(c=>{
+      computePtnIntegrity(c.key);
+      computePriceOutliers(c.key);
+    });
+    computeAmlaFlags();
+    if(activeCategory){ renderTable(); renderStats(); }
+  }
 
   async function handleFile(file, catKey){
     if(!currentBranch){ alert('Please set the branch first.'); return; }
@@ -656,6 +1040,7 @@
       setStatus(`Loaded ${records.length} transactions for ${catDef.label}.`);
       renderCategoryTabs();
       if(!activeCategory) { activeCategory = catKey; }
+      runAllFraudChecks();
       loadCategory(activeCategory);
       saveFullCategoryState(catKey);
     }catch(err){
@@ -714,6 +1099,9 @@
     const flagged = recs.filter(r=>r.finding).length;
     const foundCount = recs.filter(r=>r.found).length;
     const pendingCount = recs.length - foundCount;
+    const prendaMatches = recs.filter(r=>r.prendaMatch).length;
+    const prendaChip = (activeCategory==='redeem' && categoryData['prenda'])
+      ? `<div class="stat-chip"><div class="num">${prendaMatches}</div><div class="lab">⚠ Prenda Matches</div></div>` : '';
     $('#stats-row').innerHTML = `
       <div class="stat-chip"><div class="num">${recs.length}</div><div class="lab">Transactions (Pawn Tickets)</div></div>
       <div class="stat-chip"><div class="num">${totalLineItems}</div><div class="lab">Line Items</div></div>
@@ -723,8 +1111,12 @@
       <div class="stat-chip"><div class="num">${foundCount}</div><div class="lab">Found</div></div>
       <div class="stat-chip"><div class="num">${pendingCount}</div><div class="lab">Pending</div></div>
       <div class="stat-chip"><div class="num">${flagged}</div><div class="lab">Flagged Findings</div></div>
+      ${prendaChip}
     `;
     renderFindingsBreakdown(recs);
+    renderPrendaMatchSummary();
+    renderAmlaSummary();
+    renderPtnIntegrityPanel();
   }
 
   function renderFindingsBreakdown(recs){
@@ -776,6 +1168,7 @@
     const q = $('#search').value.trim().toLowerCase();
     const statusFilter = $('#filter-status').value;
     const findingFilter = $('#filter-finding').value;
+    const prendaFilter = $('#filter-prenda') ? $('#filter-prenda').value : 'all';
     const dFrom = $('#date-from').value ? new Date($('#date-from').value+'T00:00:00') : null;
     const dTo = $('#date-to').value ? new Date($('#date-to').value+'T23:59:59') : null;
 
@@ -785,6 +1178,8 @@
       if(findingFilter === 'flagged' && !r.finding) return false;
       if(findingFilter === 'none' && r.finding) return false;
       if(findingFilter === 'unvalidated' && (!r.finding || r.validated)) return false;
+      if(prendaFilter === 'matched' && !r.prendaMatch) return false;
+      if(prendaFilter === 'unmatched' && r.prendaMatch) return false;
       if(dFrom || dTo){
         const rd = parseUSDate(r.date);
         if(!rd) return false;
@@ -835,8 +1230,21 @@
 
     filtered.forEach((r,i)=>{
       const tr = document.createElement('tr');
+      tr.dataset.id = r.id;
+      tr.classList.add('row-clickable');
       const status = statusOf(r);
       const chip = r.found ? (r.finding ? `<span class="flag-chip">⚑ Flagged</span>` : `<span class="ok-chip">✓ OK</span>`) : '';
+      const warnChip = r.prendaMatch
+        ? (r.prendaAmountIncreased
+            ? `<span class="alert-chip" title="Same item found in Prenda on the same date, and the re-pawned loan value went UP — PTN: ${r.prendaMatch.join(', ')}">🚩 Amount Increased</span>`
+            : `<span class="warn-chip" title="Same item code/karat/weight found in Prenda on the same date — PTN: ${r.prendaMatch.join(', ')}">⚠ Possible Re-pawn</span>`)
+        : '';
+      const weightLossChip = r.weightLoss > 0
+        ? `<span class="warn-chip" title="Old weight ${r.oldWeight}g → new weight ${r.weight}g on re-appraisal">⚠ Weight Loss ${r.weightLoss}g</span>` : '';
+      const priceOutlierChip = r.priceOutlier
+        ? `<span class="warn-chip" title="₱${r.priceOutlier.ppg}/g vs a typical ₱${r.priceOutlier.median}/g for ${r.karat}K in this report">⚠ Unusual Valuation</span>` : '';
+      const amlaChip = r.amlaFlag
+        ? `<span class="alert-chip" title="${r.pawner} totaled ₱${r.amlaFlag.total.toLocaleString()} on ${r.date}${r.amlaFlag.structuring?' across '+r.amlaFlag.count+' transactions (possible structuring)':' (single transaction)'}">🏦 AMLA ${r.amlaFlag.structuring?'Structuring':'Threshold'}</span>` : '';
       tr.innerHTML = `
         <td data-label="#">${i+1}</td>
         <td class="ptn" data-label="Pawn Ticket #">${r.ptn || '—'}</td>
@@ -845,8 +1253,8 @@
         <td data-label="Item Code">${itemsCodeHtml(r)}</td>
         <td class="desc-list" data-label="Items / Description">${itemsHtml(r)}</td>
         <td class="num" data-label="Loan Value">₱${Number(r.principal||0).toLocaleString()}</td>
-        <td data-label="Found?"><input type="checkbox" class="found-check" data-id="${r.id}" ${r.found?'checked':''}></td>
-        <td data-label="Status"><span class="status-pill ${status}">${status.toUpperCase()}</span> ${chip}</td>
+        <td data-label="Found?"><label class="found-cell" data-id="${r.id}"><input type="checkbox" class="found-check" data-id="${r.id}" ${r.found?'checked':''}></label></td>
+        <td data-label="Status"><span class="status-pill ${status}">${status.toUpperCase()}</span> ${chip} ${warnChip} ${weightLossChip} ${priceOutlierChip} ${amlaChip}</td>
         <td data-label="Findings &amp; Correct"><button class="findings-btn ${r.finding?'has-finding':''}" data-id="${r.id}">Findings</button></td>
       `;
       body.appendChild(tr);
@@ -858,6 +1266,19 @@
       arrow.textContent = th.dataset.sort === sortState.col ? (sortState.dir === 1 ? '▲' : '▼') : '';
     });
 
+    function toggleFound(r){
+      r.found = !r.found;
+      r.actual = r.found ? r.qty : null;
+      renderTable(); renderStats(); saveFullCategoryState(activeCategory);
+    }
+
+    $$('tr.row-clickable').forEach(row=>row.addEventListener('click', e=>{
+      if(e.target.closest('.findings-btn')) return;
+      if(e.target.closest('.found-cell')) return;
+      const r = findRecordById(row.dataset.id);
+      if(!r) return;
+      toggleFound(r);
+    }));
     $$('.found-check').forEach(cb=>cb.addEventListener('change', e=>{
       const r = findRecordById(e.target.dataset.id);
       if(!r) return;
@@ -866,6 +1287,7 @@
       renderTable(); renderStats(); saveFullCategoryState(activeCategory);
     }));
     $$('.findings-btn').forEach(btn=>btn.addEventListener('click', e=>{
+      e.stopPropagation();
       openFindingsModal(e.target.dataset.id);
     }));
   }
@@ -956,17 +1378,24 @@
     $('#date-to').value = '';
     $('#filter-status').value = 'all';
     $('#filter-finding').value = 'all';
+    $('#filter-prenda').value = 'all';
     renderTable();
   });
   $('#filter-status').addEventListener('change', renderTable);
   $('#filter-finding').addEventListener('change', renderTable);
+  $('#filter-prenda').addEventListener('change', renderTable);
 
   $('#export-btn').addEventListener('click', ()=>{
     if(!activeCategory || !categoryData[activeCategory]) return;
-    const rows = [['Date','Pawn Ticket','Appraiser/FLA','Item Description','Quantity','Karat','Weight','Loan Value','Found?','Status','Finding','Validated','Pawner']];
+    const includePrenda = activeCategory === 'redeem';
+    const header = ['Date','Pawn Ticket','Appraiser/FLA','Item Description','Quantity','Karat','Weight','Loan Value','Found?','Status','Finding','Validated','Pawner'];
+    if(includePrenda) header.push('Prenda Match (same-day PTN)','Amount Increased?');
+    const rows = [header];
     getFiltered().forEach(r=>{
       const findingLabel = FINDINGS.find(f=>f.key===r.finding)?.label || '';
-      rows.push([r.date, r.ptn, r.appraiser || '', itemsLabel(r), r.qty, r.karat, r.weight, Number(r.principal||0).toLocaleString(), r.found?'Yes':'No', statusOf(r).toUpperCase(), findingLabel, r.validated?'Yes':'No', r.pawner]);
+      const row = [r.date, r.ptn, r.appraiser || '', itemsLabel(r), r.qty, r.karat, r.weight, Number(r.principal||0).toLocaleString(), r.found?'Yes':'No', statusOf(r).toUpperCase(), findingLabel, r.validated?'Yes':'No', r.pawner];
+      if(includePrenda) row.push(r.prendaMatch ? r.prendaMatch.join(', ') : '', r.prendaAmountIncreased ? 'Yes' : 'No');
+      rows.push(row);
     });
     const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], {type:'text/csv'});
