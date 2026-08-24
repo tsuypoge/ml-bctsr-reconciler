@@ -1035,7 +1035,7 @@ function sumIntlSendoutCharges(sheetData, targetCurr = "PHP") {
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
     let row = sheetData[i];
     if (isValidDataRow(row) && row.length > ctcCol) {
-      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[ctcCol] || '').trim().toUpperCase() : targetC;
       if (!rowCurr) rowCurr = targetC;
       if (rowCurr === 'PESO') rowCurr = 'PHP';
 
@@ -2189,11 +2189,6 @@ function updateBranchDropdownUI() {
   }
 }
 
-function onBranchDropdownChange(newBranch) {
-  activeBranch = newBranch;
-  switchCurrencyTab(activeCurrencyTab);
-}
-
 function deleteActiveBranchData() {
   if (confirm(`Are you sure you want to delete all saved data for branch '${activeBranch}'?`)) {
     delete branchesStore[activeBranch];
@@ -2376,6 +2371,165 @@ function exportToPDF() {
 }
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
+
+// --- SPATIAL COORDINATE PDF PARSER (RESTORED FOR BCTSR READING) ---
+function parsePdfItemsWithCoords(file) {
+  return new Promise(async (resolve) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let allItems = [];
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        textContent.items.forEach(item => {
+          if (item.str && item.str.trim()) {
+            allItems.push({ str: item.str.trim(), x: item.transform[4], y: item.transform[5], page: pageNum });
+          }
+        });
+      }
+      resolve(allItems);
+    } catch (err) {
+      console.error("PDF Spatial Extraction Error:", err);
+      resolve([]);
+    }
+  });
+}
+
+function parsePdfLinesWithCoords(allItems) {
+  let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
+  let items = [];
+  let currentCategory = "Cash";
+  let qtyX = null, col2X = null, col3X = null;
+  let stopped = false;
+
+  if (!allItems || allItems.length === 0) return { branch, dateRange, endBal, currency, items };
+
+  let byPage = {};
+  allItems.forEach(it => {
+    if (!byPage[it.page]) byPage[it.page] = [];
+    byPage[it.page].push(it);
+  });
+
+  let rows = [];
+  Object.keys(byPage).sort((a, b) => a - b).forEach(pageNum => {
+    let pageItems = byPage[pageNum].slice();
+    pageItems.sort((a, b) => {
+      let dy = b.y - a.y;
+      if (Math.abs(dy) > 4) return dy;
+      return a.x - b.x;
+    });
+    let currentRow = [];
+    let currentY = null;
+    pageItems.forEach(it => {
+      if (currentY === null || Math.abs(it.y - currentY) > 4) {
+        if (currentRow.length > 0) rows.push(currentRow);
+        currentRow = [it];
+        currentY = it.y;
+      } else {
+        currentRow.push(it);
+      }
+    });
+    if (currentRow.length > 0) rows.push(currentRow);
+  });
+
+  for (let r = 0; r < rows.length; r++) {
+    if (stopped) break;
+    let row = rows[r].slice().sort((a, b) => a.x - b.x);
+    let texts = row.map(it => it.str.trim());
+    let lineStr = texts.join(' ').replace(/\s+/g, ' ').trim();
+    if (!lineStr) continue;
+
+    if (/accumulated\s+cash|resource\s+cash-on-hand|cash given to/i.test(lineStr) || /^legend/i.test(lineStr)) {
+      stopped = true;
+      break;
+    }
+
+    if (lineStr.includes("Branch Name:")) branch = lineStr.substring(lineStr.indexOf("Branch Name:") + 12).trim();
+    if (lineStr.includes("Date Range:")) {
+      let dMatches = lineStr.match(/\d{4}-\d{2}-\d{2}\s*-\s*\d{4}-\d{2}-\d{2}/) || lineStr.match(/\d{2}\/\d{2}\/\d{4}\s*-\s*\d{2}\/\d{2}\/\d{4}/);
+      dateRange = dMatches ? dMatches[0] : lineStr.substring(lineStr.indexOf("Date Range:") + 11).trim();
+    }
+    if (lineStr.includes("Ending Balance")) {
+      let nums = lineStr.match(/[\d,]+\.\d{2}/g);
+      if (nums) endBal = parseNum(nums[nums.length - 1]);
+    }
+    if (/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i.test(lineStr)) {
+      let m = lineStr.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
+      if (m) currency = m[1].toUpperCase();
+    } else if (/\b(USD|EUR|JPY|GBP)\b/i.test(lineStr) && currency === "PHP") {
+      let m = lineStr.match(/\b(USD|EUR|JPY|GBP)\b/i);
+      if (m) currency = m[1].toUpperCase();
+    }
+
+    if (texts.includes('Particulars') && texts.includes('Quantity')) {
+      let qtyItem = row.find(it => it.str.trim() === 'Quantity');
+      qtyX = qtyItem ? qtyItem.x : null;
+      let restX = row.filter(it => it.str.trim() !== 'Particulars' && it.str.trim() !== 'Quantity').map(it => it.x).sort((a, b) => a - b);
+      let clusters = [];
+      restX.forEach(x => {
+        if (clusters.length === 0 || x - clusters[clusters.length - 1][clusters[clusters.length - 1].length - 1] > 40) {
+          clusters.push([x]);
+        } else {
+          clusters[clusters.length - 1].push(x);
+        }
+      });
+      if (clusters.length >= 2) {
+        col2X = clusters[0][0];
+        col3X = clusters[1][0];
+      }
+      continue;
+    }
+
+    if (lineStr === 'Cash Transactions') { currentCategory = "Cash"; continue; }
+    if (lineStr === 'Non-Cash Transactions') { currentCategory = "Non-Cash"; continue; }
+
+    if (qtyX === null || col2X === null || col3X === null) continue;
+
+    let b1 = (qtyX + col2X) / 2;
+    let b2 = (col2X + col3X) / 2;
+
+    let textParts = [];
+    let qtyNums = [], col2Nums = [], col3Nums = [];
+
+    row.forEach(it => {
+      let tok = it.str.trim();
+      let cleanTok = tok.replace(/,/g, '');
+      if ((cleanTok.match(/\./g) || []).length > 1) {
+        let lastDotIdx = cleanTok.lastIndexOf('.');
+        cleanTok = cleanTok.substring(0, lastDotIdx).replace(/\./g, '') + cleanTok.substring(lastDotIdx);
+      }
+      if (/^-?\d+(\.\d+)?$/.test(cleanTok)) {
+        let val = parseFloat(cleanTok);
+        if (it.x < b1) qtyNums.push(val);
+        else if (it.x < b2) col2Nums.push(val);
+        else col3Nums.push(val);
+      } else if (tok && tok !== '-' && tok !== '—' && tok !== '|') {
+        textParts.push(tok);
+      }
+    });
+
+    let particular = textParts.join(' ').replace(/•/g, '').trim();
+    if (
+      particular &&
+      !particular.includes("Ending Balance") &&
+      !particular.includes("Beginning Balance") &&
+      !particular.includes("Particulars") &&
+      !particular.toLowerCase().includes("current day cash shortage") &&
+      !particular.startsWith("•")
+    ) {
+      let qtyDisplay = qtyNums.length > 0 ? Math.round(qtyNums[0]) : '—';
+      let cashIn = col2Nums.reduce((a, b) => a + b, 0);
+      let cashOut = col3Nums.reduce((a, b) => a + b, 0);
+      let amount = Math.max(cashIn, cashOut);
+      if (amount > 0) {
+        items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn, cashOut, amount });
+      }
+    }
+  }
+
+  return { branch, dateRange, endBal, currency, items };
+}
 
 function parseExcelFilePromise(file) {
   return new Promise((resolve) => {
