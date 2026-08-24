@@ -190,7 +190,9 @@
     box-shadow: var(--shadow-md);
   }
 
-  .btn-action:active { transform: translateY(0); }
+  .btn-action:active {
+    transform: translateY(0);
+  }
 
   .btn-export {
     background: var(--primary);
@@ -221,7 +223,9 @@
     border: 1px solid #b45309;
   }
 
-  .btn-unlock:hover { background: #b45309; }
+  .btn-unlock:hover {
+    background: #b45309;
+  }
 
   .branch-display-wrapper {
     display: flex;
@@ -375,8 +379,14 @@
     vertical-align: middle;
   }
 
-  tr.hoverable { transition: background-color 0.15s ease; }
-  tr.hoverable:hover { background: #f8fafc; }
+  tr.hoverable {
+    transition: background-color 0.15s ease;
+  }
+
+  tr.hoverable:hover {
+    background: #f8fafc;
+  }
+  
   tr { page-break-inside: avoid; break-inside: avoid; }
   
   .num-cell {
@@ -420,6 +430,7 @@
 
   .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
 
+  /* STRICT SIDE-BY-SIDE FLEX CONTAINER FOR ACTION CELL */
   .action-cell-flex {
     display: flex;
     align-items: center;
@@ -428,6 +439,7 @@
     flex-wrap: nowrap;
   }
 
+  /* COMPACT ICON-ONLY CIRCULAR BUTTONS */
   .btn-upload-sub, .btn-remove-sub, .btn-add-remark {
     font-size: 11px;
     font-family: var(--font-sans);
@@ -519,13 +531,8 @@
         <div class="header-sub">Master Reconciliation & Sub-Report Audit Engine</div>
       </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 16px;" class="hide-print">
-      <a href="index.html" style="color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; transition: all 0.2s;">
-        <span>🔙</span> Back to Dashboard
-      </a>
-      <div class="header-tag">
-        <div class="pulse-dot"></div> Ready
-      </div>
+    <div class="header-tag hide-print">
+      <div class="pulse-dot"></div> Ready
     </div>
   </div>
 </header>
@@ -641,154 +648,6 @@ let activeBranch = "Select Branch";
 let activeCurrencyTab = 'PHP';
 let branchesStore = {}; 
 
-// INDEXEDDB STORAGE WRAPPER
-const DB_NAME = 'MLReconcilerDB';
-const STORE_NAME = 'appState';
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = (e) => {
-      e.target.result.createObjectStore(STORE_NAME);
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function saveStateToStorage() {
-  try {
-    localStorage.setItem('ml_activeBranch', activeBranch);
-    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
-    
-    const db = await openDB();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).put(branchesStore, 'ml_branchesStore');
-  } catch (e) {
-    console.warn("Could not save to IndexedDB:", e);
-  }
-}
-
-async function loadStateFromStorage() {
-  try {
-    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
-    if (savedActiveBranch) activeBranch = savedActiveBranch;
-
-    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
-    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
-
-    const db = await openDB();
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const req = tx.objectStore(STORE_NAME).get('ml_branchesStore');
-
-    req.onsuccess = () => {
-      if (req.result) branchesStore = req.result;
-      updateBranchDropdownUI();
-      switchCurrencyTab(activeCurrencyTab);
-    };
-  } catch (e) {
-    console.error("Error loading saved state from IndexedDB:", e);
-  }
-}
-
-// 🎯 AUTO SYNC PAINGON SA INDEX.HTML DASHBOARD
-function syncToLocalDashboard(parsedData) {
-  try {
-    let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
-      ? parsedData.branch.trim().toUpperCase() 
-      : activeBranch;
-
-    if (!targetBranch || targetBranch === "SELECT BRANCH" || targetBranch === "—") return;
-
-    let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || [];
-    let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
-    let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
-
-    let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
-
-    if (existingIndex !== -1) {
-      storedEntries[existingIndex].cutoffDate = dateStr;
-      if (storedEntries[existingIndex].status === "Pending") {
-        storedEntries[existingIndex].status = "In Progress";
-      }
-    } else {
-      storedEntries.unshift({
-        branch: targetBranch,
-        cutoffDate: dateStr,
-        companions: [],
-        createdBy: currentUser,
-        status: "In Progress"
-      });
-    }
-
-    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
-  } catch (err) {
-    console.error("Dashboard local sync error:", err);
-  }
-}
-
-function saveMasterBCTSR(parsedData) {
-  let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
-    ? parsedData.branch.trim().toUpperCase() 
-    : activeBranch;
-
-  if (targetBranch && targetBranch !== "SELECT BRANCH" && targetBranch !== "—") {
-    activeBranch = targetBranch;
-    updateBranchDropdownUI();
-    let targetCurrency = parsedData.currency || activeCurrencyTab;
-
-    if (!branchesStore[activeBranch]) {
-      branchesStore[activeBranch] = createEmptyBranchStore();
-    }
-    let bData = branchesStore[activeBranch];
-    bData.bctsrDataStore[targetCurrency] = parsedData;
-    bData.manualInputsStore[targetCurrency] = {};
-    bData.manualRemarksStore[targetCurrency] = {};
-    bData.openRemarksInputStore[targetCurrency] = {};
-    bData.manualAdjDataStore[targetCurrency] = null;
-    bData.manualAdjRemarksStore[targetCurrency] = {};
-    bData.openManualAdjRemarksStore[targetCurrency] = {};
-    bData.isArchivedStore[targetCurrency] = false;
-    if (!bData.parsedSheetsStore) {
-      bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-    }
-
-    syncToLocalDashboard(parsedData);
-  }
-}
-
-// 📂 MAIN FILE UPLOAD EVENT HANDLER
-async function handleFileUpload(evt) {
-  const files = Array.from(evt.target.files);
-  if (!files || files.length === 0) return;
-
-  let lastParsedBranch = activeBranch;
-  let lastParsedCurr = activeCurrencyTab;
-
-  for (let file of files) {
-    const fileName = file.name.toLowerCase();
-    let parsedData = null;
-
-    if (fileName.endsWith('.pdf')) {
-      parsedData = await parsePdfFilePromise(file);
-    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
-      parsedData = await parseExcelFilePromise(file);
-    }
-
-    if (parsedData && parsedData.items && parsedData.items.length > 0) {
-      saveMasterBCTSR(parsedData);
-      lastParsedBranch = activeBranch;
-      lastParsedCurr = parsedData.currency || activeCurrencyTab;
-    }
-  }
-
-  activeBranch = lastParsedBranch;
-  updateBranchDropdownUI();
-  switchCurrencyTab(lastParsedCurr);
-  saveStateToStorage();
-  evt.target.value = '';
-}
-
 function createEmptyBranchStore() {
   return {
     bctsrDataStore: { PHP: null, USD: null, EUR: null, JPY: null, GBP: null },
@@ -846,6 +705,7 @@ function getCurrencySymbol(curr) {
   }
 }
 
+// AUTOMATIC SHEET TYPE DETECTOR (B2B vs B2FD)
 function detectSheetType(rows, defaultTarget) {
   if (!rows || !Array.isArray(rows) || rows.length === 0) return defaultTarget;
   
@@ -865,6 +725,7 @@ function detectSheetType(rows, defaultTarget) {
   return defaultTarget;
 }
 
+// INTL MONEY TRANSFER SENDOUT & CHARGES CALCULATORS
 function sumIntlSendoutPrincipal(sheetData, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let principalCol = -1, currCol = -1, headerIdx = -1;
@@ -935,7 +796,7 @@ function sumIntlSendoutCharges(sheetData, targetCurr = "PHP") {
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
     let row = sheetData[i];
     if (isValidDataRow(row) && row.length > ctcCol) {
-      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
+      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[ctcCol] || '').trim().toUpperCase() : targetC;
       if (!rowCurr) rowCurr = targetC;
       if (rowCurr === 'PESO') rowCurr = 'PHP';
 
@@ -984,6 +845,7 @@ function countIntlSendout(sheetData, targetCurr = "PHP") {
   return count;
 }
 
+// DYNAMIC BILLS PAYMENT CALCULATORS (LOOKS FOR "Amount Paid" & "Charge" OR FALLBACK TO INDEX 9 & 10)
 function sumBPPrincipal(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let amtCol = -1, headerIdx = -1;
@@ -1002,7 +864,7 @@ function sumBPPrincipal(sheetData) {
     if (amtCol !== -1) break;
   }
 
-  if (amtCol === -1) amtCol = 9;
+  if (amtCol === -1) amtCol = 9; // Fallback: Column J (Index 9)
 
   let total = 0;
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
@@ -1034,7 +896,7 @@ function sumBPCharges(sheetData) {
     if (chargeCol !== -1) break;
   }
 
-  if (chargeCol === -1) chargeCol = 10;
+  if (chargeCol === -1) chargeCol = 10; // Fallback: Column K (Index 10)
 
   let total = 0;
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
@@ -1048,6 +910,7 @@ function sumBPCharges(sheetData) {
   return total;
 }
 
+// MCASH CASH IN & SERVICE CHARGE CALCULATORS
 function sumMCashCashIn(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let amountCol = -1, headerIdx = -1;
@@ -1136,6 +999,7 @@ function countMCashCashIn(sheetData) {
   return count;
 }
 
+// JEWELRY SALES CALCULATORS (WITH BRANCH FILTERING)
 function sumJewelryNetSales(sheetData, branchName) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
 
@@ -1294,6 +1158,7 @@ function countJewelrySales(sheetData, branchName) {
   return countRows(sheetData);
 }
 
+// POS INSURANCE SALES CALCULATORS
 function sumInsuranceSales(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let total = 0;
@@ -1354,6 +1219,7 @@ function countInsuranceSales(sheetData) {
   return count;
 }
 
+// KPPO CALCULATORS
 function sumKPPOAmount(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let amountCol = -1, headerIdx = -1;
@@ -1422,12 +1288,14 @@ function countKPPOQty(sheetData) {
   return qty;
 }
 
+// MLG PO CALCULATORS (STRICTLY READS COLUMN N = INDEX 13 FOR CURRENCY & COLUMN P = INDEX 15 FOR PO AMOUNT)
 function sumMLGPO(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let totalAmt = 0;
 
   for (let i = 0; i < sheetData.length; i++) {
     let row = sheetData[i];
+    
     if (isValidDataRow(row) && row.length > 15) {
       let rowCurr = String(row[13] || '').trim().toUpperCase();
       if (!rowCurr || rowCurr === 'PESO') rowCurr = 'PHP';
@@ -1435,7 +1303,9 @@ function sumMLGPO(sheetData) {
       if (rowCurr === 'PHP') {
         let valStr = String(row[15] || '').replace(/,/g, '').trim();
         let val = parseFloat(valStr);
-        if (!isNaN(val)) totalAmt += val;
+        if (!isNaN(val)) {
+          totalAmt += val;
+        }
       }
     }
   }
@@ -1448,6 +1318,7 @@ function countMLGPO(sheetData) {
 
   for (let i = 0; i < sheetData.length; i++) {
     let row = sheetData[i];
+    
     if (isValidDataRow(row) && row.length > 15) {
       let rowCurr = String(row[13] || '').trim().toUpperCase();
       if (!rowCurr || rowCurr === 'PESO') rowCurr = 'PHP';
@@ -1455,13 +1326,16 @@ function countMLGPO(sheetData) {
       if (rowCurr === 'PHP') {
         let valStr = String(row[15] || '').replace(/,/g, '').trim();
         let val = parseFloat(valStr);
-        if (!isNaN(val) && val > 0) count++;
+        if (!isNaN(val) && val > 0) {
+          count++;
+        }
       }
     }
   }
   return count;
 }
 
+// B2FD CALCULATORS
 function sumB2FD(sheetData, branchName, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let total = 0;
@@ -1523,7 +1397,9 @@ function sumB2FD(sheetData, branchName, targetCurr = "PHP") {
     }
 
     if (currency === targetC) {
-      if (isBranchMatch(rowBranch, branchName)) total += amt;
+      if (isBranchMatch(rowBranch, branchName)) {
+        total += amt;
+      }
     }
   }
   return total;
@@ -1590,12 +1466,15 @@ function countB2FD(sheetData, branchName, targetCurr = "PHP") {
     }
 
     if (currency === targetC) {
-      if (isBranchMatch(rowBranch, branchName)) count++;
+      if (isBranchMatch(rowBranch, branchName)) {
+        count++;
+      }
     }
   }
   return count;
 }
 
+// ROBUST B2B CALCULATORS
 function sumB2B(sheetData, keyword, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let searchKey = keyword.toLowerCase().trim();
@@ -2054,11 +1933,44 @@ function formatMoney(val, symbol = '') {
   return symbol ? `${symbol}${formatted}` : formatted;
 }
 
+function saveStateToStorage() {
+  try {
+    localStorage.setItem('ml_activeBranch', activeBranch);
+    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
+    localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
+  } catch (e) {
+    console.warn("Could not save to LocalStorage:", e);
+  }
+}
+
+function loadStateFromStorage() {
+  try {
+    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
+    if (savedActiveBranch) activeBranch = savedActiveBranch;
+
+    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
+    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
+
+    const savedBranches = localStorage.getItem('ml_branchesStore');
+    if (savedBranches) branchesStore = JSON.parse(savedBranches);
+
+    updateBranchDropdownUI();
+    switchCurrencyTab(activeCurrencyTab);
+  } catch (e) {
+    console.error("Error loading saved state:", e);
+  }
+}
+
 function updateBranchDropdownUI() {
   const el = document.getElementById('active-branch-name');
   if (el) {
     el.innerText = activeBranch || "Select Branch";
   }
+}
+
+function onBranchDropdownChange(newBranch) {
+  activeBranch = newBranch;
+  switchCurrencyTab(activeCurrencyTab);
 }
 
 function deleteActiveBranchData() {
@@ -2078,13 +1990,8 @@ function deleteActiveBranchData() {
 
 function resetAllData() {
   if (confirm("Are you sure you want to reset and clear all uploaded data across ALL branches and currencies?")) {
-    ['ml_activeBranch','ml_activeCurrencyTab'].forEach(k => localStorage.removeItem(k));
+    ['ml_activeBranch','ml_activeCurrencyTab','ml_branchesStore'].forEach(k => localStorage.removeItem(k));
     
-    openDB().then(db => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      tx.objectStore(STORE_NAME).clear();
-    });
-
     branchesStore = {};
     activeBranch = "Select Branch";
 
@@ -2249,223 +2156,761 @@ function exportToPDF() {
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
 
-function saveSubReportRows(rows) {
-  if (!rows || rows.length === 0) return;
-  let sheetTarget = detectSheetType(rows, "B2B");
-  let bData = getActiveBranchData();
-  let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
+async function handleFileUpload(evt) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
 
-  currencies.forEach(c => {
-    if (!bData.parsedSheetsStore[c]) {
-      bData.parsedSheetsStore[c] = {};
+  let lastParsedBranch = activeBranch;
+  let lastParsedCurr = activeCurrencyTab;
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let parsedData = null;
+
+    if (fileName.endsWith('.pdf')) {
+      parsedData = await parsePdfFilePromise(file);
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
+      parsedData = await parseExcelFilePromise(file);
     }
-    if (!bData.parsedSheetsStore[c][sheetTarget]) {
-      bData.parsedSheetsStore[c][sheetTarget] = [];
+
+    if (parsedData && parsedData.items && parsedData.items.length > 0) {
+      let targetBranch = (parsedData.branch && parsedData.branch !== '—') ? parsedData.branch.trim().toUpperCase() : activeBranch;
+      activeBranch = targetBranch;
+
+      let targetCurrency = parsedData.currency || activeCurrencyTab;
+
+      if (!branchesStore[activeBranch]) {
+        branchesStore[activeBranch] = createEmptyBranchStore();
+      }
+      let bData = branchesStore[activeBranch];
+      bData.bctsrDataStore[targetCurrency] = parsedData;
+      bData.manualInputsStore[targetCurrency] = {};
+      bData.manualRemarksStore[targetCurrency] = {};
+      bData.openRemarksInputStore[targetCurrency] = {};
+      bData.manualAdjDataStore[targetCurrency] = null;
+      bData.manualAdjRemarksStore[targetCurrency] = {};
+      bData.openManualAdjRemarksStore[targetCurrency] = {};
+      bData.isArchivedStore[targetCurrency] = false;
+      if (!bData.parsedSheetsStore) {
+        bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+      }
+      bData.parsedSheetsStore[targetCurrency] = {};
+
+      lastParsedBranch = targetBranch;
+      lastParsedCurr = targetCurrency;
     }
-    bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(rows);
+  }
+
+  activeBranch = lastParsedBranch;
+  updateBranchDropdownUI();
+  switchCurrencyTab(lastParsedCurr);
+  saveStateToStorage();
+  evt.target.value = '';
+}
+
+function parseExcelFilePromise(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        let tempSheets = {};
+        workbook.SheetNames.forEach(sheetName => {
+          tempSheets[sheetName.trim()] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
+        });
+        const sheetKeys = Object.keys(tempSheets);
+        let targetSheetName = sheetKeys.find(k => k === 'BC PESO' || k === 'Table 1' || k.toLowerCase().includes('bctsr')) || sheetKeys[0];
+        let rows = tempSheets[targetSheetName] || [];
+        let parsedData = extractDataFromRows(rows);
+        resolve(parsedData);
+      } catch (err) {
+        console.error("Excel Parsing Error:", err);
+        resolve(null);
+      }
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsArrayBuffer(file);
   });
 }
 
-function isMasterBCTSRFile(rows) {
-  if (!rows || !Array.isArray(rows) || rows.length === 0) return false;
-  let fullStr = "";
-  for (let i = 0; i < Math.min(25, rows.length); i++) {
-    if (rows[i] && Array.isArray(rows[i])) {
-      fullStr += " " + rows[i].join(" ").toLowerCase();
-    }
-  }
-  return fullStr.includes("ending balance") || fullStr.includes("cash transactions") || fullStr.includes("bctsr") || fullStr.includes("bc transaction summary report");
-}
-
-function parsePdfItemsWithCoords(file) {
+function parsePdfFilePromise(file) {
   return new Promise(async (resolve) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let allItems = [];
+      let extractedRows = [];
+
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        textContent.items.forEach(item => {
-          if (item.str && item.str.trim()) {
-            allItems.push({ str: item.str.trim(), x: item.transform[4], y: item.transform[5], page: pageNum });
+        let items = textContent.items;
+        items.sort((a, b) => {
+          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
+          if (yDiff < 4) return a.transform[4] - b.transform[4];
+          return b.transform[5] - a.transform[5];
+        });
+
+        let lines = [];
+        let currentY = null;
+        let currentLine = [];
+        items.forEach(item => {
+          if (!item.str.trim()) return;
+          let y = item.transform[5];
+          if (currentY === null || Math.abs(y - currentY) > 4) {
+            if (currentLine.length > 0) lines.push(currentLine);
+            currentLine = [item];
+            currentY = y;
+          } else {
+            currentLine.push(item);
           }
         });
+        if (currentLine.length > 0) lines.push(currentLine);
+        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
       }
-      resolve(allItems);
+
+      let parsedData = parsePdfLines(extractedRows);
+      resolve(parsedData);
     } catch (err) {
-      console.error("PDF Master Coordinate Parsing Error:", err);
+      console.error("PDF Parsing Error:", err);
+      resolve(null);
+    }
+  });
+}
+
+function parseExcelRowsPromise(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        let firstSheet = workbook.SheetNames[0];
+        let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '' });
+        resolve(sheetData);
+      } catch (err) {
+        console.error("Excel Sub-Report Parsing Error:", err);
+        resolve([]);
+      }
+    };
+    reader.onerror = () => resolve([]);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parsePdfRowsPromise(file) {
+  return new Promise(async (resolve) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let extractedRows = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let items = textContent.items;
+        items.sort((a, b) => {
+          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
+          if (yDiff < 4) return a.transform[4] - b.transform[4];
+          return b.transform[5] - a.transform[5];
+        });
+
+        let lines = [];
+        let currentY = null;
+        let currentLine = [];
+        items.forEach(item => {
+          if (!item.str.trim()) return;
+          let y = item.transform[5];
+          if (currentY === null || Math.abs(y - currentY) > 4) {
+            if (currentLine.length > 0) lines.push(currentLine);
+            currentLine = [item];
+            currentY = y;
+          } else {
+            currentLine.push(item);
+          }
+        });
+        if (currentLine.length > 0) lines.push(currentLine);
+        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
+      }
+
+      resolve(extractedRows);
+    } catch (err) {
+      console.error("PDF Sub-Report Parsing Error:", err);
       resolve([]);
     }
   });
 }
 
-function parsePdfLinesWithCoords(allItems) {
+// SUB-REPORT UPLOAD LOGIC
+async function handleSubReportUpload(evt, itemKey) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
+  
+  let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
+  let defaultSheetTarget = rule ? rule.sheet : itemKey;
+  
+  let bData = getActiveBranchData();
+  let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let newSheetData = [];
+
+    if (fileName.endsWith('.pdf')) {
+      newSheetData = await parsePdfRowsPromise(file);
+    } else {
+      newSheetData = await parseExcelRowsPromise(file);
+    }
+
+    if (newSheetData && newSheetData.length > 0) {
+      let sheetTarget = detectSheetType(newSheetData, defaultSheetTarget);
+
+      currencies.forEach(c => {
+        if (!bData.parsedSheetsStore[c]) {
+          bData.parsedSheetsStore[c] = {};
+        }
+        if (!bData.parsedSheetsStore[c][sheetTarget]) {
+          bData.parsedSheetsStore[c][sheetTarget] = [];
+        }
+        bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(newSheetData);
+      });
+    }
+  }
+
+  saveStateToStorage();
+  renderActiveCurrencyData();
+  evt.target.value = '';
+}
+
+// SUB-REPORT REMOVAL (CLEARS ACROSS CURRENCIES)
+function removeSubReport(itemKey) {
+  let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
+  let sheetTarget = rule ? rule.sheet : itemKey;
+  if (confirm(`Are you sure you want to remove the uploaded report?`)) {
+    let bData = getActiveBranchData();
+    let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
+    currencies.forEach(c => {
+      if (bData.parsedSheetsStore[c]) {
+        delete bData.parsedSheetsStore[c][sheetTarget];
+        if (rule && rule.altSheet) {
+          delete bData.parsedSheetsStore[c][rule.altSheet];
+        }
+      }
+    });
+    saveStateToStorage();
+    renderActiveCurrencyData();
+  }
+}
+
+function handleManualAdjUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    let sheetName = workbook.SheetNames[0];
+    let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
+    
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(25, sheetData.length); i++) {
+       let row = sheetData[i];
+       if (row && row.includes('Description') && row.includes('Cash In Amount')) {
+          headerRowIdx = i;
+          break;
+       }
+    }
+    
+    if (headerRowIdx === -1) {
+       alert("Invalid format for Manual Adjustment Report. Please check your uploaded file.");
+       return;
+    }
+    
+    let headers = sheetData[headerRowIdx];
+    let descIdx = headers.indexOf('Description');
+    let cashInIdx = headers.indexOf('Cash In Amount');
+    let cashOutIdx = headers.indexOf('Cash Out Amount');
+    let qtyIdx = headers.indexOf('Quantity');
+    let currIdx = headers.indexOf('Currency');
+    let dateIdx = headers.indexOf('Date & Time');
+    let opIdx = headers.indexOf('Operator');
+    let refIdx = headers.indexOf('Reference Number');
+    let remarksIdx = headers.indexOf('Remarks');
+    
+    let groupedByCurr = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+    
+    for (let i = headerRowIdx + 1; i < sheetData.length; i++) {
+       let row = sheetData[i];
+       if (!row || row.length === 0) continue;
+       
+       let desc = String(row[descIdx] || '').trim();
+       if (!desc || desc.toLowerCase() === 'description' || desc.toLowerCase().includes('total')) continue;
+       
+       let rowCurr = (currIdx !== -1 && row[currIdx]) ? String(row[currIdx]).trim().toUpperCase() : activeCurrencyTab;
+       if (!groupedByCurr[rowCurr]) groupedByCurr[rowCurr] = {};
+
+       let cashIn = parseNum(row[cashInIdx]);
+       let cashOut = parseNum(row[cashOutIdx]);
+       let qty = parseNum(row[qtyIdx]);
+       if (qty === 0) qty = 1; 
+       
+       let detail = {
+         date: row[dateIdx] || '—',
+         operator: row[opIdx] || '—',
+         cashIn: cashIn,
+         cashOut: cashOut,
+         ref: row[refIdx] || '—',
+         remarks: row[remarksIdx] || '—'
+       };
+       
+       if (!groupedByCurr[rowCurr][desc]) {
+          groupedByCurr[rowCurr][desc] = { totalCashIn: 0, totalCashOut: 0, totalQty: 0, details: [] };
+       }
+       
+       groupedByCurr[rowCurr][desc].totalCashIn += cashIn;
+       groupedByCurr[rowCurr][desc].totalCashOut += cashOut;
+       groupedByCurr[rowCurr][desc].totalQty += qty;
+       groupedByCurr[rowCurr][desc].details.push(detail);
+    }
+    
+    let bData = getActiveBranchData();
+    Object.keys(groupedByCurr).forEach(c => {
+       if (Object.keys(groupedByCurr[c]).length > 0) {
+          bData.manualAdjDataStore[c] = groupedByCurr[c];
+       }
+    });
+
+    saveStateToStorage();
+    renderActiveCurrencyData();
+    evt.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function toggleManualAdjRemarksBox(descKey) {
+  let bData = getActiveBranchData();
+  let store = bData.openManualAdjRemarksStore[activeCurrencyTab];
+  store[descKey] = !store[descKey];
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function handleManualAdjRemarksInput(evt, descKey) {
+  let bData = getActiveBranchData();
+  let val = evt.target.value.trim();
+  bData.manualAdjRemarksStore[activeCurrencyTab][descKey] = val;
+  bData.openManualAdjRemarksStore[activeCurrencyTab][descKey] = false;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+window.toggleManualAdjDetails = function(idxStr) {
+  const trDetails = document.getElementById('det-' + idxStr);
+  const icon = document.getElementById('icon-det-' + idxStr);
+  if (trDetails.style.display === 'none' || trDetails.style.display === '') {
+     trDetails.style.display = 'table-row';
+     icon.innerText = '▼';
+  } else {
+     trDetails.style.display = 'none';
+     icon.innerText = '▶';
+  }
+};
+
+function renderManualAdjustmentPivot(groupedData) {
+  const tbody = document.getElementById('manual-adj-body');
+  tbody.innerHTML = '';
+  
+  const keys = Object.keys(groupedData).sort();
+  let currSym = getCurrencySymbol(activeCurrencyTab);
+
+  if (keys.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment data found for the ${activeCurrencyTab} tab.</td></tr>`;
+    return;
+  }
+  
+  let bData = getActiveBranchData();
+  let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
+
+  keys.forEach((desc, idx) => {
+    let data = groupedData[desc];
+    let currentRemark = bData.manualAdjRemarksStore[activeCurrencyTab][desc] || '';
+    let isBoxOpen = !!bData.openManualAdjRemarksStore[activeCurrencyTab][desc];
+
+    let remarkHtml = '';
+    if (!isArchived) {
+      if (isBoxOpen) {
+        remarkHtml = `
+          <div class="remarks-input-wrapper hide-print">
+            <input type="text" class="remarks-input" placeholder="Add Remarks..." value="${currentRemark}" autofocus onblur="handleManualAdjRemarksInput(event, '${desc.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+          </div>
+        `;
+      } else {
+        remarkHtml = `<button class="btn-add-remark hide-print" onclick="toggleManualAdjRemarksBox('${desc.replace(/'/g, "\\'")}')" title="Add Remarks">💬</button>`;
+      }
+    }
+
+    let isNoteVerified = currentRemark.trim().toLowerCase().includes('verified');
+    let noteStyle = isNoteVerified 
+      ? 'color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; font-weight:600;' 
+      : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
+
+    let remarkTagDisplay = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
+
+    let trSum = document.createElement('tr');
+    trSum.className = "hoverable";
+    trSum.style.cursor = 'pointer';
+    trSum.style.background = '#f8fafc';
+    trSum.style.borderLeft = '3px solid transparent';
+    trSum.ondblclick = () => toggleManualAdjDetails(idx);
+    trSum.title = "Double-click to view complete details for this Description";
+    
+    trSum.onmouseover = function() { this.style.borderLeft = '3px solid var(--primary)'; this.style.background = '#f1f5f9'; };
+    trSum.onmouseout = function() { this.style.borderLeft = '3px solid transparent'; this.style.background = '#f8fafc'; };
+    
+    trSum.innerHTML = `
+      <td style="font-weight:700; color:var(--text-main);">
+         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+           <span id="icon-det-${idx}" class="expand-icon" onclick="toggleManualAdjDetails('${idx}'); event.stopPropagation();">▶</span>
+           <span>${desc}</span>
+           ${remarkTagDisplay}
+         </div>
+      </td>
+      <td class="num-cell" style="text-align:center;">${data.totalQty}</td>
+      <td class="num-cell" style="color:var(--match);">${formatMoney(data.totalCashIn, currSym)}</td>
+      <td class="num-cell" style="color:var(--mismatch);">${formatMoney(data.totalCashOut, currSym)}</td>
+      <td style="text-align:center;" onclick="event.stopPropagation();">${remarkHtml}</td>
+    `;
+    tbody.appendChild(trSum);
+    
+    let trDet = document.createElement('tr');
+    trDet.id = 'det-' + idx;
+    trDet.style.display = 'none';
+    
+    let detailsHtml = `
+      <td colspan="5" style="padding: 0; background: #ffffff;">
+        <div style="padding: 12px 20px 16px 32px; border-left: 3px solid var(--primary); background: #fafafa;">
+          <div style="font-size:11px; font-weight:700; margin-bottom:6px; color:#475569;">Detailed Transactions:</div>
+          <table class="inner-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Operator</th>
+                <th>Ref Number</th>
+                <th style="text-align:right;">Cash In</th>
+                <th style="text-align:right;">Cash Out</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    data.details.forEach(det => {
+       detailsHtml += `
+         <tr>
+           <td>${det.date}</td>
+           <td>${det.operator}</td>
+           <td style="font-family:var(--font-mono);">${det.ref}</td>
+           <td class="num-cell">${formatMoney(det.cashIn, currSym)}</td>
+           <td class="num-cell">${formatMoney(det.cashOut, currSym)}</td>
+           <td style="max-width:250px; word-break:break-word;">${det.remarks}</td>
+         </tr>
+       `;
+    });
+    
+    detailsHtml += `</tbody></table></div></td>`;
+    trDet.innerHTML = detailsHtml;
+    tbody.appendChild(trDet);
+  });
+}
+
+function extractDataFromRows(rows) {
   let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
   let items = [];
   let currentCategory = "Cash";
-  let qtyX = null, col2X = null, col3X = null;
-  let stopped = false;
 
-  if (!allItems || allItems.length === 0) return { branch, dateRange, endBal, currency, items };
+  rows.forEach(row => {
+    let particular = String(row[0] || '').trim();
 
-  let byPage = {};
-  allItems.forEach(it => {
-    if (!byPage[it.page]) byPage[it.page] = [];
-    byPage[it.page].push(it);
-  });
+    if (particular.includes('Branch Name:')) branch = row[1] || '—';
+    if (particular.includes('Date Range:')) dateRange = row[1] || '—';
+    if (particular.includes('Ending Balance')) endBal = parseNum(row[3] || row[2]);
 
-  let rows = [];
-  Object.keys(byPage).sort((a, b) => a - b).forEach(pageNum => {
-    let pageItems = byPage[pageNum].slice();
-    pageItems.sort((a, b) => {
-      let dy = b.y - a.y;
-      if (Math.abs(dy) > 4) return dy;
-      return a.x - b.x;
-    });
-    let currentRow = [];
-    let currentY = null;
-    pageItems.forEach(it => {
-      if (currentY === null || Math.abs(it.y - currentY) > 4) {
-        if (currentRow.length > 0) rows.push(currentRow);
-        currentRow = [it];
-        currentY = it.y;
-      } else {
-        currentRow.push(it);
-      }
-    });
-    if (currentRow.length > 0) rows.push(currentRow);
-  });
-
-  for (let r = 0; r < rows.length; r++) {
-    if (stopped) break;
-    let row = rows[r].slice().sort((a, b) => a.x - b.x);
-    let texts = row.map(it => it.str.trim());
-    let lineStr = texts.join(' ').replace(/\s+/g, ' ').trim();
-    if (!lineStr) continue;
-
-    if (/accumulated\s+cash|resource\s+cash-on-hand|cash given to/i.test(lineStr) || /^legend/i.test(lineStr)) {
-      stopped = true;
-      break;
+    if (/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i.test(particular)) {
+       let m = particular.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
+       if (m) currency = m[1].toUpperCase();
     }
+
+    if (particular === 'Cash Transactions') { currentCategory = "Cash"; return; }
+    if (particular === 'Non-Cash Transactions') { currentCategory = "Non-Cash"; return; }
+
+    if (particular.toLowerCase() === 'particulars' || particular === '' || particular.includes('M LHUILLIER') || particular.includes('BC TRANSACTION') || particular.includes('(BCTSR)') || particular.startsWith('•') || particular === 'Legend' || particular.toLowerCase().includes('accumulated cash shortage') || particular.toLowerCase().includes('resource')) {
+      return;
+    }
+
+    let qtyVal = row[2];
+    let qtyDisplay = (qtyVal !== '' && qtyVal !== null && qtyVal !== undefined && !isNaN(qtyVal)) ? parseInt(qtyVal) : '—';
+    let valIn = parseNum(row[3]);
+    let valOut = parseNum(row[4]);
+    let amount = Math.max(valIn, valOut);
+
+    if (amount > 0 && !particular.includes('Ending Balance') && !particular.includes('Beginning Balance')) {
+      items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn: valIn, cashOut: valOut, amount });
+    }
+  });
+  return { branch, dateRange, endBal, currency, items };
+}
+
+function parsePdfLines(pdfRows) {
+  let branch = "—", dateRange = "—", endBal = 0, currency = "PHP";
+  let items = [];
+  let currentCategory = "Cash";
+
+  pdfRows.forEach(rowItems => {
+    let lineStr = rowItems.join(" ");
 
     if (lineStr.includes("Branch Name:")) branch = lineStr.substring(lineStr.indexOf("Branch Name:") + 12).trim();
-    if (lineStr.includes("Date Range:")) {
-      let dMatches = lineStr.match(/\d{4}-\d{2}-\d{2}\s*-\s*\d{4}-\d{2}-\d{2}/) || lineStr.match(/\d{2}\/\d{2}\/\d{4}\s*-\s*\d{2}\/\d{2}\/\d{4}/);
-      dateRange = dMatches ? dMatches[0] : lineStr.substring(lineStr.indexOf("Date Range:") + 11).trim();
-    }
+    if (lineStr.includes("Date Range:")) dateRange = lineStr.substring(lineStr.indexOf("Date Range:") + 11).trim();
     if (lineStr.includes("Ending Balance")) {
       let nums = lineStr.match(/[\d,]+\.\d{2}/g);
       if (nums) endBal = parseNum(nums[nums.length - 1]);
     }
+
     if (/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i.test(lineStr)) {
-      let m = lineStr.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
-      if (m) currency = m[1].toUpperCase();
+       let m = lineStr.match(/\(BCTSR\)\s*(USD|EUR|JPY|GBP|PHP)/i);
+       if (m) currency = m[1].toUpperCase();
     } else if (/\b(USD|EUR|JPY|GBP)\b/i.test(lineStr) && currency === "PHP") {
-      let m = lineStr.match(/\b(USD|EUR|JPY|GBP)\b/i);
-      if (m) currency = m[1].toUpperCase();
+       let m = lineStr.match(/\b(USD|EUR|JPY|GBP)\b/i);
+       if (m) currency = m[1].toUpperCase();
     }
 
-    if (texts.includes('Particulars') && texts.includes('Quantity')) {
-      let qtyItem = row.find(it => it.str.trim() === 'Quantity');
-      qtyX = qtyItem ? qtyItem.x : null;
-      let restX = row.filter(it => it.str.trim() !== 'Particulars' && it.str.trim() !== 'Quantity').map(it => it.x).sort((a, b) => a - b);
-      let clusters = [];
-      restX.forEach(x => {
-        if (clusters.length === 0 || x - clusters[clusters.length - 1][clusters[clusters.length - 1].length - 1] > 40) {
-          clusters.push([x]);
-        } else {
-          clusters[clusters.length - 1].push(x);
-        }
-      });
-      if (clusters.length >= 2) {
-        col2X = clusters[0][0];
-        col3X = clusters[1][0];
-      }
-      continue;
-    }
+    if (lineStr.includes('Cash Transactions')) { currentCategory = "Cash"; return; }
+    if (lineStr.includes('Non-Cash Transactions')) { currentCategory = "Non-Cash"; return; }
 
-    if (lineStr === 'Cash Transactions') { currentCategory = "Cash"; continue; }
-    if (lineStr === 'Non-Cash Transactions') { currentCategory = "Non-Cash"; continue; }
-
-    if (qtyX === null || col2X === null || col3X === null) continue;
-
-    let b1 = (qtyX + col2X) / 2;
-    let b2 = (col2X + col3X) / 2;
-
-    let textParts = [];
-    let qtyNums = [], col2Nums = [], col3Nums = [];
-
-    row.forEach(it => {
-      let tok = it.str.trim();
-      let cleanTok = tok.replace(/,/g, '');
-      if ((cleanTok.match(/\./g) || []).length > 1) {
-        let lastDotIdx = cleanTok.lastIndexOf('.');
-        cleanTok = cleanTok.substring(0, lastDotIdx).replace(/\./g, '') + cleanTok.substring(lastDotIdx);
-      }
-      if (/^-?\d+(\.\d+)?$/.test(cleanTok)) {
-        let val = parseFloat(cleanTok);
-        if (it.x < b1) qtyNums.push(val);
-        else if (it.x < b2) col2Nums.push(val);
-        else col3Nums.push(val);
-      } else if (tok && tok !== '-' && tok !== '—' && tok !== '|') {
-        textParts.push(tok);
-      }
-    });
-
-    let particular = textParts.join(' ').replace(/•/g, '').trim();
-    if (
-      particular &&
-      !particular.includes("Ending Balance") &&
-      !particular.includes("Beginning Balance") &&
-      !particular.includes("Particulars") &&
-      !particular.toLowerCase().includes("current day cash shortage") &&
-      !particular.startsWith("•")
-    ) {
-      let qtyDisplay = qtyNums.length > 0 ? Math.round(qtyNums[0]) : '—';
-      let cashIn = col2Nums.reduce((a, b) => a + b, 0);
-      let cashOut = col3Nums.reduce((a, b) => a + b, 0);
-      let amount = Math.max(cashIn, cashOut);
-      if (amount > 0) {
-        items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn, cashOut, amount });
+    let numbers = rowItems.filter(str => /^[\d,]+(\.\d+)?$/.test(str.replace(/,/g, '')));
+    if (numbers.length > 0) {
+      let firstNumIdx = rowItems.findIndex(str => /^[\d,]+(\.\d+)?$/.test(str.replace(/,/g, '')));
+      let particular = rowItems.slice(0, firstNumIdx).join(" ").trim();
+      if (particular && !particular.includes("Ending Balance") && !particular.includes("Beginning Balance") && !particular.includes("Particulars") && !particular.startsWith("•") && !particular.toLowerCase().includes("accumulated cash shortage") && !particular.toLowerCase().includes("resource")) {
+        let qtyDisplay = '—';
+        let amount = 0, cashIn = 0, cashOut = 0;
+        if (numbers.length >= 3) {
+           qtyDisplay = parseInt(numbers[0]); cashIn = parseNum(numbers[1]); cashOut = parseNum(numbers[2]);
+        } else if (numbers.length === 2) {
+           if (!numbers[0].includes('.')) {
+              qtyDisplay = parseInt(numbers[0]); cashIn = parseNum(numbers[1]); 
+           } else {
+              cashIn = parseNum(numbers[0]); cashOut = parseNum(numbers[1]);
+           }
+        } else if (numbers.length === 1) { cashIn = parseNum(numbers[0]); }
+        amount = Math.max(cashIn, cashOut);
+        if (amount > 0) items.push({ category: currentCategory, particular, qty: qtyDisplay, cashIn, cashOut, amount });
       }
     }
-  }
-
+  });
   return { branch, dateRange, endBal, currency, items };
 }
 
-function getRowsFromFileBuffer(buffer) {
-  const data = new Uint8Array(buffer);
-  let firstChars = "";
-  for (let i = 0; i < Math.min(100, data.length); i++) {
-    firstChars += String.fromCharCode(data[i]);
-  }
-  firstChars = firstChars.toLowerCase();
+function handleManualInput(evt, itemKey) {
+  const val = parseNum(evt.target.value);
+  let bData = getActiveBranchData();
+  bData.manualInputsStore[activeCurrencyTab][itemKey] = val;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
 
-  if (firstChars.includes('<html') || firstChars.includes('<!doc') || firstChars.includes('<table')) {
-    const text = new TextDecoder('utf-8').decode(data);
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'text/html');
-    const trs = doc.querySelectorAll('tr');
-    let rows = [];
-    trs.forEach(tr => {
-      let row = [];
-      const cells = tr.querySelectorAll('th, td');
-      cells.forEach(cell => {
-        row.push(cell.textContent.trim());
-      });
-      if (row.length > 0) rows.push(row);
-    });
-    return rows;
-  } else {
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetKeys = workbook.SheetNames;
-    let targetSheetName = sheetKeys.find(k => k === 'BC PESO' || k === 'Table 1' || k.toLowerCase().includes('bctsr')) || sheetKeys[0];
-    return XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1, defval: '' });
+function toggleRemarksBox(itemKey) {
+  let bData = getActiveBranchData();
+  let store = bData.openRemarksInputStore[activeCurrencyTab];
+  store[itemKey] = !store[itemKey];
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function handleRemarksInput(evt, itemKey) {
+  let bData = getActiveBranchData();
+  let val = evt.target.value.trim();
+  bData.manualRemarksStore[activeCurrencyTab][itemKey] = val;
+  bData.openRemarksInputStore[activeCurrencyTab][itemKey] = false;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function renderReconciliationTable(data) {
+  let curr = data.currency || activeCurrencyTab;
+  let currSym = getCurrencySymbol(curr);
+
+  document.getElementById('summary-bar').style.display = 'flex';
+  document.getElementById('val-branch').innerText = data.branch;
+  document.getElementById('val-date').innerText = data.dateRange;
+  document.getElementById('val-currency').innerText = `${curr} (${currSym})`;
+  document.getElementById('val-endbal').innerText = `${formatMoney(data.endBal, currSym)}`;
+
+  const tbody = document.getElementById('recon-body');
+  tbody.innerHTML = '';
+  if (data.items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No valid transaction rows found in the file.</td></tr>`;
+    return;
   }
+
+  let bData = getActiveBranchData();
+  let sheetsStore = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+  let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
+
+  let manualInputs = bData.manualInputsStore[activeCurrencyTab] || {};
+  let manualRemarks = bData.manualRemarksStore[activeCurrencyTab] || {};
+  let openRemarksInput = bData.openRemarksInputStore[activeCurrencyTab] || {};
+
+  let posJewelrySeen = 0;
+
+  data.items.forEach((item, idx) => {
+    let reportTotal = null, reportQty = null, matchedSheet = "No Sub-Sheet", isManual = false, isRemarks = false, hasSubReport = false;
+    
+    let itemKey = item.particular;
+    let rule = REPORT_RULES[item.particular];
+
+    if (item.category === "Non-Cash" && item.particular !== "Renewal Anywhere Process") {
+      rule = { isRemarks: true };
+    }
+
+    if (item.particular === 'POS Jewelry Sales' && (!rule || !rule.isRemarks)) {
+      posJewelrySeen++;
+      if (posJewelrySeen > 1) {
+        rule = { isManual: true };
+        itemKey = item.particular + '_' + posJewelrySeen;
+      }
+    }
+
+    if (rule) {
+      if (rule.isRemarks) {
+        isRemarks = true; matchedSheet = "N/A (Remarks)";
+      } else if (rule.isManual) {
+        isManual = true; matchedSheet = "Manual Input";
+        reportTotal = manualInputs[itemKey] !== undefined ? manualInputs[itemKey] : null;
+      } else {
+        matchedSheet = rule.sheet;
+        let activeSheet = sheetsStore[rule.sheet] || sheetsStore[rule.altSheet];
+        
+        if (item.particular === "Fund Transfer Given to BC/HO") {
+          let b2bSheet = sheetsStore["B2B"] || sheetsStore["B2B PHP"];
+          let b2fdSheet = sheetsStore["B2FD"];
+          let hasB2B = b2bSheet && b2bSheet.length > 0;
+          let hasB2FD = b2fdSheet && b2fdSheet.length > 0;
+          if (hasB2B || hasB2FD) {
+            hasSubReport = true;
+            reportTotal = rule.getSum(data, data.branch, data.items, curr);
+            reportQty = rule.getQty ? rule.getQty(data, data.branch, data.items, curr) : '—';
+            if (hasB2B && hasB2FD) {
+              matchedSheet = "B2B + B2FD";
+            } else if (hasB2FD) {
+              matchedSheet = "B2FD";
+            } else {
+              matchedSheet = "B2B";
+            }
+          } else {
+            matchedSheet = `<span style="color:#dc2626;">Sheet 'B2B/B2FD' Missing</span>`;
+          }
+        } else if (activeSheet && activeSheet.length > 0) {
+          hasSubReport = true;
+          reportTotal = rule.getSum(activeSheet, data.branch, data.items, curr);
+          reportQty = rule.getQty ? rule.getQty(activeSheet, data.branch, data.items, curr) : '—';
+        } else {
+          matchedSheet = `<span style="color:#dc2626;">Sheet '${matchedSheet}' Missing</span>`;
+        }
+      }
+    }
+    let diff = reportTotal !== null ? (reportTotal - item.amount) : null;
+    let statusHtml = `<span class="status-badge pending">No Sub-Sheet</span>`, varText = "—", varColor = "";
+    if (isRemarks) {
+      statusHtml = ``; varText = "—";
+    } else if (diff !== null) {
+      if (Math.abs(diff) < 0.01) {
+        statusHtml = `<span class="status-badge match" title="MATCHED">✔</span>`; varText = "0.00"; varColor = "color:var(--match);";
+      } else {
+        statusHtml = `<span class="status-badge mismatch" title="DISCREPANCY">✖</span>`; varText = diff > 0 ? `+${formatMoney(diff, currSym)}` : formatMoney(diff, currSym); varColor = "color:var(--mismatch);";
+      }
+    }
+
+    let currentRemark = manualRemarks[itemKey] || '';
+    let isBoxOpen = !!openRemarksInput[itemKey];
+    let remarkHtml = '';
+
+    if (!isArchived) {
+      if (isBoxOpen) {
+        remarkHtml = `
+          <div class="remarks-input-wrapper hide-print">
+            <input type="text" class="remarks-input" placeholder="Add Remarks..." value="${currentRemark}" autofocus onblur="handleRemarksInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+          </div>
+        `;
+      } else {
+        remarkHtml = `<button class="btn-add-remark hide-print" onclick="toggleRemarksBox('${itemKey.replace(/'/g, "\\'")}')" title="Add Remarks">💬</button>`;
+      }
+    }
+
+    let actionCellHtml = '';
+    if (isRemarks) {
+      actionCellHtml = `<div class="action-cell-flex"><div>${remarkHtml}</div></div>`;
+    } else if (isManual) {
+      let currentVal = manualInputs[itemKey] !== undefined ? manualInputs[itemKey] : '';
+      actionCellHtml = `
+        <div class="action-cell-flex">
+          <div>${statusHtml}</div>
+          ${!isArchived ? `<div class="manual-input-wrapper hide-print">
+            <input type="text" class="manual-input" placeholder="Type Amount" value="${currentVal}" onblur="handleManualInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+          </div>` : `<span class="num-cell" style="font-size:12px;">${formatMoney(parseNum(currentVal), currSym)}</span>`}
+          <div>${remarkHtml}</div>
+        </div>
+      `;
+    } else {
+      let removeBtnHtml = (hasSubReport && !isArchived) ? `<button class="btn-remove-sub hide-print" onclick="removeSubReport('${itemKey.replace(/'/g, "\\'")}')" title="Remove Sub-Report Data">🗑️</button>` : '';
+      let uploadBtnHtml = !isArchived ? `
+        <div class="sub-upload-wrapper hide-print">
+          <button class="btn-upload-sub" onclick="document.getElementById('sub-file-${idx}').click()" title="Upload Report">📤</button>
+          <input type="file" id="sub-file-${idx}" accept=".xlsx, .xls, .csv, .html, .pdf" multiple style="display:none;" onchange="handleSubReportUpload(event, '${itemKey.replace(/'/g, "\\'")}')">
+        </div>` : '';
+
+      actionCellHtml = `
+        <div class="action-cell-flex">
+          <div>${statusHtml}</div>
+          ${uploadBtnHtml}
+          ${removeBtnHtml}
+          <div>${remarkHtml}</div>
+        </div>
+      `;
+    }
+
+    let isNoteVerified = currentRemark.trim().toLowerCase().includes('verified');
+    let noteStyle = isNoteVerified 
+      ? 'color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; font-weight:600;' 
+      : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
+
+    let remarkVarianceTag = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
+    const tr = document.createElement('tr');
+    tr.className = "hoverable";
+    tr.innerHTML = `
+      <td>
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span class="section-tag">${item.category}</span>
+          <span style="font-weight:600;">${item.particular}</span>
+          <span class="recon-details">| Source: ${matchedSheet}</span>
+        </div>
+      </td>
+      <td class="num-cell" style="text-align:center;">${item.qty}</td>
+      <td class="num-cell light-num">${formatMoney(item.cashIn, currSym)}</td>
+      <td class="num-cell light-num">${formatMoney(item.cashOut, currSym)}</td>
+      <td class="num-cell" style="text-align:center; background:#f8fafc;">${reportQty !== null ? reportQty : '—'}</td>
+      <td class="num-cell" style="background:#f8fafc;">${reportTotal !== null ? formatMoney(reportTotal, currSym) : '—'}</td>
+      <td class="num-cell" style="${varColor}">
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+          <span>${varText}</span>
+          ${remarkVarianceTag}
+        </div>
+      </td>
+      <td style="text-align:center;">${actionCellHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 </script>
 </body>
 </html>
-naa kay pwedi e dugang nga e paste nako sa akung reconciler? kanang pwedi e edit ang report quantity, and report amount
