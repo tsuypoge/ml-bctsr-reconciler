@@ -179,118 +179,6 @@
     text-shadow: 0 2px 4px rgba(0,0,0,0.15);
   }
 
-  /* 👑 PROFESSIONAL EXECUTIVE ADMIN CONSOLE STYLES */
-  .admin-panel-card {
-    background: #0f172a;
-    color: #f8fafc;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.4);
-    padding: 28px;
-    margin-bottom: 28px;
-    border: 1px solid #1e293b;
-    border-top: 4px solid var(--gold);
-    display: none;
-  }
-
-  .admin-panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #1e293b;
-    padding-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .admin-panel-title {
-    font-size: 20px;
-    font-weight: 800;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    letter-spacing: -0.01em;
-  }
-
-  .admin-badge-tag {
-    font-size: 11px;
-    background: linear-gradient(135deg, #d4af37 0%, #b89628 100%);
-    color: #0f172a;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .admin-stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-    margin-bottom: 22px;
-  }
-
-  .admin-stat-chip {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: var(--radius-md);
-    padding: 14px 18px;
-  }
-  .admin-stat-chip .val { font-size: 22px; font-weight: 800; color: #38bdf8; font-family: var(--font-mono); }
-  .admin-stat-chip .lbl { font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.5px; }
-
-  .admin-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 18px;
-  }
-
-  .admin-box {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: var(--radius-md);
-    padding: 20px;
-  }
-
-  .admin-box h4 {
-    font-size: 12px;
-    font-weight: 800;
-    color: #94a3b8;
-    margin-bottom: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .btn-console {
-    width: 100%;
-    background: #334155;
-    color: #ffffff;
-    border: 1px solid #475569;
-    padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 12.5px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .btn-console:hover { background: #475569; border-color: #64748b; }
-
-  .btn-console-danger {
-    background: #7f1d1d;
-    color: #fecaca;
-    border-color: #991b1b;
-  }
-  .btn-console-danger:hover { background: #991b1b; color: #ffffff; }
-
   /* NAVIGATION TABS CSS */
   .view-switcher-tabs {
     display: flex;
@@ -635,19 +523,6 @@
   }
   .btn-enroll-submit:hover { background: #b91c1c; transform: translateY(-1px); }
 
-  .log-box {
-    max-height: 125px;
-    overflow-y: auto;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    background: #020617;
-    color: #38bdf8;
-    padding: 10px 12px;
-    border-radius: 6px;
-    line-height: 1.5;
-    border: 1px solid #1e293b;
-  }
-
   .user-list-table {
     width: 100%;
     border-collapse: collapse;
@@ -743,72 +618,11 @@
     <span class="cloud-tag">🔥 Realtime Cloud Sync Active</span>
   </div>
 
-  <!-- 👑 MODERN PROFESSIONAL EXECUTIVE ADMIN CONSOLE -->
-  <div class="admin-panel-card" id="admin-control-panel">
-    <div class="admin-panel-header">
-      <div class="admin-panel-title">
-        <span>🛡️ MASTER ADMIN CONSOLE</span>
-        <span class="admin-badge-tag">Super Admin Mode</span>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-console" style="width:auto; padding:7px 14px;" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))">✏️ Edit Profile</button>
-        <button class="btn-console" style="width:auto; padding:7px 14px; background:#475569;" onclick="toggleAdminPanelUI()">Hide Console</button>
-      </div>
-    </div>
-
-    <!-- Live Executive Metrics Row -->
-    <div class="admin-stats-row">
-      <div class="admin-stat-chip">
-        <div class="val" id="admin-stat-users">4</div>
-        <div class="lbl">Enrolled Auditors</div>
-      </div>
-      <div class="admin-stat-chip">
-        <div class="val" id="admin-stat-branches">4</div>
-        <div class="lbl">Active Audits</div>
-      </div>
-      <div class="admin-stat-chip">
-        <div class="val" style="color:#4ade80;">ONLINE</div>
-        <div class="lbl">Cloud Terminal Status</div>
-      </div>
-    </div>
-
-    <div class="admin-grid">
-      <!-- Box 1: Vault Backup & Restore -->
-      <div class="admin-box">
-        <h4>💾 Master Vault Backup & Sync</h4>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <button class="btn-console" onclick="exportMasterDatabaseJSON()">📥 Export System Backup (JSON)</button>
-          <button class="btn-console" onclick="document.getElementById('restore-db-file').click()">📂 Restore Master Database</button>
-          <input type="file" id="restore-db-file" accept=".json" style="display:none;" onchange="importMasterDatabaseJSON(event)">
-        </div>
-      </div>
-
-      <!-- Box 2: Emergency Overrides -->
-      <div class="admin-box">
-        <h4>🔒 System Overrides & Lock Control</h4>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <button class="btn-console" onclick="massToggleArchiveState(true)">🔒 Mass Lock All Branches</button>
-          <button class="btn-console" onclick="massToggleArchiveState(false)">🔓 Mass Unlock All Branches</button>
-          <button class="btn-console btn-console-danger" onclick="triggerFactoryResetSystem()">🗑️ Master Factory Reset Wipe</button>
-        </div>
-      </div>
-
-      <!-- Box 3: Audit Trail Log Console -->
-      <div class="admin-box">
-        <h4>📜 Live Terminal Audit Log</h4>
-        <div class="log-box" id="admin-log-display">
-          [System Ready] Master Admin logged in.
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- TOOLBAR WITH NEW ENTRY & ASSIGN COMPANIONS BUTTON -->
   <div class="dash-toolbar">
     <div style="display:flex; gap:10px; align-items:center;">
       <button class="btn-toolbar" onclick="goToNewReconciler()"><span>➕</span> New Entry</button>
       <button class="btn-toolbar" style="color:#3b82f6;" onclick="window.triggerSelectAssignModal()"><span>👥</span> Assign Companion</button>
-      <button class="btn-toolbar" id="btn-admin-panel-toggle" style="display:none; background:#0f172a; color:#fff;" onclick="toggleAdminPanelUI()">⚡ Admin Console</button>
     </div>
 
     <div class="user-badge-bar">
@@ -1112,31 +926,10 @@
     }
   });
 
-  onValue(ref(db, 'systemAuditLogs'), (snapshot) => {
-    const val = snapshot.val();
-    if (val) {
-      systemAuditLogs = val;
-      let logBox = document.getElementById('admin-log-display');
-      if (logBox) logBox.innerHTML = systemAuditLogs.join('<br>');
-    }
-  });
-
   function syncToFirebase(node, data) {
     set(ref(db, node), data).catch(err => {
       console.warn("Firebase sync fallback to local storage:", err);
     });
-  }
-
-  function addAuditLog(msg) {
-    let time = new Date().toLocaleTimeString();
-    systemAuditLogs.unshift(`[${time}] ${msg}`);
-    if (systemAuditLogs.length > 25) systemAuditLogs.pop();
-
-    let logBox = document.getElementById('admin-log-display');
-    if (logBox) logBox.innerHTML = systemAuditLogs.join('<br>');
-
-    syncToFirebase('systemAuditLogs', systemAuditLogs);
-    localStorage.setItem('ml_audit_logs', JSON.stringify(systemAuditLogs));
   }
 
   function saveEntries() {
@@ -1223,9 +1016,6 @@
       `;
       tbody.appendChild(tr);
     });
-
-    let userStatEl = document.getElementById('admin-stat-users');
-    if(userStatEl) userStatEl.innerText = enrolledUsers.length;
   };
 
   window.filterUserTable = function(val) {
@@ -1305,7 +1095,6 @@
 
     strikeForceEntries[activeAssignEntryIndex].companions = selected;
     saveEntries();
-    addAuditLog(`Assigned ${selected.length} Companions for ${strikeForceEntries[activeAssignEntryIndex].branch}: ${selected.join(', ')}`);
     window.closeAssignModal();
     renderDashboardTable();
   };
@@ -1345,9 +1134,6 @@
         (row.companions && row.companions.some(c => c.toLowerCase().includes(q)))
       );
     }
-
-    let branchStatEl = document.getElementById('admin-stat-branches');
-    if(branchStatEl) branchStatEl.innerText = strikeForceEntries.length;
 
     if (visibleEntries.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries assigned to account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
@@ -1437,7 +1223,6 @@
     saveEnrolledUsers();
     renderEnrolledUsersTable();
     renderDashboardTable();
-    addAuditLog(`Enrolled User: ${uname} (${fname})`);
     window.closeEnrollModal();
   };
 
@@ -1495,7 +1280,6 @@
 
     saveEnrolledUsers();
     renderEnrolledUsersTable();
-    addAuditLog(`User Profile Updated for: ${uname} (${fname})`);
     alert(`Profile for ${uname} updated successfully!`);
     window.closeProfileModal();
     updateUserInfoDisplay();
@@ -1508,7 +1292,6 @@
       saveEnrolledUsers();
       renderEnrolledUsersTable();
       renderDashboardTable();
-      addAuditLog(`Removed Enrolled User: ${u.username}`);
     }
   };
 
@@ -1562,7 +1345,6 @@
     if (confirm(`Are you sure you want to delete "${bName}"?`)) {
       strikeForceEntries.splice(index, 1);
       saveEntries();
-      addAuditLog(`Deleted Branch Entry: ${bName}`);
       renderDashboardTable();
     }
   };
@@ -1572,7 +1354,6 @@
     if (confirm(`Are you sure you want to archive "${bName}"?`)) {
       strikeForceEntries[index].status = "Archived";
       saveEntries();
-      addAuditLog(`Archived Branch Entry: ${bName}`);
       renderDashboardTable();
     }
   };
@@ -1592,98 +1373,6 @@
     }, 600);
   };
 
-  window.toggleAdminPanelUI = function() {
-    let panel = document.getElementById('admin-control-panel');
-    if (panel.style.display === 'none' || panel.style.display === '') {
-      panel.style.display = 'block';
-    } else {
-      panel.style.display = 'none';
-    }
-  };
-
-  window.exportMasterDatabaseJSON = function() {
-    let fullData = {
-      exportedAt: new Date().toISOString(),
-      user: localStorage.getItem('ml_activeUser'),
-      entries: strikeForceEntries,
-      enrolledUsers: enrolledUsers,
-      branchesStore: localStorage.getItem('ml_branchesStore'),
-      auditLogs: systemAuditLogs
-    };
-
-    let blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
-    let a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `ML_Master_Database_Backup_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    addAuditLog("Exported Master Database Backup JSON.");
-  };
-
-  window.triggerPageReload = function(msg = "Reloading portal...") {
-    let loader = document.getElementById('global-loading-overlay');
-    let loadText = document.getElementById('loading-text-display');
-    
-    if (loadText) loadText.innerText = msg;
-    if (loader) loader.style.display = 'flex';
-
-    setTimeout(() => {
-      location.reload();
-    }, 600);
-  };
-
-  window.importMasterDatabaseJSON = function(evt) {
-    let file = evt.target.files[0];
-    if (!file) return;
-
-    let reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        let data = JSON.parse(e.target.result);
-        if (data.entries) {
-          strikeForceEntries = data.entries;
-          saveEntries();
-        }
-        if (data.enrolledUsers) {
-          enrolledUsers = data.enrolledUsers;
-          saveEnrolledUsers();
-        }
-        if (data.branchesStore) {
-          localStorage.setItem('ml_branchesStore', data.branchesStore);
-        }
-        alert("Master Database restored successfully!");
-        addAuditLog("Restored Master Database from JSON file.");
-        triggerPageReload("Restoring database, please wait...");
-      } catch(err) {
-        alert("Invalid Backup File Format.");
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  window.massToggleArchiveState = function(lockState) {
-    strikeForceEntries.forEach(e => {
-      e.status = lockState ? "Archived" : "In Progress";
-    });
-    saveEntries();
-    renderDashboardTable();
-    addAuditLog(lockState ? "Admin Mass Force-Locked All Entries." : "Admin Mass Unlocked All Entries.");
-  };
-
-  window.triggerFactoryResetSystem = function() {
-    let pin = prompt("TYPE ADMIN PIN (1234) TO CONFIRM MASTER FACTORY RESET:");
-    if (pin === "1234") {
-      syncToFirebase('strikeForceEntries', null);
-      syncToFirebase('enrolledUsers', null);
-      syncToFirebase('systemAuditLogs', null);
-      localStorage.clear();
-      sessionStorage.clear();
-      alert("System completely wiped. Reloading...");
-      triggerPageReload("Wiping system, please wait...");
-    } else if (pin !== null) {
-      alert("Incorrect Admin PIN.");
-    }
-  };
-
   function updateUserInfoDisplay() {
     let activeUsername = localStorage.getItem('ml_activeUser') || 'admin';
     let role = localStorage.getItem('ml_user_role') || 'admin';
@@ -1701,16 +1390,10 @@
     document.getElementById('active-user-display').innerText = `Hi, ${firstName}!`;
 
     if (role === 'admin' || activeUsername.toLowerCase().includes('admin')) {
-      document.getElementById('btn-admin-panel-toggle').style.display = 'inline-flex';
-      document.getElementById('admin-control-panel').style.display = 'block';
       document.getElementById('btn-top-profile-edit').style.display = 'inline-block';
-      
       document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'flex');
     } else {
-      document.getElementById('btn-admin-panel-toggle').style.display = 'none';
-      document.getElementById('admin-control-panel').style.display = 'none';
       document.getElementById('btn-top-profile-edit').style.display = 'none';
-      
       document.querySelectorAll('.admin-only-element').forEach(el => el.style.display = 'none');
       switchMainTab('audits');
     }
@@ -1758,7 +1441,6 @@
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('dashboard-view').style.display = 'block';
 
-      addAuditLog(`User Logged In: ${activeUserFormatted} [Role: ${role}]`);
       updateUserInfoDisplay();
       renderEnrolledUsersTable();
       renderDashboardTable();
