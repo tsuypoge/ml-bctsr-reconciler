@@ -518,6 +518,7 @@
     .status-badge, .stamp { display: none !important; }
   }
 
+  /* LOADING OVERLAY AND SPINNER ANIMATION FIX */
   .loading-overlay {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
@@ -530,20 +531,29 @@
     z-index: 10000;
   }
 
-  .spinner-dots { position: relative; width: 64px; height: 64px; }
-  .spinner-dots div {
-    position: absolute; width: 13px; height: 13px;
-    background: #cc0000; border-radius: 50%;
-    animation: spinner-fade 1.2s linear infinite;
+  .spinner-dots { 
+    position: relative; 
+    width: 64px; 
+    height: 64px; 
   }
-  .spinner-dots div:nth-child(1) { top: 6px; left: 26px; animation-delay: 0s; }
-  .spinner-dots div:nth-child(2) { top: 11px; left: 44px; animation-delay: -0.15s; }
-  .spinner-dots div:nth-child(3) { top: 26px; left: 50px; animation-delay: -0.3s; }
-  .spinner-dots div:nth-child(4) { top: 41px; left: 44px; animation-delay: -0.45s; }
-  .spinner-dots div:nth-child(5) { top: 46px; left: 26px; animation-delay: -0.6s; }
-  .spinner-dots div:nth-child(6) { top: 41px; left: 8px; animation-delay: -0.75s; }
-  .spinner-dots div:nth-child(7) { top: 26px; left: 2px; animation-delay: -0.9s; }
-  .spinner-dots div:nth-child(8) { top: 11px; left: 8px; animation-delay: -1.05s; }
+
+  .spinner-dots div {
+    position: absolute; 
+    width: 13px; 
+    height: 13px;
+    background: #cc0000; 
+    border-radius: 50%;
+    animation: spinner-fade 1.2s linear infinite !important;
+  }
+
+  .spinner-dots div:nth-child(1) { top: 6px; left: 26px; animation-delay: 0s !important; }
+  .spinner-dots div:nth-child(2) { top: 11px; left: 44px; animation-delay: -0.15s !important; }
+  .spinner-dots div:nth-child(3) { top: 26px; left: 50px; animation-delay: -0.3s !important; }
+  .spinner-dots div:nth-child(4) { top: 41px; left: 44px; animation-delay: -0.45s !important; }
+  .spinner-dots div:nth-child(5) { top: 46px; left: 26px; animation-delay: -0.6s !important; }
+  .spinner-dots div:nth-child(6) { top: 41px; left: 8px; animation-delay: -0.75s !important; }
+  .spinner-dots div:nth-child(7) { top: 26px; left: 2px; animation-delay: -0.9s !important; }
+  .spinner-dots div:nth-child(8) { top: 11px; left: 8px; animation-delay: -1.05s !important; }
 
   @keyframes spinner-fade {
     0%, 20%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
@@ -568,6 +578,7 @@
   </div>
   <div class="loading-text" id="global-loading-text">Returning to Dashboard...</div>
 </div>
+
 <!-- CENTER SCREEN OFFLINE WARNING MODAL -->
 <div id="offline-modal-overlay" class="offline-modal-overlay">
   <div class="offline-modal-card">
