@@ -416,6 +416,8 @@
   .btn-edit:hover { background: #c7d2fe; }
   .btn-delete { background: #fee2e2; color: #991b1b; }
   .btn-delete:hover { background: #fca5a5; }
+  .btn-restore { background: #dcfce7; color: #166534; }
+  .btn-restore:hover { background: #bbf7d0; }
 
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -1127,6 +1129,18 @@
     }
   };
 
+  // ♻️ RESTORE ENTRY ACTION (ADMIN ONLY): I-restore balik ang branch nga gi-hide sa regular user
+  window.restoreEntry = function(index) {
+    let row = strikeForceEntries[index];
+    let bName = row.branch;
+
+    if (confirm(`ADMIN CONFIRMATION: Restore "${bName}" so it appears back on regular user dashboards?`)) {
+      row.hiddenFor = [];
+      saveEntries();
+      renderDashboardTable();
+    }
+  };
+
   window.renderDashboardTable = function(filterQuery = '') {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
@@ -1190,6 +1204,14 @@
 
       let creatorDisplay = row.createdBy || 'admin';
 
+      let hiddenList = Array.isArray(row.hiddenFor) ? row.hiddenFor : [];
+      let isHiddenForSome = hiddenList.length > 0;
+
+      // ♻️ RESTORE BUTTON (Shown only to Admin if the branch is hidden for some user)
+      let restoreBtnHTML = (isAdmin && isHiddenForSome) 
+        ? `<button class="btn-action btn-restore" title="Restore back to Regular User Dashboard" onclick="window.restoreEntry(${originalIndex})">♻️ Restore (${hiddenList.length})</button>`
+        : '';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="clickable-assign-cell" title="Click branch name to Assign Companions" onclick="window.openAssignModal(${originalIndex})">
@@ -1218,6 +1240,7 @@
         </td>
 
         <td style="text-align:center;">
+          ${restoreBtnHTML}
           <button class="btn-action btn-archive" title="Archive" onclick="window.archiveEntry(${originalIndex})">📁 Archive</button>
           <button class="btn-action btn-delete" title="Delete" onclick="window.deleteEntry(${originalIndex})">🗑️ Delete</button>
         </td>
