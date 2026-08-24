@@ -655,15 +655,8 @@
 
     <div class="dash-table-container">
       <table class="dash-table">
-        <thead>
-          <tr>
-            <th>Branchname</th>
-            <th>Cut-off Date</th>
-            <th>Created By</th>
-            <th style="text-align:center;">Inventory</th>
-            <th style="text-align:center;">Status</th>
-            <th style="text-align:center;">Action</th>
-          </tr>
+        <thead id="dash-thead">
+          <!-- Dynamically Rendered Header -->
         </thead>
         <tbody id="dash-tbody">
           <!-- Branch Rows dynamically rendered -->
@@ -1143,8 +1136,9 @@
   };
 
   window.renderDashboardTable = function(filterQuery = '') {
+    const thead = document.getElementById('dash-thead');
     const tbody = document.getElementById('dash-tbody');
-    if (!tbody) return;
+    if (!tbody || !thead) return;
     tbody.innerHTML = '';
 
     let storedData = localStorage.getItem('ml_strikeForceEntries');
@@ -1156,8 +1150,19 @@
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
     let isAdmin = currentRole === 'admin' || currentUser.includes('admin');
 
+    // DYNAMIC TABLE HEADER: I-render ra ang "Created By" header kung Admin
+    thead.innerHTML = `
+      <tr>
+        <th>Branchname</th>
+        <th>Cut-off Date</th>
+        ${isAdmin ? '<th>Created By</th>' : ''}
+        <th style="text-align:center;">Inventory</th>
+        <th style="text-align:center;">Status</th>
+        <th style="text-align:center;">Action</th>
+      </tr>
+    `;
+
     let visibleEntries = strikeForceEntries.filter((row) => {
-      // Kung gitagoan sa kani nga regular user, dili ipakita sa iyang view
       let hiddenList = Array.isArray(row.hiddenFor) ? row.hiddenFor.map(u => u.toLowerCase().trim()) : [];
       if (!isAdmin && hiddenList.includes(currentUser)) {
         return false;
@@ -1185,8 +1190,10 @@
       );
     }
 
+    let colSpanCount = isAdmin ? 6 : 5;
+
     if (visibleEntries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries assigned to account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colSpanCount}" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries assigned to account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
       return;
     }
 
@@ -1208,10 +1215,13 @@
       let hiddenList = Array.isArray(row.hiddenFor) ? row.hiddenFor : [];
       let isHiddenForSome = hiddenList.length > 0;
 
-      // ♻️ RESTORE BUTTON (Shown only to Admin if the branch is hidden for some user)
+      // ♻️ RESTORE BUTTON (Shown only to Admin)
       let restoreBtnHTML = (isAdmin && isHiddenForSome) 
         ? `<button class="btn-action btn-restore" title="Restore back to Regular User Dashboard" onclick="window.restoreEntry(${originalIndex})">♻️ Restore (${hiddenList.length})</button>`
         : '';
+
+      // DYNAMIC CELL: Created By column conditionally added for Admin only
+      let createdByTdHTML = isAdmin ? `<td><span class="creator-badge">👤 ${creatorDisplay}</span></td>` : '';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -1224,9 +1234,7 @@
           ${row.cutoffDate}
         </td>
 
-        <td>
-          <span class="creator-badge">👤 ${creatorDisplay}</span>
-        </td>
+        ${createdByTdHTML}
 
         <td style="text-align:center;">
           <button class="btn-inv" title="Subasta / SR" onclick="window.launchBranchInventory('${row.branch.replace(/'/g, "\\'")}', 'subasta_sr')">🏷️ Subasta/SR</button>
