@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>M Lhuillier — Automated BCTSR Reconciler</title>
+<link rel="icon" type="image/png" href="logo.png">
 
-<!-- Fonts: Inter for crisp UI + IBM Plex Mono for high-density tabular precision -->
+<!-- Fonts: Inter for UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
     --gold: #d4af37;
     --gold-hover: #b89628;
     --gold-light: #fefce8;
-
+    
     --bg-main: #f1f5f9;
     --panel-bg: #ffffff;
     --text-main: #0f172a;
@@ -48,7 +48,7 @@
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.03);
-
+    
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
@@ -92,10 +92,19 @@
     color: var(--primary);
     font-weight: 900;
     font-size: 18px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: var(--radius-sm);
     letter-spacing: -0.5px;
     box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-badge img {
+    height: 26px;
+    width: auto;
+    object-fit: contain;
   }
 
   h1 {
@@ -369,7 +378,7 @@
   tr.hoverable { transition: background-color 0.15s ease; }
   tr.hoverable:hover { background: #f8fafc; }
   tr { page-break-inside: avoid; break-inside: avoid; }
-
+  
   .num-cell {
     font-family: var(--font-mono);
     text-align: right;
@@ -380,7 +389,7 @@
     color: #64748b;
     font-weight: 400;
   }
-
+  
   .status-badge {
     font-size: 10px;
     padding: 3px 8px;
@@ -502,7 +511,9 @@
 <header id="app-header">
   <div class="header-content">
     <div class="header-title-box">
-      <div class="logo-badge">ML</div>
+      <div class="logo-badge">
+        <img src="logo.png" alt="ML Logo" onerror="this.style.display='none'; this.parentElement.innerText='ML';">
+      </div>
       <div>
         <h1>Automated BCTSR Reconciler</h1>
         <div class="header-sub">Master Reconciliation & Sub-Report Audit Engine</div>
@@ -520,7 +531,7 @@
 </header>
 
 <div class="wrap" id="export-container">
-
+  
   <!-- CONTROLS TOOLBAR & BRANCH DISPLAY -->
   <div class="upload-action-bar hide-print">
     <div class="branch-display-wrapper">
@@ -532,7 +543,7 @@
       <span>📄</span> Upload Master BCTSR File(s)
     </button>
     <input type="file" id="file-upload" accept=".pdf, .xlsx, .xls, .csv, .html" multiple style="display:none;" onchange="handleFileUpload(event)">
-
+    
     <button class="btn-action btn-archive" id="btn-toggle-archive" onclick="toggleArchiveState()">
       <span>🔒</span> Save / Archive
     </button>
@@ -596,7 +607,7 @@
         <h2 style="font-size:17px; font-weight:700; color:var(--primary-dark);">Manual Adjustment Pivot Summary (<span id="manual-adj-curr-title">PHP</span>)</h2>
         <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Upload the Manual Adjustment Report. Rows automatically aggregate into their designated currency tab.</div>
       </div>
-
+      
       <button class="btn-action hide-print" id="btn-upload-manual-adj" style="border-color:var(--primary); background:#fff; color:var(--primary);" onclick="document.getElementById('manual-adj-upload').click()">
         <span>📊</span> Upload Manual Adjustment
       </button>
@@ -623,37 +634,98 @@
 
 </div>
 
-<!-- FIREBASE REALTIME SYNC FOR AUTOMATIC DASHBOARD PERSISTENCE -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAvkLtHz_fAUiEIhFjABhtovTemFFhAFR4",
-    authDomain: "sftools-139a1.firebaseapp.com",
-    databaseURL: "https://sftools-139a1-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "sftools-139a1",
-    storageBucket: "sftools-139a1.firebasestorage.app",
-    messagingSenderId: "504177778177",
-    appId: "1:504177778177:web:5c9c522efa2130516dea00"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  window.syncDashboardToFirebase = function(entries) {
-    set(ref(db, 'strikeForceEntries'), entries).catch(err => {
-      console.warn("Firebase sync fallback:", err);
-    });
-  };
-</script>
-
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 let activeBranch = "Select Branch";
 let activeCurrencyTab = 'PHP';
 let branchesStore = {}; 
+
+// --- INDEXEDDB STORAGE WRAPPER (NO 5MB LIMIT) ---
+const DB_NAME = 'MLReconcilerDB';
+const STORE_NAME = 'appState';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      e.target.result.createObjectStore(STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveStateToStorage() {
+  try {
+    localStorage.setItem('ml_activeBranch', activeBranch);
+    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
+    
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put(branchesStore, 'ml_branchesStore');
+  } catch (e) {
+    console.warn("Could not save to IndexedDB:", e);
+  }
+}
+
+async function loadStateFromStorage() {
+  try {
+    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
+    if (savedActiveBranch) activeBranch = savedActiveBranch;
+
+    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
+    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
+
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).get('ml_branchesStore');
+
+    req.onsuccess = () => {
+      if (req.result) branchesStore = req.result;
+      updateBranchDropdownUI();
+      switchCurrencyTab(activeCurrencyTab);
+    };
+  } catch (e) {
+    console.error("Error loading saved state from IndexedDB:", e);
+  }
+}
+
+// --- LOCAL DASHBOARD AUTOMATIC SYNC ENGINE ---
+function syncToLocalDashboard(parsedData) {
+  try {
+    let targetBranch = (parsedData.branch && parsedData.branch !== '—') 
+      ? parsedData.branch.trim().toUpperCase() 
+      : activeBranch;
+
+    if (!targetBranch || targetBranch === "SELECT BRANCH" || targetBranch === "—") return;
+
+    let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || [];
+    let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
+    let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
+
+    let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
+
+    if (existingIndex !== -1) {
+      storedEntries[existingIndex].cutoffDate = dateStr;
+      if (storedEntries[existingIndex].status === "Pending") {
+        storedEntries[existingIndex].status = "In Progress";
+      }
+    } else {
+      storedEntries.unshift({
+        branch: targetBranch,
+        cutoffDate: dateStr,
+        companions: [],
+        createdBy: currentUser,
+        status: "In Progress"
+      });
+    }
+
+    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
+  } catch (err) {
+    console.error("Dashboard local sync error:", err);
+  }
+}
 
 function createEmptyBranchStore() {
   return {
@@ -686,7 +758,7 @@ function getActiveBranchData() {
 function toggleArchiveState() {
   let bData = getActiveBranchData();
   let currentState = bData.isArchivedStore[activeCurrencyTab] || false;
-
+  
   if (!currentState) {
     if (confirm(`Save & Archive reconciliation for '${activeBranch}' (${activeCurrencyTab})? This will lock data from further editing.`)) {
       bData.isArchivedStore[activeCurrencyTab] = true;
@@ -715,32 +787,21 @@ function getCurrencySymbol(curr) {
 // AUTOMATIC SHEET TYPE DETECTOR (B2B vs B2FD)
 function detectSheetType(rows, defaultTarget) {
   if (!rows || !Array.isArray(rows) || rows.length === 0) return defaultTarget;
-
+  
   let fullStr = "";
-  for (let i = 0; i < Math.min(20, rows.length); i++) {
+  for (let i = 0; i < Math.min(15, rows.length); i++) {
     if (rows[i] && Array.isArray(rows[i])) {
       fullStr += " " + rows[i].join(" ").toLowerCase();
     }
   }
 
-  if (fullStr.includes("bank") && (fullStr.includes("account") || fullStr.includes("for ho settlement") || fullStr.includes("bank account"))) {
-    return "B2FD";
-  } else if (fullStr.includes("ccbranch") || fullStr.includes("recvd. from") || fullStr.includes("vfr-") || fullStr.includes("ref no.")) {
+  if (fullStr.includes("ccbranch") || fullStr.includes("recvd. from") || fullStr.includes("given to") || fullStr.includes("ref no.")) {
     return "B2B";
+  } else if (fullStr.includes("bank") && fullStr.includes("account")) {
+    return "B2FD";
   }
-
+  
   return defaultTarget;
-}
-
-function isMasterBCTSRFile(rows) {
-  if (!rows || !Array.isArray(rows) || rows.length === 0) return false;
-  let fullStr = "";
-  for (let i = 0; i < Math.min(25, rows.length); i++) {
-    if (rows[i] && Array.isArray(rows[i])) {
-      fullStr += " " + rows[i].join(" ").toLowerCase();
-    }
-  }
-  return fullStr.includes("ending balance") || fullStr.includes("cash transactions") || fullStr.includes("bctsr") || fullStr.includes("bc transaction summary report");
 }
 
 // INTL MONEY TRANSFER SENDOUT & CHARGES CALCULATORS
@@ -863,6 +924,70 @@ function countIntlSendout(sheetData, targetCurr = "PHP") {
   return count;
 }
 
+function sumBPPrincipal(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let amtCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['amount paid', 'amount', 'principal', 'bill amount', 'trans amount'].includes(c_str)) {
+        amtCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (amtCol !== -1) break;
+  }
+
+  if (amtCol === -1) amtCol = 9;
+
+  let total = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > amtCol) {
+      let valStr = String(row[amtCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
+function sumBPCharges(sheetData) {
+  if (!sheetData || !Array.isArray(sheetData)) return 0;
+  let chargeCol = -1, headerIdx = -1;
+
+  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
+    let row = sheetData[i];
+    if (!row || !Array.isArray(row)) continue;
+    for (let c_i = 0; c_i < row.length; c_i++) {
+      let c_str = String(row[c_i] || '').trim().toLowerCase();
+      if (['charge', 'charges', 'fee', 'service fee', 'ctc'].includes(c_str)) {
+        chargeCol = c_i;
+        headerIdx = i;
+        break;
+      }
+    }
+    if (chargeCol !== -1) break;
+  }
+
+  if (chargeCol === -1) chargeCol = 10;
+
+  let total = 0;
+  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+    let row = sheetData[i];
+    if (isValidDataRow(row) && row.length > chargeCol) {
+      let valStr = String(row[chargeCol] || '').replace(/,/g, '').trim();
+      let val = parseFloat(valStr);
+      if (!isNaN(val)) total += val;
+    }
+  }
+  return total;
+}
+
 // MCASH CASH IN & SERVICE CHARGE CALCULATORS
 function sumMCashCashIn(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
@@ -952,7 +1077,6 @@ function countMCashCashIn(sheetData) {
   return count;
 }
 
-// JEWELRY SALES CALCULATORS
 function sumJewelryNetSales(sheetData, branchName) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
 
@@ -980,7 +1104,7 @@ function sumJewelryNetSales(sheetData, branchName) {
       let row = sheetData[i];
       if (!row || !Array.isArray(row) || row.length <= Math.max(branchCol, netCol)) continue;
       let rowBranch = String(row[branchCol] || '').trim();
-      if (isBranchMatch(rowBranch, branchName) || isBranchMatch(rowBranch, activeBranch)) {
+      if (isBranchMatch(rowBranch, branchName)) {
         let valStr = String(row[netCol] || '').replace(/,/g, '').trim();
         let val = parseFloat(valStr);
         if (!isNaN(val)) total += val;
@@ -996,7 +1120,7 @@ function sumJewelryNetSales(sheetData, branchName) {
     let lineStr = (sheetData[i] || []).join(" ");
     if (lineStr.toLowerCase().includes("branch")) {
       fileHasBranchHeader = true;
-      if (isBranchMatch(lineStr, branchName) || isBranchMatch(lineStr, activeBranch)) {
+      if (isBranchMatch(lineStr, branchName)) {
         fileBranchMatched = true;
         break;
       }
@@ -1067,7 +1191,7 @@ function countJewelrySales(sheetData, branchName) {
       let row = sheetData[i];
       if (!row || !Array.isArray(row) || row.length <= branchCol) continue;
       let rowBranch = String(row[branchCol] || '').trim();
-      if (isBranchMatch(rowBranch, branchName) || isBranchMatch(rowBranch, activeBranch)) {
+      if (isBranchMatch(rowBranch, branchName)) {
         count++;
       }
     }
@@ -1081,7 +1205,7 @@ function countJewelrySales(sheetData, branchName) {
     let lineStr = (sheetData[i] || []).join(" ");
     if (lineStr.toLowerCase().includes("branch")) {
       fileHasBranchHeader = true;
-      if (isBranchMatch(lineStr, branchName) || isBranchMatch(lineStr, activeBranch)) {
+      if (isBranchMatch(lineStr, branchName)) {
         fileBranchMatched = true;
         break;
       }
@@ -1111,7 +1235,6 @@ function countJewelrySales(sheetData, branchName) {
   return countRows(sheetData);
 }
 
-// POS INSURANCE SALES CALCULATORS
 function sumInsuranceSales(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let total = 0;
@@ -1172,7 +1295,6 @@ function countInsuranceSales(sheetData) {
   return count;
 }
 
-// KPPO CALCULATORS
 function sumKPPOAmount(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let amountCol = -1, headerIdx = -1;
@@ -1241,41 +1363,21 @@ function countKPPOQty(sheetData) {
   return qty;
 }
 
-// MLG PO CALCULATORS
 function sumMLGPO(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
-  let amountCol = -1, headerIdx = -1;
-
-  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
-    let row = sheetData[i];
-    if (!row || !Array.isArray(row)) continue;
-    for (let c_i = 0; c_i < row.length; c_i++) {
-      let c_str = String(row[c_i] || '').trim().toLowerCase();
-      if (['po amount', 'payout amount', 'amount', 'principal'].includes(c_str)) {
-        if (['po amount', 'payout amount'].includes(c_str)) {
-          amountCol = c_i;
-          headerIdx = i;
-          break;
-        } else if (amountCol === -1) {
-          amountCol = c_i;
-          headerIdx = i;
-        }
-      }
-    }
-    if (amountCol !== -1 && ['po amount', 'payout amount'].includes(String(sheetData[headerIdx][amountCol] || '').trim().toLowerCase())) break;
-  }
-
-  if (amountCol === -1) amountCol = 15;
-
   let totalAmt = 0;
-  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+
+  for (let i = 0; i < sheetData.length; i++) {
     let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > amountCol) {
-      let col0 = String(row[0] || '').trim().toLowerCase();
-      if (col0 === 'total' || col0.includes('total')) continue;
-      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
-      let val = parseFloat(valStr);
-      if (!isNaN(val)) totalAmt += val;
+    if (isValidDataRow(row) && row.length > 15) {
+      let rowCurr = String(row[13] || '').trim().toUpperCase();
+      if (!rowCurr || rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === 'PHP') {
+        let valStr = String(row[15] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val)) totalAmt += val;
+      }
     }
   }
   return totalAmt;
@@ -1283,44 +1385,24 @@ function sumMLGPO(sheetData) {
 
 function countMLGPO(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
-  let amountCol = -1, headerIdx = -1;
-
-  for (let i = 0; i < Math.min(15, sheetData.length); i++) {
-    let row = sheetData[i];
-    if (!row || !Array.isArray(row)) continue;
-    for (let c_i = 0; c_i < row.length; c_i++) {
-      let c_str = String(row[c_i] || '').trim().toLowerCase();
-      if (['po amount', 'payout amount', 'amount', 'principal'].includes(c_str)) {
-        if (['po amount', 'payout amount'].includes(c_str)) {
-          amountCol = c_i;
-          headerIdx = i;
-          break;
-        } else if (amountCol === -1) {
-          amountCol = c_i;
-          headerIdx = i;
-        }
-      }
-    }
-    if (amountCol !== -1 && ['po amount', 'payout amount'].includes(String(sheetData[headerIdx][amountCol] || '').trim().toLowerCase())) break;
-  }
-
-  if (amountCol === -1) amountCol = 15;
-
   let count = 0;
-  for (let i = headerIdx + 1; i < sheetData.length; i++) {
+
+  for (let i = 0; i < sheetData.length; i++) {
     let row = sheetData[i];
-    if (isValidDataRow(row) && row.length > amountCol) {
-      let col0 = String(row[0] || '').trim().toLowerCase();
-      if (col0 === 'total' || col0.includes('total')) continue;
-      let valStr = String(row[amountCol] || '').replace(/,/g, '').trim();
-      let val = parseFloat(valStr);
-      if (!isNaN(val) && val > 0) count++;
+    if (isValidDataRow(row) && row.length > 15) {
+      let rowCurr = String(row[13] || '').trim().toUpperCase();
+      if (!rowCurr || rowCurr === 'PESO') rowCurr = 'PHP';
+
+      if (rowCurr === 'PHP') {
+        let valStr = String(row[15] || '').replace(/,/g, '').trim();
+        let val = parseFloat(valStr);
+        if (!isNaN(val) && val > 0) count++;
+      }
     }
   }
   return count;
 }
 
-// B2FD CALCULATORS
 function sumB2FD(sheetData, branchName, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let total = 0;
@@ -1382,9 +1464,7 @@ function sumB2FD(sheetData, branchName, targetCurr = "PHP") {
     }
 
     if (currency === targetC) {
-      if (isBranchMatch(rowBranch, branchName) || isBranchMatch(rowBranch, activeBranch)) {
-        total += amt;
-      }
+      if (isBranchMatch(rowBranch, branchName)) total += amt;
     }
   }
   return total;
@@ -1451,15 +1531,12 @@ function countB2FD(sheetData, branchName, targetCurr = "PHP") {
     }
 
     if (currency === targetC) {
-      if (isBranchMatch(rowBranch, branchName) || isBranchMatch(rowBranch, activeBranch)) {
-        count++;
-      }
+      if (isBranchMatch(rowBranch, branchName)) count++;
     }
   }
   return count;
 }
 
-// ROBUST B2B CALCULATORS
 function sumB2B(sheetData, keyword, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let searchKey = keyword.toLowerCase().trim();
@@ -1476,11 +1553,9 @@ function sumB2B(sheetData, keyword, targetCurr = "PHP") {
     let rowCurr = "";
     row.forEach(cell => {
       let s = String(cell || '').trim().toUpperCase();
-      if (s.includes('USD')) rowCurr = 'USD';
-      else if (s.includes('EUR')) rowCurr = 'EUR';
-      else if (s.includes('JPY')) rowCurr = 'JPY';
-      else if (s.includes('GBP')) rowCurr = 'GBP';
-      else if (s.includes('PHP') || s.includes('PESO')) rowCurr = 'PHP';
+      if (['PHP','USD','EUR','JPY','GBP','PESO'].includes(s)) {
+        rowCurr = s === 'PESO' ? 'PHP' : s;
+      }
     });
     if (rowCurr && rowCurr !== targetC) continue;
 
@@ -1592,113 +1667,55 @@ function countB2B(sheetData, keyword, targetCurr = "PHP") {
   return count;
 }
 
-function getFundTransferGivenBCSum(data, branch, items, curr) {
-  let bData = getActiveBranchData();
-  let currUpper = String(curr || activeCurrencyTab).toUpperCase().trim();
-  let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[currUpper]) ? bData.parsedSheetsStore[currUpper] : {};
-
-  let b2bData = sheets["B2B"] || sheets["B2B USD"] || sheets["B2B PHP"] || [];
-  if (!b2bData || b2bData.length === 0) {
-    for (let c of ['USD', 'EUR', 'JPY', 'GBP', 'PHP']) {
-      if (bData.parsedSheetsStore[c] && bData.parsedSheetsStore[c]["B2B"] && bData.parsedSheetsStore[c]["B2B"].length > 0) {
-        b2bData = bData.parsedSheetsStore[c]["B2B"];
-        break;
-      }
-    }
-  }
-  return sumB2B(b2bData, "Total Given :", currUpper);
-}
-
-function getFundTransferGivenBCQty(data, branch, items, curr) {
-  let bData = getActiveBranchData();
-  let currUpper = String(curr || activeCurrencyTab).toUpperCase().trim();
-  let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[currUpper]) ? bData.parsedSheetsStore[currUpper] : {};
-
-  let b2bData = sheets["B2B"] || sheets["B2B USD"] || sheets["B2B PHP"] || [];
-  if (!b2bData || b2bData.length === 0) {
-    for (let c of ['USD', 'EUR', 'JPY', 'GBP', 'PHP']) {
-      if (bData.parsedSheetsStore[c] && bData.parsedSheetsStore[c]["B2B"] && bData.parsedSheetsStore[c]["B2B"].length > 0) {
-        b2bData = bData.parsedSheetsStore[c]["B2B"];
-        break;
-      }
-    }
-  }
-  return countB2B(b2bData, "Total Given :", currUpper);
-}
-
-function getFundTransferGivenHOSum(data, branch, items, curr) {
-  let bData = getActiveBranchData();
-  let currUpper = String(curr || activeCurrencyTab).toUpperCase().trim();
-  let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[currUpper]) ? bData.parsedSheetsStore[currUpper] : {};
-
-  let b2fdData = sheets["B2FD"] || sheets["B2FD USD"] || sheets["B2FD PHP"] || [];
-
-  if (!b2fdData || b2fdData.length === 0) {
-    for (let c of ['USD', 'EUR', 'JPY', 'GBP', 'PHP']) {
-      if (bData.parsedSheetsStore[c] && bData.parsedSheetsStore[c]["B2FD"] && bData.parsedSheetsStore[c]["B2FD"].length > 0) {
-        b2fdData = bData.parsedSheetsStore[c]["B2FD"];
-        break;
-      }
-    }
-  }
-
-  let targetBranch = (branch && branch !== '—' && branch !== 'Select Branch') ? branch : activeBranch;
-  return sumB2FD(b2fdData, targetBranch, currUpper);
-}
-
-function getFundTransferGivenHOQty(data, branch, items, curr) {
-  let bData = getActiveBranchData();
-  let currUpper = String(curr || activeCurrencyTab).toUpperCase().trim();
-  let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[currUpper]) ? bData.parsedSheetsStore[currUpper] : {};
-
-  let b2fdData = sheets["B2FD"] || sheets["B2FD USD"] || sheets["B2FD PHP"] || [];
-
-  if (!b2fdData || b2fdData.length === 0) {
-    for (let c of ['USD', 'EUR', 'JPY', 'GBP', 'PHP']) {
-      if (bData.parsedSheetsStore[c] && bData.parsedSheetsStore[c]["B2FD"] && bData.parsedSheetsStore[c]["B2FD"].length > 0) {
-        b2fdData = bData.parsedSheetsStore[c]["B2FD"];
-        break;
-      }
-    }
-  }
-
-  let targetBranch = (branch && branch !== '—' && branch !== 'Select Branch') ? branch : activeBranch;
-  return countB2FD(b2fdData, targetBranch, currUpper);
-}
-
 const REPORT_RULES = {
   "Fund Transfer Received From BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Received :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Received :", curr) },
-
+  "Fund Transfer Given to BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: (data, br, items, curr) => sumB2B(data, "Total Given :", curr), getQty: (data, br, items, curr) => countB2B(data, "Total Given :", curr) },
+  
   "Fund Transfer Received From BC/HO": { 
     sheet: "B2B", 
     altSheet: "B2B PHP",
     getSum: (data, branch, items, curr) => {
       let bData = getActiveBranchData();
       let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
-      let b2bData = sheets["B2B"] || sheets["B2B USD"] || sheets["B2B PHP"] || [];
-      if (!b2bData || b2bData.length === 0) {
-         for (let c of ['USD','EUR','JPY','GBP','PHP']) {
-            if (bData.parsedSheetsStore[c] && bData.parsedSheetsStore[c]["B2B"]) { b2bData = bData.parsedSheetsStore[c]["B2B"]; break; }
-         }
-      }
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
       return sumB2B(b2bData, "Total Received :", curr);
     }, 
     getQty: (data, branch, items, curr) => {
       let bData = getActiveBranchData();
       let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
-      let b2bData = sheets["B2B"] || sheets["B2B USD"] || sheets["B2B PHP"] || [];
-      if (!b2bData || b2bData.length === 0) {
-         for (let c of ['USD','EUR','JPY','GBP','PHP']) {
-            if (bData.parsedSheetsStore[c] && bData.parsedSheetsStore[c]["B2B"]) { b2bData = bData.parsedSheetsStore[c]["B2B"]; break; }
-         }
-      }
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
       return countB2B(b2bData, "Total Received :", curr);
     } 
   },
 
-  "Fund Transfer Given to BC": { sheet: "B2B", altSheet: "B2B PHP", getSum: getFundTransferGivenBCSum, getQty: getFundTransferGivenBCQty },
-  "Fund Transfer Given to BC/HO USD": { sheet: "B2B", altSheet: "B2B USD", getSum: getFundTransferGivenBCSum, getQty: getFundTransferGivenBCQty },
-  "Fund Transfer Given to Head Office": { sheet: "B2FD", altSheet: "B2FD PHP", getSum: getFundTransferGivenHOSum, getQty: getFundTransferGivenHOQty },
+  "Fund Transfer Given to BC/HO": { 
+    sheet: "B2B", 
+    altSheet: "B2FD",
+    getSum: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      let b2fdData = sheets["B2FD"] || [];
+      let b2bSum = sumB2B(b2bData, "Total Given :", curr);
+      let b2fdSum = sumB2FD(b2fdData, branch, curr);
+      return b2bSum + b2fdSum;
+    }, 
+    getQty: (data, branch, items, curr) => {
+      let bData = getActiveBranchData();
+      let sheets = (bData.parsedSheetsStore && bData.parsedSheetsStore[curr]) ? bData.parsedSheetsStore[curr] : {};
+      let b2bData = sheets["B2B"] || sheets["B2B PHP"] || [];
+      let b2fdData = sheets["B2FD"] || [];
+      let b2bQty = countB2B(b2bData, "Total Given :", curr);
+      let b2fdQty = countB2FD(b2fdData, branch, curr);
+      return b2bQty + b2fdQty;
+    } 
+  },
+
+  "Fund Transfer Given to Head Office": { 
+    sheet: "B2FD", 
+    getSum: (data, branch, items, curr) => sumB2FD(data, branch, curr), 
+    getQty: (data, branch, items, curr) => countB2FD(data, branch, curr) 
+  },
 
   "QCL Lukat Principal": { sheet: "TSR", getSum: (data) => sumCol(data, 16), getQty: (data) => Math.round(sumCol(data, 15)) },
   "QCL Prenda Principal": { sheet: "TSR", getSum: (data) => sumCol(data, 2), getQty: (data) => Math.round(sumCol(data, 1)) },
@@ -1709,11 +1726,11 @@ const REPORT_RULES = {
 
   "Kwarta Padala Sendout": { sheet: "KP SO", getSum: (data) => sumCol(data, 9), getQty: (data) => countRows(data) },
   "Kwarta Padala Sendout Charges": { sheet: "KP SO", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
-
+  
   "KP Domestic Payout": { sheet: "KPPO", getSum: (data) => sumKPPOAmount(data), getQty: (data) => countKPPOQty(data) },
 
-  "Bills Payment Principal": { sheet: "BP", getSum: (data) => sumCol(data, 9), getQty: (data) => countRows(data) },
-  "Bills Payment Charges": { sheet: "BP", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
+  "Bills Payment Principal": { sheet: "BP", getSum: (data) => sumBPPrincipal(data), getQty: (data) => countRows(data) },
+  "Bills Payment Charges": { sheet: "BP", getSum: (data) => sumBPCharges(data), getQty: (data) => countRows(data) },
 
   "Remit to Account": { sheet: "QRPH", getSum: (data) => sumCol(data, 11), getQty: (data) => countRows(data) },
   "Remit to Account Charges": { sheet: "QRPH", getSum: (data) => sumCol(data, 10), getQty: (data) => countRows(data) },
@@ -1733,12 +1750,12 @@ const REPORT_RULES = {
   },
 
   "International Money Transfer Payout": { sheet: "PAYOUT", getSum: (data, br, items, curr) => sumPayoutCSV(data, curr), getQty: (data, br, items, curr) => countPayoutCSV(data, curr) },
-
+  
   "International Money Transfer Sendout": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutPrincipal(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
   "International Money Transfer Charges": { sheet: "SENDOUT", altSheet: "INTL SO", getSum: (data, br, items, curr) => sumIntlSendoutCharges(data, curr), getQty: (data, br, items, curr) => countIntlSendout(data, curr) },
 
   "Payment Solutions": { sheet: "MLG PO", getSum: (data) => sumMLGPO(data), getQty: (data) => countMLGPO(data) },
-
+  
   "POS Jewelry Sales": { sheet: "SUBASTA", altSheet: "JEWELRY", getSum: (data, branch) => sumJewelryNetSales(data, branch), getQty: (data, branch) => countJewelrySales(data, branch) },
   "POS Insurance Sales": { sheet: "CTPL", altSheet: "MEDICARE", getSum: (data) => sumInsuranceSales(data), getQty: (data) => countInsuranceSales(data) },
 
@@ -1756,15 +1773,14 @@ const REPORT_RULES = {
   "Other Income": { isRemarks: true },
   "Transactions For Verification": { isRemarks: true },
   "Adjustment +(-)": { isRemarks: true },
-  "Overage": { isRemarks: true },
-  "Online Payments": { isRemarks: true }
+  "Overage": { isRemarks: true }
 };
 
 function isValidDataRow(row) {
   if (!row || !Array.isArray(row) || row.length === 0) return false;
   let col0 = String(row[0] || '').trim();
   if (!col0) return false;
-  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp|generated|printed|run)/i.test(col0)) return false;
+  if (/^(summary|adjustments|net|total|m\.\s*lhuillier|mlhuillier|particulars|legend|region|count|coi_number|personal|date|branch|employee|insurance|transaction_date|mlkp|generated|printed|run|accumulated|resource)/i.test(col0)) return false;
   if (/report|philippines/i.test(col0)) return false;
   return true;
 }
@@ -1940,32 +1956,26 @@ function sumTSRInterest(sheetData, bctsrItems) {
   return tsrTotal - d73_raProcess + e17_interestCashOut;
 }
 
-function cleanBranch(s) {
-  if (!s) return "";
-  let str_val = String(s).toLowerCase();
-  str_val = str_val.replace(/[,\-/_.\(\)#]/g, ' ');
-  str_val = str_val.replace(/\bml\b/g, '');
-  str_val = str_val.replace(/\b(branch|br|qc|ncr|metro|manila)\b/g, '');
-  str_val = str_val.replace(/([a-z])(\d+)/g, '$1 $2');
-  str_val = str_val.replace(/(\d+)([a-z])/g, '$1 $2');
-  let romanMap = {'i': '1', 'ii': '2', 'iii': '3', 'iv': '4', 'v': '5'};
-  let words = str_val.split(/\s+/);
-  let newWords = words.map(w => romanMap[w] || w);
-  return newWords.join(' ').trim();
-}
-
 function isBranchMatch(rowBranch, headerBranch) {
   if (!rowBranch || !headerBranch) return false;
+  
+  function cleanBranch(s) {
+    let str_val = String(s).toLowerCase();
+    str_val = str_val.replace(/[,\-/_.]/g, ' ');
+    str_val = str_val.replace(/\bml\b/g, '');
+    return str_val.replace(/\s+/g, ' ').trim();
+  }
+
   let rb = cleanBranch(rowBranch);
   let hb = cleanBranch(headerBranch);
-  if (!rb || !hb || rb === "branch" || hb === "select branch" || hb === "—") return false;
+  
+  if (!rb || !hb || rb === "branch") return false;
   if (rb === hb) return true;
 
   if (rb.includes(hb) || hb.includes(rb)) {
     let rbNums = rb.match(/\d+/g) || [];
     let hbNums = hb.match(/\d+/g) || [];
-
-    if (rbNums.length > 0 && hbNums.length > 0) {
+    if (rbNums.length > 0 || hbNums.length > 0) {
       return rbNums.join('-') === hbNums.join('-');
     }
     return true;
@@ -1983,34 +1993,6 @@ function formatMoney(val, symbol = '') {
   if (val === 0 || !val) return '—';
   let formatted = parseFloat(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return symbol ? `${symbol}${formatted}` : formatted;
-}
-
-function saveStateToStorage() {
-  try {
-    localStorage.setItem('ml_activeBranch', activeBranch);
-    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
-    localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
-  } catch (e) {
-    console.warn("Could not save to LocalStorage:", e);
-  }
-}
-
-function loadStateFromStorage() {
-  try {
-    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
-    if (savedActiveBranch) activeBranch = savedActiveBranch;
-
-    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
-    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
-
-    const savedBranches = localStorage.getItem('ml_branchesStore');
-    if (savedBranches) branchesStore = JSON.parse(savedBranches);
-
-    updateBranchDropdownUI();
-    switchCurrencyTab(activeCurrencyTab);
-  } catch (e) {
-    console.error("Error loading saved state:", e);
-  }
 }
 
 function updateBranchDropdownUI() {
@@ -2037,7 +2019,12 @@ function deleteActiveBranchData() {
 
 function resetAllData() {
   if (confirm("Are you sure you want to reset and clear all uploaded data across ALL branches and currencies?")) {
-    ['ml_activeBranch','ml_activeCurrencyTab','ml_branchesStore'].forEach(k => localStorage.removeItem(k));
+    ['ml_activeBranch','ml_activeCurrencyTab'].forEach(k => localStorage.removeItem(k));
+    
+    openDB().then(db => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).clear();
+    });
 
     branchesStore = {};
     activeBranch = "Select Branch";
@@ -2152,7 +2139,7 @@ function exportToPDF() {
   });
 
   const branchName = document.getElementById('val-branch').innerText.replace(/[^a-zA-Z0-9]/g, '_');
-
+  
   let manualAdjExportHtml = '';
   let adjData = bData.manualAdjDataStore[activeCurrencyTab];
   if (adjData && Object.keys(adjData).length > 0) {
@@ -2203,38 +2190,6 @@ function exportToPDF() {
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
 
-function getRowsFromFileBuffer(buffer) {
-  const data = new Uint8Array(buffer);
-  let firstChars = "";
-  for (let i = 0; i < Math.min(100, data.length); i++) {
-    firstChars += String.fromCharCode(data[i]);
-  }
-  firstChars = firstChars.toLowerCase();
-
-  if (firstChars.includes('<html') || firstChars.includes('<!doc') || firstChars.includes('<table')) {
-    const text = new TextDecoder('utf-8').decode(data);
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'text/html');
-    const trs = doc.querySelectorAll('tr');
-    let rows = [];
-    trs.forEach(tr => {
-      let row = [];
-      const cells = tr.querySelectorAll('th, td');
-      cells.forEach(cell => {
-        row.push(cell.textContent.trim());
-      });
-      if (row.length > 0) rows.push(row);
-    });
-    return rows;
-  } else {
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetKeys = workbook.SheetNames;
-    let targetSheetName = sheetKeys.find(k => k === 'BC PESO' || k === 'Table 1' || k.toLowerCase().includes('bctsr')) || sheetKeys[0];
-    return XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1, defval: '' });
-  }
-}
-
-// 🌟 SAVES BCTSR MASTER FILE & SYNC TO DASHBOARD STORE (TAGGED TO LOGGED-IN USER)
 function saveMasterBCTSR(parsedData) {
   let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
     ? parsedData.branch.trim().toUpperCase() 
@@ -2261,49 +2216,8 @@ function saveMasterBCTSR(parsedData) {
       bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
     }
 
-    // 🔄 AUTO-SYNC BRANCH NAME & CUT-OFF DATE TO DASHBOARD SYSTEM
-    try {
-      let defaultEntries = [
-        { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companions: ["r.duero", "auditor-516"], createdBy: "ADMIN-MASTER", status: "In Progress" },
-        { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companions: ["j.doe"], createdBy: "ADMIN-MASTER", status: "Pending" },
-        { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companions: [], createdBy: "r.duero", status: "Pending" },
-        { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companions: ["r.duero", "j.doe"], createdBy: "ADMIN-MASTER", status: "In Progress" }
-      ];
-
-      let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || defaultEntries;
-      
-      // 🎯 DYNAMIC USER FIX: Reads currently logged-in account (e.g. test1)
-      let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
-      let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
-
-      let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
-
-      if (existingIndex !== -1) {
-        storedEntries[existingIndex].cutoffDate = dateStr;
-        if (storedEntries[existingIndex].status === "Pending") {
-          storedEntries[existingIndex].status = "In Progress";
-        }
-        if (!storedEntries[existingIndex].createdBy) {
-          storedEntries[existingIndex].createdBy = currentUser;
-        }
-      } else {
-        storedEntries.unshift({
-          branch: targetBranch,
-          cutoffDate: dateStr,
-          companions: [],
-          createdBy: currentUser, // 👈 TAGS LOGGED IN USER AS CREATOR
-          status: "In Progress"
-        });
-      }
-
-      localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
-
-      if (typeof window.syncDashboardToFirebase === 'function') {
-        window.syncDashboardToFirebase(storedEntries);
-      }
-    } catch (err) {
-      console.error("Dashboard sync error:", err);
-    }
+    // AUTO SYNC DASHBOARD METADATA
+    syncToLocalDashboard(parsedData);
   }
 }
 
@@ -2324,111 +2238,15 @@ function saveSubReportRows(rows) {
   });
 }
 
-async function handleFileUpload(evt) {
-  const files = Array.from(evt.target.files);
-  if (!files || files.length === 0) return;
-
-  let lastParsedBranch = activeBranch;
-  let lastParsedCurr = activeCurrencyTab;
-
-  let subReportsUploaded = 0; 
-  let masterUploaded = false;
-
-  for (let file of files) {
-    const fileName = file.name.toLowerCase();
-    let rows = [];
-
-    if (fileName.endsWith('.pdf')) {
-      rows = await parsePdfRowsPromise(file);
-      if (isMasterBCTSRFile(rows)) {
-        let pdfItems = await parsePdfItemsWithCoords(file);
-        let parsedData = parsePdfLinesWithCoords(pdfItems);
-        if (!parsedData || !parsedData.items || parsedData.items.length === 0) {
-          parsedData = parsePdfLines(rows);
-        }
-        if (parsedData) {
-          saveMasterBCTSR(parsedData);
-          lastParsedBranch = activeBranch;
-          lastParsedCurr = parsedData.currency || activeCurrencyTab;
-          masterUploaded = true;
-        } else {
-          alert(`Hindi na-basa nang tama ang master BCTSR file na "${file.name}".`);
-        }
-      } else {
-        saveSubReportRows(rows);
-        subReportsUploaded++;
-      }
-    } else {
-      const arrayBuffer = await file.arrayBuffer();
-      rows = getRowsFromFileBuffer(arrayBuffer);
-
-      if (isMasterBCTSRFile(rows)) {
-        let parsedData = extractDataFromRows(rows);
-        if (parsedData) {
-          saveMasterBCTSR(parsedData);
-          lastParsedBranch = activeBranch;
-          lastParsedCurr = parsedData.currency || activeCurrencyTab;
-          masterUploaded = true;
-        }
-      } else {
-        saveSubReportRows(rows);
-        subReportsUploaded++;
-      }
+function isMasterBCTSRFile(rows) {
+  if (!rows || !Array.isArray(rows) || rows.length === 0) return false;
+  let fullStr = "";
+  for (let i = 0; i < Math.min(25, rows.length); i++) {
+    if (rows[i] && Array.isArray(rows[i])) {
+      fullStr += " " + rows[i].join(" ").toLowerCase();
     }
   }
-
-  activeBranch = lastParsedBranch;
-  updateBranchDropdownUI();
-  switchCurrencyTab(lastParsedCurr);
-  saveStateToStorage();
-  evt.target.value = '';
-
-  if (subReportsUploaded > 0 && !masterUploaded) {
-    alert(`Successfully saved ${subReportsUploaded} sub-report(s) in the background! \n\nPlease upload the Master BCTSR file for the table to appear.`);
-  }
-}
-
-function parsePdfRowsPromise(file) {
-  return new Promise(async (resolve) => {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let extractedRows = [];
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        let items = textContent.items;
-        items.sort((a, b) => {
-          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
-          if (yDiff < 4) return a.transform[4] - b.transform[4];
-          return b.transform[5] - a.transform[5];
-        });
-
-        let lines = [];
-        let currentY = null;
-        let currentLine = [];
-        items.forEach(item => {
-          if (!item.str.trim()) return;
-          let y = item.transform[5];
-          if (currentY === null || Math.abs(y - currentY) > 4) {
-            if (currentLine.length > 0) lines.push(currentLine);
-            currentLine = [item];
-            currentY = y;
-          } else {
-            currentLine.push(item);
-          }
-        });
-        if (currentLine.length > 0) lines.push(currentLine);
-        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
-      }
-
-      resolve(extractedRows);
-    } catch (err) {
-      console.error("PDF Sub-Report Parsing Error:", err);
-      resolve([]);
-    }
-  });
+  return fullStr.includes("ending balance") || fullStr.includes("cash transactions") || fullStr.includes("bctsr") || fullStr.includes("bc transaction summary report");
 }
 
 function parsePdfItemsWithCoords(file) {
@@ -2589,6 +2407,144 @@ function parsePdfLinesWithCoords(allItems) {
   return { branch, dateRange, endBal, currency, items };
 }
 
+function getRowsFromFileBuffer(buffer) {
+  const data = new Uint8Array(buffer);
+  let firstChars = "";
+  for (let i = 0; i < Math.min(100, data.length); i++) {
+    firstChars += String.fromCharCode(data[i]);
+  }
+  firstChars = firstChars.toLowerCase();
+
+  if (firstChars.includes('<html') || firstChars.includes('<!doc') || firstChars.includes('<table')) {
+    const text = new TextDecoder('utf-8').decode(data);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/html');
+    const trs = doc.querySelectorAll('tr');
+    let rows = [];
+    trs.forEach(tr => {
+      let row = [];
+      const cells = tr.querySelectorAll('th, td');
+      cells.forEach(cell => {
+        row.push(cell.textContent.trim());
+      });
+      if (row.length > 0) rows.push(row);
+    });
+    return rows;
+  } else {
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetKeys = workbook.SheetNames;
+    let targetSheetName = sheetKeys.find(k => k === 'BC PESO' || k === 'Table 1' || k.toLowerCase().includes('bctsr')) || sheetKeys[0];
+    return XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1, defval: '' });
+  }
+}
+
+async function handleFileUpload(evt) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
+
+  let lastParsedBranch = activeBranch;
+  let lastParsedCurr = activeCurrencyTab;
+
+  let subReportsUploaded = 0; 
+  let masterUploaded = false;
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let rows = [];
+
+    if (fileName.endsWith('.pdf')) {
+      rows = await parsePdfRowsPromise(file);
+      if (isMasterBCTSRFile(rows)) {
+        let pdfItems = await parsePdfItemsWithCoords(file);
+        let parsedData = parsePdfLinesWithCoords(pdfItems);
+        if (!parsedData || !parsedData.items || parsedData.items.length === 0) {
+          parsedData = parsePdfLines(rows);
+        }
+        if (parsedData) {
+          saveMasterBCTSR(parsedData);
+          lastParsedBranch = activeBranch;
+          lastParsedCurr = parsedData.currency || activeCurrencyTab;
+          masterUploaded = true;
+        } else {
+          alert(`Hindi na-basa nang tama ang master BCTSR file na "${file.name}".`);
+        }
+      } else {
+        saveSubReportRows(rows);
+        subReportsUploaded++;
+      }
+    } else {
+      const arrayBuffer = await file.arrayBuffer();
+      rows = getRowsFromFileBuffer(arrayBuffer);
+
+      if (isMasterBCTSRFile(rows)) {
+        let parsedData = extractDataFromRows(rows);
+        if (parsedData) {
+          saveMasterBCTSR(parsedData);
+          lastParsedBranch = activeBranch;
+          lastParsedCurr = parsedData.currency || activeCurrencyTab;
+          masterUploaded = true;
+        }
+      } else {
+        saveSubReportRows(rows);
+        subReportsUploaded++;
+      }
+    }
+  }
+
+  activeBranch = lastParsedBranch;
+  updateBranchDropdownUI();
+  switchCurrencyTab(lastParsedCurr);
+  saveStateToStorage();
+  evt.target.value = '';
+
+  if (subReportsUploaded > 0 && !masterUploaded) {
+    alert(`Successfully saved ${subReportsUploaded} sub-report(s) in the background! \n\nPlease upload the Master BCTSR file for the table to appear.`);
+  }
+}
+
+function parsePdfRowsPromise(file) {
+  return new Promise(async (resolve) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let extractedRows = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let items = textContent.items;
+        items.sort((a, b) => {
+          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
+          if (yDiff < 4) return a.transform[4] - b.transform[4];
+          return b.transform[5] - a.transform[5];
+        });
+
+        let lines = [];
+        let currentY = null;
+        let currentLine = [];
+        items.forEach(item => {
+          if (!item.str.trim()) return;
+          let y = item.transform[5];
+          if (currentY === null || Math.abs(y - currentY) > 4) {
+            if (currentLine.length > 0) lines.push(currentLine);
+            currentLine = [item];
+            currentY = y;
+          } else {
+            currentLine.push(item);
+          }
+        });
+        if (currentLine.length > 0) lines.push(currentLine);
+        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
+      }
+
+      resolve(extractedRows);
+    } catch (err) {
+      console.error("PDF Sub-Report Parsing Error:", err);
+      resolve([]);
+    }
+  });
+}
+
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
@@ -2639,14 +2595,14 @@ function removeSubReport(itemKey) {
 function handleManualAdjUpload(evt) {
   const file = evt.target.files[0];
   if (!file) return;
-
+  
   const reader = new FileReader();
   reader.onload = function(e) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
     let sheetName = workbook.SheetNames[0];
     let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
-
+    
     let headerRowIdx = -1;
     for (let i = 0; i < Math.min(25, sheetData.length); i++) {
        let row = sheetData[i];
@@ -2655,12 +2611,12 @@ function handleManualAdjUpload(evt) {
           break;
        }
     }
-
+    
     if (headerRowIdx === -1) {
        alert("Invalid format for Manual Adjustment Report. Please check your uploaded file.");
        return;
     }
-
+    
     let headers = sheetData[headerRowIdx];
     let descIdx = headers.indexOf('Description');
     let cashInIdx = headers.indexOf('Cash In Amount');
@@ -2671,16 +2627,16 @@ function handleManualAdjUpload(evt) {
     let opIdx = headers.indexOf('Operator');
     let refIdx = headers.indexOf('Reference Number');
     let remarksIdx = headers.indexOf('Remarks');
-
+    
     let groupedByCurr = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-
+    
     for (let i = headerRowIdx + 1; i < sheetData.length; i++) {
        let row = sheetData[i];
        if (!row || row.length === 0) continue;
-
+       
        let desc = String(row[descIdx] || '').trim();
        if (!desc || desc.toLowerCase() === 'description' || desc.toLowerCase().includes('total')) continue;
-
+       
        let rowCurr = (currIdx !== -1 && row[currIdx]) ? String(row[currIdx]).trim().toUpperCase() : activeCurrencyTab;
        if (!groupedByCurr[rowCurr]) groupedByCurr[rowCurr] = {};
 
@@ -2688,7 +2644,7 @@ function handleManualAdjUpload(evt) {
        let cashOut = parseNum(row[cashOutIdx]);
        let qty = parseNum(row[qtyIdx]);
        if (qty === 0) qty = 1; 
-
+       
        let detail = {
          date: row[dateIdx] || '—',
          operator: row[opIdx] || '—',
@@ -2697,17 +2653,17 @@ function handleManualAdjUpload(evt) {
          ref: row[refIdx] || '—',
          remarks: row[remarksIdx] || '—'
        };
-
+       
        if (!groupedByCurr[rowCurr][desc]) {
           groupedByCurr[rowCurr][desc] = { totalCashIn: 0, totalCashOut: 0, totalQty: 0, details: [] };
        }
-
+       
        groupedByCurr[rowCurr][desc].totalCashIn += cashIn;
        groupedByCurr[rowCurr][desc].totalCashOut += cashOut;
        groupedByCurr[rowCurr][desc].totalQty += qty;
        groupedByCurr[rowCurr][desc].details.push(detail);
     }
-
+    
     let bData = getActiveBranchData();
     Object.keys(groupedByCurr).forEach(c => {
        if (Object.keys(groupedByCurr[c]).length > 0) {
@@ -2754,7 +2710,7 @@ window.toggleManualAdjDetails = function(idxStr) {
 function renderManualAdjustmentPivot(groupedData) {
   const tbody = document.getElementById('manual-adj-body');
   tbody.innerHTML = '';
-
+  
   const keys = Object.keys(groupedData).sort();
   let currSym = getCurrencySymbol(activeCurrencyTab);
 
@@ -2762,7 +2718,7 @@ function renderManualAdjustmentPivot(groupedData) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No Manual Adjustment data found for the ${activeCurrencyTab} tab.</td></tr>`;
     return;
   }
-
+  
   let bData = getActiveBranchData();
   let isArchived = bData.isArchivedStore[activeCurrencyTab] || false;
 
@@ -2797,10 +2753,11 @@ function renderManualAdjustmentPivot(groupedData) {
     trSum.style.background = '#f8fafc';
     trSum.style.borderLeft = '3px solid transparent';
     trSum.ondblclick = () => toggleManualAdjDetails(idx);
-
+    trSum.title = "Double-click to view complete details for this Description";
+    
     trSum.onmouseover = function() { this.style.borderLeft = '3px solid var(--primary)'; this.style.background = '#f1f5f9'; };
     trSum.onmouseout = function() { this.style.borderLeft = '3px solid transparent'; this.style.background = '#f8fafc'; };
-
+    
     trSum.innerHTML = `
       <td style="font-weight:700; color:var(--text-main);">
          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -2815,11 +2772,11 @@ function renderManualAdjustmentPivot(groupedData) {
       <td style="text-align:center;" onclick="event.stopPropagation();">${remarkHtml}</td>
     `;
     tbody.appendChild(trSum);
-
+    
     let trDet = document.createElement('tr');
     trDet.id = 'det-' + idx;
     trDet.style.display = 'none';
-
+    
     let detailsHtml = `
       <td colspan="5" style="padding: 0; background: #ffffff;">
         <div style="padding: 12px 20px 16px 32px; border-left: 3px solid var(--primary); background: #fafafa;">
@@ -2837,7 +2794,7 @@ function renderManualAdjustmentPivot(groupedData) {
             </thead>
             <tbody>
     `;
-
+    
     data.details.forEach(det => {
        detailsHtml += `
          <tr>
@@ -2850,7 +2807,7 @@ function renderManualAdjustmentPivot(groupedData) {
          </tr>
        `;
     });
-
+    
     detailsHtml += `</tbody></table></div></td>`;
     trDet.innerHTML = detailsHtml;
     tbody.appendChild(trDet);
@@ -2877,7 +2834,7 @@ function extractDataFromRows(rows) {
     if (particular === 'Cash Transactions') { currentCategory = "Cash"; return; }
     if (particular === 'Non-Cash Transactions') { currentCategory = "Non-Cash"; return; }
 
-    if (particular.toLowerCase() === 'particulars' || particular === '' || particular.includes('M LHUILLIER') || particular.includes('BC TRANSACTION') || particular.includes('(BCTSR)') || particular.startsWith('•') || particular === 'Legend') {
+    if (particular.toLowerCase() === 'particulars' || particular === '' || particular.includes('M LHUILLIER') || particular.includes('BC TRANSACTION') || particular.includes('(BCTSR)') || particular.startsWith('•') || particular === 'Legend' || particular.toLowerCase().includes('accumulated cash shortage') || particular.toLowerCase().includes('resource')) {
       return;
     }
 
@@ -2924,7 +2881,7 @@ function parsePdfLines(pdfRows) {
     if (numbers.length > 0) {
       let firstNumIdx = rowItems.findIndex(str => /^[\d,]+(\.\d+)?$/.test(str.replace(/,/g, '')));
       let particular = rowItems.slice(0, firstNumIdx).join(" ").trim();
-      if (particular && !particular.includes("Ending Balance") && !particular.includes("Beginning Balance") && !particular.includes("Particulars") && !particular.startsWith("•")) {
+      if (particular && !particular.includes("Ending Balance") && !particular.includes("Beginning Balance") && !particular.includes("Particulars") && !particular.startsWith("•") && !particular.toLowerCase().includes("accumulated cash shortage") && !particular.toLowerCase().includes("resource")) {
         let qtyDisplay = '—';
         let amount = 0, cashIn = 0, cashOut = 0;
         if (numbers.length >= 3) {
@@ -2998,11 +2955,11 @@ function renderReconciliationTable(data) {
 
   data.items.forEach((item, idx) => {
     let reportTotal = null, reportQty = null, matchedSheet = "No Sub-Sheet", isManual = false, isRemarks = false, hasSubReport = false;
-
+    
     let itemKey = item.particular;
     let rule = REPORT_RULES[item.particular];
 
-    if (curr === "PHP" && item.category === "Non-Cash") {
+    if (item.category === "Non-Cash" && item.particular !== "Renewal Anywhere Process") {
       rule = { isRemarks: true };
     }
 
@@ -3023,55 +2980,25 @@ function renderReconciliationTable(data) {
       } else {
         matchedSheet = rule.sheet;
         let activeSheet = sheetsStore[rule.sheet] || sheetsStore[rule.altSheet];
-
-        if (item.particular === "Fund Transfer Given to BC/HO" || item.particular.includes("Fund Transfer Given")) {
-          let b2bSheet = sheetsStore["B2B"] || sheetsStore["B2B USD"] || sheetsStore["B2B PHP"];
-          let b2fdSheet = sheetsStore["B2FD"] || sheetsStore["B2FD USD"] || sheetsStore["B2FD PHP"];
+        
+        if (item.particular === "Fund Transfer Given to BC/HO") {
+          let b2bSheet = sheetsStore["B2B"] || sheetsStore["B2B PHP"];
+          let b2fdSheet = sheetsStore["B2FD"];
           let hasB2B = b2bSheet && b2bSheet.length > 0;
           let hasB2FD = b2fdSheet && b2fdSheet.length > 0;
-
-          if (!hasB2B || !hasB2FD) {
-            for (let c of ['PHP','USD','EUR','JPY','GBP']) {
-              if (bData.parsedSheetsStore[c]) {
-                if (!hasB2B && bData.parsedSheetsStore[c]["B2B"] && bData.parsedSheetsStore[c]["B2B"].length > 0) hasB2B = true;
-                if (!hasB2FD && bData.parsedSheetsStore[c]["B2FD"] && bData.parsedSheetsStore[c]["B2FD"].length > 0) hasB2FD = true;
-              }
-            }
-          }
-
-          if (item.particular === "Fund Transfer Given to Head Office") {
-            if (hasB2FD) {
-              hasSubReport = true;
-              reportTotal = rule.getSum(data, data.branch, data.items, curr);
-              reportQty = rule.getQty ? rule.getQty(data, data.branch, data.items, curr) : '—';
+          if (hasB2B || hasB2FD) {
+            hasSubReport = true;
+            reportTotal = rule.getSum(data, data.branch, data.items, curr);
+            reportQty = rule.getQty ? rule.getQty(data, data.branch, data.items, curr) : '—';
+            if (hasB2B && hasB2FD) {
+              matchedSheet = "B2B + B2FD";
+            } else if (hasB2FD) {
               matchedSheet = "B2FD";
             } else {
-              matchedSheet = `<span style="color:#dc2626;">Sheet 'B2FD' Missing</span>`;
-            }
-          } else if (item.particular === "Fund Transfer Given to BC") {
-            if (hasB2B) {
-              hasSubReport = true;
-              reportTotal = rule.getSum(data, data.branch, data.items, curr);
-              reportQty = rule.getQty ? rule.getQty(data, data.branch, data.items, curr) : '—';
               matchedSheet = "B2B";
-            } else {
-              matchedSheet = `<span style="color:#dc2626;">Sheet 'B2B' Missing</span>`;
             }
           } else {
-            if (hasB2B || hasB2FD) {
-              hasSubReport = true;
-              reportTotal = rule.getSum(data, data.branch, data.items, curr);
-              reportQty = rule.getQty ? rule.getQty(data, data.branch, data.items, curr) : '—';
-              if (hasB2B && hasB2FD) {
-                matchedSheet = "B2B + B2FD";
-              } else if (hasB2FD) {
-                matchedSheet = "B2FD";
-              } else {
-                matchedSheet = "B2B";
-              }
-            } else {
-              matchedSheet = `<span style="color:#dc2626;">Sheet 'B2B/B2FD' Missing</span>`;
-            }
+            matchedSheet = `<span style="color:#dc2626;">Sheet 'B2B/B2FD' Missing</span>`;
           }
         } else if (activeSheet && activeSheet.length > 0) {
           hasSubReport = true;
