@@ -1035,7 +1035,7 @@ function sumIntlSendoutCharges(sheetData, targetCurr = "PHP") {
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
     let row = sheetData[i];
     if (isValidDataRow(row) && row.length > ctcCol) {
-      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[ctcCol] || '').trim().toUpperCase() : targetC;
+      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
       if (!rowCurr) rowCurr = targetC;
       if (rowCurr === 'PESO') rowCurr = 'PHP';
 
@@ -2372,7 +2372,7 @@ function exportToPDF() {
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
 
-// --- SPATIAL COORDINATE PDF PARSER (RESTORED FOR BCTSR READING) ---
+// --- SPATIAL COORDINATE PDF PARSER FOR BCTSR READING ---
 function parsePdfItemsWithCoords(file) {
   return new Promise(async (resolve) => {
     try {
@@ -2637,13 +2637,16 @@ function parsePdfRowsPromise(file) {
   });
 }
 
-// SUB-REPORT UPLOAD LOGIC
+// 🔧 SUB-REPORT UPLOAD LOGIC (FIXED)
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
 
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let defaultSheetTarget = rule ? rule.sheet : itemKey;
+
+  let bData = getActiveBranchData();
+  let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
 
   for (let file of files) {
     const fileName = file.name.toLowerCase();
@@ -2657,13 +2660,63 @@ async function handleSubReportUpload(evt, itemKey) {
     }
 
     if (rows && rows.length > 0) {
-      saveSubReportRows(rows);
+      let sheetTarget = detectSheetType(rows, defaultSheetTarget);
+
+      currencies.forEach(c => {
+        if (!bData.parsedSheetsStore[c]) {
+          bData.parsedSheetsStore[c] = {};
+        }
+        if (!bData.parsedSheetsStore[c][sheetTarget]) {
+          bData.parsedSheetsStore[c][sheetTarget] = [];
+        }
+        bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(rows);
+
+        if (rule && rule.altSheet) {
+          bData.parsedSheetsStore[c][rule.altSheet] = bData.parsedSheetsStore[c][sheetTarget];
+        }
+      });
     }
   }
 
   saveStateToStorage();
   renderActiveCurrencyData();
   evt.target.value = '';
+}
+
+function getRowsFromFileBuffer(buffer) {
+  try {
+    const data = new Uint8Array(buffer);
+    let firstChars = "";
+    for (let i = 0; i < Math.min(100, data.length); i++) {
+      firstChars += String.fromCharCode(data[i]);
+    }
+    firstChars = firstChars.toLowerCase();
+
+    if (firstChars.includes('<html') || firstChars.includes('<!doc') || firstChars.includes('<table')) {
+      const text = new TextDecoder('utf-8').decode(data);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      const trs = doc.querySelectorAll('tr');
+      let rows = [];
+      trs.forEach(tr => {
+        let row = [];
+        const cells = tr.querySelectorAll('th, td');
+        cells.forEach(cell => {
+          row.push(cell.textContent.trim());
+        });
+        if (row.length > 0) rows.push(row);
+      });
+      return rows;
+    } else {
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetKeys = workbook.SheetNames;
+      let targetSheetName = sheetKeys[0];
+      return XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1, defval: '' });
+    }
+  } catch(e) {
+    console.error("Buffer parse error:", e);
+    return [];
+  }
 }
 
 function removeSubReport(itemKey) {
@@ -2673,7 +2726,7 @@ function removeSubReport(itemKey) {
     let bData = getActiveBranchData();
     let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
     currencies.forEach(c => {
-      if (bData.parsedSheetsStore[c]) {
+      if (bData.parsedSheetsStore && bData.parsedSheetsStore[c]) {
         delete bData.parsedSheetsStore[c][sheetTarget];
         if (rule && rule.altSheet) {
           delete bData.parsedSheetsStore[c][rule.altSheet];
