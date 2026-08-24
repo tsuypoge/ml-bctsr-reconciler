@@ -43,6 +43,56 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Custom Pure CSS Rotating Dots Spinner Overlay */
+  .loading-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(4px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
+
+  .spinner-dots {
+    position: relative;
+    width: 64px;
+    height: 64px;
+  }
+
+  .spinner-dots div {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    background: #cc0000;
+    border-radius: 50%;
+    animation: spinner-fade 1.2s linear infinite;
+  }
+
+  .spinner-dots div:nth-child(1) { top: 6px; left: 26px; animation-delay: 0s; }
+  .spinner-dots div:nth-child(2) { top: 11px; left: 44px; animation-delay: -0.15s; }
+  .spinner-dots div:nth-child(3) { top: 26px; left: 50px; animation-delay: -0.3s; }
+  .spinner-dots div:nth-child(4) { top: 41px; left: 44px; animation-delay: -0.45s; }
+  .spinner-dots div:nth-child(5) { top: 46px; left: 26px; animation-delay: -0.6s; }
+  .spinner-dots div:nth-child(6) { top: 41px; left: 8px; animation-delay: -0.75s; }
+  .spinner-dots div:nth-child(7) { top: 26px; left: 2px; animation-delay: -0.9s; }
+  .spinner-dots div:nth-child(8) { top: 11px; left: 8px; animation-delay: -1.05s; }
+
+  @keyframes spinner-fade {
+    0%, 20%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .loading-text {
+    margin-top: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #cc0000;
+    letter-spacing: 0.5px;
+  }
+
   /* Login Screen */
   #login-screen {
     position: fixed;
@@ -581,6 +631,15 @@
 </head>
 <body>
 
+<!-- GLOBAL LOADING OVERLAY WITH ROTATING DOTS SPINNER -->
+<div class="loading-overlay" id="global-loading-overlay">
+  <div class="spinner-dots">
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+  </div>
+  <div class="loading-text">Authenticating, please wait...</div>
+</div>
+
 <!-- 1. LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-card">
@@ -592,12 +651,12 @@
 
     <div class="form-group">
       <label>User ID / Employee Code</label>
-      <input type="text" id="login-user" class="form-input" placeholder="Enter User ID (e.g. r.duero)" autocomplete="off" name="login-user-field" spellcheck="false" autocapitalize="off">
+      <input type="text" id="login-user" class="form-input" placeholder="Enter User ID (e.g. r.duero)" autocomplete="off" name="login-user-field" spellcheck="false" autocapitalize="off" onkeydown="if(event.key==='Enter') doLogin();">
     </div>
 
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="login-pass" class="form-input" placeholder="Password" autocomplete="new-password" name="login-pass-field" spellcheck="false">
+      <input type="password" id="login-pass" class="form-input" placeholder="Password" autocomplete="new-password" name="login-pass-field" spellcheck="false" onkeydown="if(event.key==='Enter') doLogin();">
     </div>
 
     <button class="btn-login" onclick="doLogin()">Login to Dashboard</button>
@@ -905,7 +964,6 @@
       .join(' ');
   }
 
-  // 🌟 FIREBASE AUTO-DISCOVERY DISCOVERER FOR qclStore, subastaStore, subtestStore
   function autoDiscoverStoreBranches(storeObj) {
     if (!storeObj) return;
     let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
@@ -920,7 +978,7 @@
           branch: formattedBranch,
           cutoffDate: "Synced Cloud Audit",
           companions: [],
-          createdBy: currentUser, // Automatically tagged to creator upon discovery
+          createdBy: currentUser,
           status: "In Progress"
         });
         updated = true;
@@ -932,7 +990,7 @@
     }
   }
 
-  // 🔥 FIREBASE REALTIME LISTENERS
+  // FIREBASE LISTENERS
   onValue(ref(db, 'strikeForceEntries'), (snapshot) => {
     const val = snapshot.val();
     if (val) {
@@ -1001,7 +1059,6 @@
     syncToFirebase('enrolledUsers', enrolledUsers);
   }
 
-  /* ⚡ TAB SWITCHING FUNCTIONALITY */
   window.switchMainTab = function(tabName) {
     document.querySelectorAll('.tab-switch-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById('tab-view-audits').style.display = 'none';
@@ -1016,7 +1073,6 @@
     }
   };
 
-  /* ⚡ AUTO-GENERATE USERNAME FROM FULL NAME */
   window.autoGenerateUsername = function(fullName) {
     let clean = fullName.trim().toLowerCase().replace(/[^a-z0-9\s]/g, '');
     if (!clean) {
@@ -1035,7 +1091,6 @@
     document.getElementById('enroll-username').value = username;
   };
 
-  /* 👥 RENDER USER ENROLLMENT TABLE */
   window.renderEnrolledUsersTable = function(filterQuery = '') {
     const tbody = document.getElementById('enrolled-users-tbody');
     if (!tbody) return;
@@ -1088,7 +1143,6 @@
     renderDashboardTable(val);
   };
 
-  /* 🔥 TOP ASSIGN TOOLBAR TRIGGER MODAL */
   window.triggerSelectAssignModal = function() {
     if (strikeForceEntries.length === 0) {
       alert("No branch entries available.");
@@ -1108,7 +1162,6 @@
     }
   };
 
-  /* 👥 MULTI-COMPANION MODAL FUNCTIONS */
   window.openAssignModal = function(entryIndex) {
     activeAssignEntryIndex = entryIndex;
     let entry = strikeForceEntries[entryIndex];
@@ -1164,7 +1217,6 @@
     renderDashboardTable();
   };
 
-  /* 🔐 PERMISSION FILTER: Users only see branches they CREATED or were ASSIGNED as COMPANION */
   window.renderDashboardTable = function(filterQuery = '') {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
@@ -1179,7 +1231,6 @@
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
 
     let visibleEntries = strikeForceEntries.filter((row) => {
-      // Admin sees everything
       if (currentRole === 'admin' || currentUser.includes('admin')) return true;
 
       let creator = (row.createdBy || '').toLowerCase().trim();
@@ -1187,7 +1238,6 @@
         ? row.companions.map(c => c.toLowerCase().trim())
         : [(row.companion || '').toLowerCase().trim()];
 
-      // User MUST be the Creator OR assigned as Companion
       let isCreator = creator && creator === currentUser;
       let isCompanion = companionsList.includes(currentUser);
 
@@ -1514,8 +1564,10 @@
     }
   }
 
+  // 🔐 LOGIN WITH ROTATING SPINNER LOADER (600MS DELAY)
   window.doLogin = function() {
     let errBox = document.getElementById('login-error-box');
+    let loader = document.getElementById('global-loading-overlay');
     errBox.style.display = 'none';
 
     let userInput = document.getElementById('login-user').value.trim().toLowerCase();
@@ -1527,28 +1579,37 @@
       return;
     }
 
-    let foundUser = enrolledUsers.find(u => u.username.toLowerCase() === userInput);
-    let role = 'user';
+    // Show Custom Dots Loading Overlay
+    loader.style.display = 'flex';
 
-    if (foundUser && foundUser.username.toLowerCase().includes('admin')) {
-      role = 'admin';
-    } else if (userInput.includes('admin')) {
-      role = 'admin';
-    }
+    // Delay nga 600 milliseconds
+    setTimeout(() => {
+      let foundUser = enrolledUsers.find(u => u.username.toLowerCase() === userInput);
+      let role = 'user';
 
-    let activeUserFormatted = foundUser ? foundUser.username : userInput;
+      if (foundUser && foundUser.username.toLowerCase().includes('admin')) {
+        role = 'admin';
+      } else if (userInput.includes('admin')) {
+        role = 'admin';
+      }
 
-    sessionStorage.setItem('ml_logged_in', 'true');
-    localStorage.setItem('ml_activeUser', activeUserFormatted);
-    localStorage.setItem('ml_user_role', role);
+      let activeUserFormatted = foundUser ? foundUser.username : userInput;
 
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('dashboard-view').style.display = 'block';
+      sessionStorage.setItem('ml_logged_in', 'true');
+      localStorage.setItem('ml_activeUser', activeUserFormatted);
+      localStorage.setItem('ml_user_role', role);
 
-    addAuditLog(`User Logged In: ${activeUserFormatted} [Role: ${role}]`);
-    updateUserInfoDisplay();
-    renderEnrolledUsersTable();
-    renderDashboardTable();
+      // Hide Loader
+      loader.style.display = 'none';
+
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'block';
+
+      addAuditLog(`User Logged In: ${activeUserFormatted} [Role: ${role}]`);
+      updateUserInfoDisplay();
+      renderEnrolledUsersTable();
+      renderDashboardTable();
+    }, 600);
   };
 
   window.doLogout = function() {
