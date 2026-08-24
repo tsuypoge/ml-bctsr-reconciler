@@ -64,6 +64,56 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Custom Pure CSS Rotating Dots Spinner Overlay */
+  .loading-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(4px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
+
+  .spinner-dots {
+    position: relative;
+    width: 64px;
+    height: 64px;
+  }
+
+  .spinner-dots div {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    background: #cc0000;
+    border-radius: 50%;
+    animation: spinner-fade 1.2s linear infinite;
+  }
+
+  .spinner-dots div:nth-child(1) { top: 6px; left: 26px; animation-delay: 0s; }
+  .spinner-dots div:nth-child(2) { top: 11px; left: 44px; animation-delay: -0.15s; }
+  .spinner-dots div:nth-child(3) { top: 26px; left: 50px; animation-delay: -0.3s; }
+  .spinner-dots div:nth-child(4) { top: 41px; left: 44px; animation-delay: -0.45s; }
+  .spinner-dots div:nth-child(5) { top: 46px; left: 26px; animation-delay: -0.6s; }
+  .spinner-dots div:nth-child(6) { top: 41px; left: 8px; animation-delay: -0.75s; }
+  .spinner-dots div:nth-child(7) { top: 26px; left: 2px; animation-delay: -0.9s; }
+  .spinner-dots div:nth-child(8) { top: 11px; left: 8px; animation-delay: -1.05s; }
+
+  @keyframes spinner-fade {
+    0%, 20%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .loading-text {
+    margin-top: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #cc0000;
+    letter-spacing: 0.5px;
+  }
+
   /* Header Bar */
   header {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
@@ -134,6 +184,26 @@
     letter-spacing: 0.5px;
   }
 
+  .btn-dashboard-nav {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .btn-dashboard-nav:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+  }
+
   .pulse-dot {
     width: 7px;
     height: 7px;
@@ -190,9 +260,7 @@
     box-shadow: var(--shadow-md);
   }
 
-  .btn-action:active {
-    transform: translateY(0);
-  }
+  .btn-action:active { transform: translateY(0); }
 
   .btn-export {
     background: var(--primary);
@@ -223,9 +291,7 @@
     border: 1px solid #b45309;
   }
 
-  .btn-unlock:hover {
-    background: #b45309;
-  }
+  .btn-unlock:hover { background: #b45309; }
 
   .branch-display-wrapper {
     display: flex;
@@ -379,14 +445,8 @@
     vertical-align: middle;
   }
 
-  tr.hoverable {
-    transition: background-color 0.15s ease;
-  }
-
-  tr.hoverable:hover {
-    background: #f8fafc;
-  }
-  
+  tr.hoverable { transition: background-color 0.15s ease; }
+  tr.hoverable:hover { background: #f8fafc; }
   tr { page-break-inside: avoid; break-inside: avoid; }
   
   .num-cell {
@@ -430,7 +490,6 @@
 
   .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
 
-  /* STRICT SIDE-BY-SIDE FLEX CONTAINER FOR ACTION CELL */
   .action-cell-flex {
     display: flex;
     align-items: center;
@@ -439,7 +498,6 @@
     flex-wrap: nowrap;
   }
 
-  /* COMPACT ICON-ONLY CIRCULAR BUTTONS */
   .btn-upload-sub, .btn-remove-sub, .btn-add-remark {
     font-size: 11px;
     font-family: var(--font-sans);
@@ -520,6 +578,15 @@
 </head>
 <body>
 
+<!-- GLOBAL LOADING OVERLAY WITH ROTATING DOTS SPINNER -->
+<div class="loading-overlay" id="global-loading-overlay">
+  <div class="spinner-dots">
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+  </div>
+  <div class="loading-text" id="global-loading-text">Returning to Dashboard...</div>
+</div>
+
 <header id="app-header">
   <div class="header-content">
     <div class="header-title-box">
@@ -531,8 +598,14 @@
         <div class="header-sub">Master Reconciliation & Sub-Report Audit Engine</div>
       </div>
     </div>
-    <div class="header-tag hide-print">
-      <div class="pulse-dot"></div> Ready
+    <div style="display: flex; align-items: center; gap: 16px;" class="hide-print">
+      <!-- 🔙 BACK TO DASHBOARD BUTTON WITH SPINNER DELAY -->
+      <button class="btn-dashboard-nav" onclick="navigateBackToDashboard()">
+        <span>🔙</span> Back to Dashboard
+      </button>
+      <div class="header-tag">
+        <div class="pulse-dot"></div> Ready
+      </div>
     </div>
   </div>
 </header>
@@ -648,6 +721,162 @@ let activeBranch = "Select Branch";
 let activeCurrencyTab = 'PHP';
 let branchesStore = {}; 
 
+// --- BACK TO DASHBOARD WITH SPINNER DELAY ---
+function navigateBackToDashboard() {
+  let loader = document.getElementById('global-loading-overlay');
+  if (loader) loader.style.display = 'flex';
+
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 600); // 600ms Delay
+}
+
+// INDEXEDDB STORAGE WRAPPER
+const DB_NAME = 'MLReconcilerDB';
+const STORE_NAME = 'appState';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      e.target.result.createObjectStore(STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveStateToStorage() {
+  try {
+    localStorage.setItem('ml_activeBranch', activeBranch);
+    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
+    
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put(branchesStore, 'ml_branchesStore');
+  } catch (e) {
+    console.warn("Could not save to IndexedDB:", e);
+  }
+}
+
+async function loadStateFromStorage() {
+  try {
+    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
+    if (savedActiveBranch) activeBranch = savedActiveBranch;
+
+    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
+    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
+
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).get('ml_branchesStore');
+
+    req.onsuccess = () => {
+      if (req.result) branchesStore = req.result;
+      updateBranchDropdownUI();
+      switchCurrencyTab(activeCurrencyTab);
+    };
+  } catch (e) {
+    console.error("Error loading saved state from IndexedDB:", e);
+  }
+}
+
+function syncToLocalDashboard(parsedData) {
+  try {
+    let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
+      ? parsedData.branch.trim().toUpperCase() 
+      : activeBranch;
+
+    if (!targetBranch || targetBranch === "SELECT BRANCH" || targetBranch === "—") return;
+
+    let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || [];
+    let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
+    let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
+
+    let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
+
+    if (existingIndex !== -1) {
+      storedEntries[existingIndex].cutoffDate = dateStr;
+      if (storedEntries[existingIndex].status === "Pending") {
+        storedEntries[existingIndex].status = "In Progress";
+      }
+    } else {
+      storedEntries.unshift({
+        branch: targetBranch,
+        cutoffDate: dateStr,
+        companions: [],
+        createdBy: currentUser,
+        status: "In Progress"
+      });
+    }
+
+    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
+  } catch (err) {
+    console.error("Dashboard local sync error:", err);
+  }
+}
+
+function saveMasterBCTSR(parsedData) {
+  let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
+    ? parsedData.branch.trim().toUpperCase() 
+    : activeBranch;
+
+  if (targetBranch && targetBranch !== "SELECT BRANCH" && targetBranch !== "—") {
+    activeBranch = targetBranch;
+    updateBranchDropdownUI();
+    let targetCurrency = parsedData.currency || activeCurrencyTab;
+
+    if (!branchesStore[activeBranch]) {
+      branchesStore[activeBranch] = createEmptyBranchStore();
+    }
+    let bData = branchesStore[activeBranch];
+    bData.bctsrDataStore[targetCurrency] = parsedData;
+    bData.manualInputsStore[targetCurrency] = {};
+    bData.manualRemarksStore[targetCurrency] = {};
+    bData.openRemarksInputStore[targetCurrency] = {};
+    bData.manualAdjDataStore[targetCurrency] = null;
+    bData.manualAdjRemarksStore[targetCurrency] = {};
+    bData.openManualAdjRemarksStore[targetCurrency] = {};
+    bData.isArchivedStore[targetCurrency] = false;
+    if (!bData.parsedSheetsStore) {
+      bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+    }
+
+    syncToLocalDashboard(parsedData);
+  }
+}
+
+async function handleFileUpload(evt) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
+
+  let lastParsedBranch = activeBranch;
+  let lastParsedCurr = activeCurrencyTab;
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let parsedData = null;
+
+    if (fileName.endsWith('.pdf')) {
+      parsedData = await parsePdfFilePromise(file);
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
+      parsedData = await parseExcelFilePromise(file);
+    }
+
+    if (parsedData && parsedData.items && parsedData.items.length > 0) {
+      saveMasterBCTSR(parsedData);
+      lastParsedBranch = activeBranch;
+      lastParsedCurr = parsedData.currency || activeCurrencyTab;
+    }
+  }
+
+  activeBranch = lastParsedBranch;
+  updateBranchDropdownUI();
+  switchCurrencyTab(lastParsedCurr);
+  saveStateToStorage();
+  evt.target.value = '';
+}
+
 function createEmptyBranchStore() {
   return {
     bctsrDataStore: { PHP: null, USD: null, EUR: null, JPY: null, GBP: null },
@@ -705,7 +934,6 @@ function getCurrencySymbol(curr) {
   }
 }
 
-// AUTOMATIC SHEET TYPE DETECTOR (B2B vs B2FD)
 function detectSheetType(rows, defaultTarget) {
   if (!rows || !Array.isArray(rows) || rows.length === 0) return defaultTarget;
   
@@ -725,7 +953,6 @@ function detectSheetType(rows, defaultTarget) {
   return defaultTarget;
 }
 
-// INTL MONEY TRANSFER SENDOUT & CHARGES CALCULATORS
 function sumIntlSendoutPrincipal(sheetData, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let principalCol = -1, currCol = -1, headerIdx = -1;
@@ -796,7 +1023,7 @@ function sumIntlSendoutCharges(sheetData, targetCurr = "PHP") {
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
     let row = sheetData[i];
     if (isValidDataRow(row) && row.length > ctcCol) {
-      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[ctcCol] || '').trim().toUpperCase() : targetC;
+      let rowCurr = (currCol !== -1 && row.length > ctcCol) ? String(row[currCol] || '').trim().toUpperCase() : targetC;
       if (!rowCurr) rowCurr = targetC;
       if (rowCurr === 'PESO') rowCurr = 'PHP';
 
@@ -845,7 +1072,6 @@ function countIntlSendout(sheetData, targetCurr = "PHP") {
   return count;
 }
 
-// DYNAMIC BILLS PAYMENT CALCULATORS (LOOKS FOR "Amount Paid" & "Charge" OR FALLBACK TO INDEX 9 & 10)
 function sumBPPrincipal(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let amtCol = -1, headerIdx = -1;
@@ -864,7 +1090,7 @@ function sumBPPrincipal(sheetData) {
     if (amtCol !== -1) break;
   }
 
-  if (amtCol === -1) amtCol = 9; // Fallback: Column J (Index 9)
+  if (amtCol === -1) amtCol = 9;
 
   let total = 0;
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
@@ -896,7 +1122,7 @@ function sumBPCharges(sheetData) {
     if (chargeCol !== -1) break;
   }
 
-  if (chargeCol === -1) chargeCol = 10; // Fallback: Column K (Index 10)
+  if (chargeCol === -1) chargeCol = 10;
 
   let total = 0;
   for (let i = headerIdx + 1; i < sheetData.length; i++) {
@@ -910,7 +1136,6 @@ function sumBPCharges(sheetData) {
   return total;
 }
 
-// MCASH CASH IN & SERVICE CHARGE CALCULATORS
 function sumMCashCashIn(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let amountCol = -1, headerIdx = -1;
@@ -999,7 +1224,6 @@ function countMCashCashIn(sheetData) {
   return count;
 }
 
-// JEWELRY SALES CALCULATORS (WITH BRANCH FILTERING)
 function sumJewelryNetSales(sheetData, branchName) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
 
@@ -1158,7 +1382,6 @@ function countJewelrySales(sheetData, branchName) {
   return countRows(sheetData);
 }
 
-// POS INSURANCE SALES CALCULATORS
 function sumInsuranceSales(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let total = 0;
@@ -1219,7 +1442,6 @@ function countInsuranceSales(sheetData) {
   return count;
 }
 
-// KPPO CALCULATORS
 function sumKPPOAmount(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let amountCol = -1, headerIdx = -1;
@@ -1288,14 +1510,12 @@ function countKPPOQty(sheetData) {
   return qty;
 }
 
-// MLG PO CALCULATORS (STRICTLY READS COLUMN N = INDEX 13 FOR CURRENCY & COLUMN P = INDEX 15 FOR PO AMOUNT)
 function sumMLGPO(sheetData) {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let totalAmt = 0;
 
   for (let i = 0; i < sheetData.length; i++) {
     let row = sheetData[i];
-    
     if (isValidDataRow(row) && row.length > 15) {
       let rowCurr = String(row[13] || '').trim().toUpperCase();
       if (!rowCurr || rowCurr === 'PESO') rowCurr = 'PHP';
@@ -1303,9 +1523,7 @@ function sumMLGPO(sheetData) {
       if (rowCurr === 'PHP') {
         let valStr = String(row[15] || '').replace(/,/g, '').trim();
         let val = parseFloat(valStr);
-        if (!isNaN(val)) {
-          totalAmt += val;
-        }
+        if (!isNaN(val)) totalAmt += val;
       }
     }
   }
@@ -1318,7 +1536,6 @@ function countMLGPO(sheetData) {
 
   for (let i = 0; i < sheetData.length; i++) {
     let row = sheetData[i];
-    
     if (isValidDataRow(row) && row.length > 15) {
       let rowCurr = String(row[13] || '').trim().toUpperCase();
       if (!rowCurr || rowCurr === 'PESO') rowCurr = 'PHP';
@@ -1326,16 +1543,13 @@ function countMLGPO(sheetData) {
       if (rowCurr === 'PHP') {
         let valStr = String(row[15] || '').replace(/,/g, '').trim();
         let val = parseFloat(valStr);
-        if (!isNaN(val) && val > 0) {
-          count++;
-        }
+        if (!isNaN(val) && val > 0) count++;
       }
     }
   }
   return count;
 }
 
-// B2FD CALCULATORS
 function sumB2FD(sheetData, branchName, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let total = 0;
@@ -1397,9 +1611,7 @@ function sumB2FD(sheetData, branchName, targetCurr = "PHP") {
     }
 
     if (currency === targetC) {
-      if (isBranchMatch(rowBranch, branchName)) {
-        total += amt;
-      }
+      if (isBranchMatch(rowBranch, branchName)) total += amt;
     }
   }
   return total;
@@ -1466,15 +1678,12 @@ function countB2FD(sheetData, branchName, targetCurr = "PHP") {
     }
 
     if (currency === targetC) {
-      if (isBranchMatch(rowBranch, branchName)) {
-        count++;
-      }
+      if (isBranchMatch(rowBranch, branchName)) count++;
     }
   }
   return count;
 }
 
-// ROBUST B2B CALCULATORS
 function sumB2B(sheetData, keyword, targetCurr = "PHP") {
   if (!sheetData || !Array.isArray(sheetData)) return 0;
   let searchKey = keyword.toLowerCase().trim();
@@ -1933,44 +2142,11 @@ function formatMoney(val, symbol = '') {
   return symbol ? `${symbol}${formatted}` : formatted;
 }
 
-function saveStateToStorage() {
-  try {
-    localStorage.setItem('ml_activeBranch', activeBranch);
-    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
-    localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
-  } catch (e) {
-    console.warn("Could not save to LocalStorage:", e);
-  }
-}
-
-function loadStateFromStorage() {
-  try {
-    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
-    if (savedActiveBranch) activeBranch = savedActiveBranch;
-
-    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
-    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
-
-    const savedBranches = localStorage.getItem('ml_branchesStore');
-    if (savedBranches) branchesStore = JSON.parse(savedBranches);
-
-    updateBranchDropdownUI();
-    switchCurrencyTab(activeCurrencyTab);
-  } catch (e) {
-    console.error("Error loading saved state:", e);
-  }
-}
-
 function updateBranchDropdownUI() {
   const el = document.getElementById('active-branch-name');
   if (el) {
     el.innerText = activeBranch || "Select Branch";
   }
-}
-
-function onBranchDropdownChange(newBranch) {
-  activeBranch = newBranch;
-  switchCurrencyTab(activeCurrencyTab);
 }
 
 function deleteActiveBranchData() {
@@ -1990,8 +2166,13 @@ function deleteActiveBranchData() {
 
 function resetAllData() {
   if (confirm("Are you sure you want to reset and clear all uploaded data across ALL branches and currencies?")) {
-    ['ml_activeBranch','ml_activeCurrencyTab','ml_branchesStore'].forEach(k => localStorage.removeItem(k));
+    ['ml_activeBranch','ml_activeCurrencyTab'].forEach(k => localStorage.removeItem(k));
     
+    openDB().then(db => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).clear();
+    });
+
     branchesStore = {};
     activeBranch = "Select Branch";
 
@@ -2156,58 +2337,6 @@ function exportToPDF() {
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
 
-async function handleFileUpload(evt) {
-  const files = Array.from(evt.target.files);
-  if (!files || files.length === 0) return;
-
-  let lastParsedBranch = activeBranch;
-  let lastParsedCurr = activeCurrencyTab;
-
-  for (let file of files) {
-    const fileName = file.name.toLowerCase();
-    let parsedData = null;
-
-    if (fileName.endsWith('.pdf')) {
-      parsedData = await parsePdfFilePromise(file);
-    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
-      parsedData = await parseExcelFilePromise(file);
-    }
-
-    if (parsedData && parsedData.items && parsedData.items.length > 0) {
-      let targetBranch = (parsedData.branch && parsedData.branch !== '—') ? parsedData.branch.trim().toUpperCase() : activeBranch;
-      activeBranch = targetBranch;
-
-      let targetCurrency = parsedData.currency || activeCurrencyTab;
-
-      if (!branchesStore[activeBranch]) {
-        branchesStore[activeBranch] = createEmptyBranchStore();
-      }
-      let bData = branchesStore[activeBranch];
-      bData.bctsrDataStore[targetCurrency] = parsedData;
-      bData.manualInputsStore[targetCurrency] = {};
-      bData.manualRemarksStore[targetCurrency] = {};
-      bData.openRemarksInputStore[targetCurrency] = {};
-      bData.manualAdjDataStore[targetCurrency] = null;
-      bData.manualAdjRemarksStore[targetCurrency] = {};
-      bData.openManualAdjRemarksStore[targetCurrency] = {};
-      bData.isArchivedStore[targetCurrency] = false;
-      if (!bData.parsedSheetsStore) {
-        bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-      }
-      bData.parsedSheetsStore[targetCurrency] = {};
-
-      lastParsedBranch = targetBranch;
-      lastParsedCurr = targetCurrency;
-    }
-  }
-
-  activeBranch = lastParsedBranch;
-  updateBranchDropdownUI();
-  switchCurrencyTab(lastParsedCurr);
-  saveStateToStorage();
-  evt.target.value = '';
-}
-
 function parseExcelFilePromise(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -2237,39 +2366,12 @@ function parseExcelFilePromise(file) {
 function parsePdfFilePromise(file) {
   return new Promise(async (resolve) => {
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let extractedRows = [];
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        let items = textContent.items;
-        items.sort((a, b) => {
-          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
-          if (yDiff < 4) return a.transform[4] - b.transform[4];
-          return b.transform[5] - a.transform[5];
-        });
-
-        let lines = [];
-        let currentY = null;
-        let currentLine = [];
-        items.forEach(item => {
-          if (!item.str.trim()) return;
-          let y = item.transform[5];
-          if (currentY === null || Math.abs(y - currentY) > 4) {
-            if (currentLine.length > 0) lines.push(currentLine);
-            currentLine = [item];
-            currentY = y;
-          } else {
-            currentLine.push(item);
-          }
-        });
-        if (currentLine.length > 0) lines.push(currentLine);
-        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
+      let pdfItems = await parsePdfItemsWithCoords(file);
+      let parsedData = parsePdfLinesWithCoords(pdfItems);
+      if (!parsedData || !parsedData.items || parsedData.items.length === 0) {
+        let pdfRows = await parsePdfRowsPromise(file);
+        parsedData = parsePdfLines(pdfRows);
       }
-
-      let parsedData = parsePdfLines(extractedRows);
       resolve(parsedData);
     } catch (err) {
       console.error("PDF Parsing Error:", err);
@@ -2341,39 +2443,26 @@ function parsePdfRowsPromise(file) {
   });
 }
 
-// SUB-REPORT UPLOAD LOGIC
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
-  
+
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let defaultSheetTarget = rule ? rule.sheet : itemKey;
-  
-  let bData = getActiveBranchData();
-  let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
 
   for (let file of files) {
     const fileName = file.name.toLowerCase();
-    let newSheetData = [];
+    let rows = [];
 
     if (fileName.endsWith('.pdf')) {
-      newSheetData = await parsePdfRowsPromise(file);
+      rows = await parsePdfRowsPromise(file);
     } else {
-      newSheetData = await parseExcelRowsPromise(file);
+      const arrayBuffer = await file.arrayBuffer();
+      rows = getRowsFromFileBuffer(arrayBuffer);
     }
 
-    if (newSheetData && newSheetData.length > 0) {
-      let sheetTarget = detectSheetType(newSheetData, defaultSheetTarget);
-
-      currencies.forEach(c => {
-        if (!bData.parsedSheetsStore[c]) {
-          bData.parsedSheetsStore[c] = {};
-        }
-        if (!bData.parsedSheetsStore[c][sheetTarget]) {
-          bData.parsedSheetsStore[c][sheetTarget] = [];
-        }
-        bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(newSheetData);
-      });
+    if (rows && rows.length > 0) {
+      saveSubReportRows(rows);
     }
   }
 
@@ -2382,7 +2471,6 @@ async function handleSubReportUpload(evt, itemKey) {
   evt.target.value = '';
 }
 
-// SUB-REPORT REMOVAL (CLEARS ACROSS CURRENCIES)
 function removeSubReport(itemKey) {
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let sheetTarget = rule ? rule.sheet : itemKey;
@@ -2711,6 +2799,29 @@ function parsePdfLines(pdfRows) {
   return { branch, dateRange, endBal, currency, items };
 }
 
+// 🎛️ MANUAL EDITING ENGINE FOR REPORT QUANTITY AND REPORT AMOUNT
+function handleManualReportQtyInput(evt, itemKey) {
+  let bData = getActiveBranchData();
+  let val = evt.target.value.trim();
+  if (!bData.manualReportQtyStore) {
+    bData.manualReportQtyStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+  }
+  bData.manualReportQtyStore[activeCurrencyTab][itemKey] = val !== '' ? parseNum(val) : null;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
+function handleManualReportAmtInput(evt, itemKey) {
+  let bData = getActiveBranchData();
+  let val = evt.target.value.trim();
+  if (!bData.manualReportAmtStore) {
+    bData.manualReportAmtStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+  }
+  bData.manualReportAmtStore[activeCurrencyTab][itemKey] = val !== '' ? parseNum(val) : null;
+  saveStateToStorage();
+  renderActiveCurrencyData();
+}
+
 function handleManualInput(evt, itemKey) {
   const val = parseNum(evt.target.value);
   let bData = getActiveBranchData();
@@ -2760,6 +2871,10 @@ function renderReconciliationTable(data) {
   let manualInputs = bData.manualInputsStore[activeCurrencyTab] || {};
   let manualRemarks = bData.manualRemarksStore[activeCurrencyTab] || {};
   let openRemarksInput = bData.openRemarksInputStore[activeCurrencyTab] || {};
+
+  // Custom manual overrides for Report Qty and Report Amount
+  let manualReportQty = (bData.manualReportQtyStore && bData.manualReportQtyStore[activeCurrencyTab]) ? bData.manualReportQtyStore[activeCurrencyTab] : {};
+  let manualReportAmt = (bData.manualReportAmtStore && bData.manualReportAmtStore[activeCurrencyTab]) ? bData.manualReportAmtStore[activeCurrencyTab] : {};
 
   let posJewelrySeen = 0;
 
@@ -2819,6 +2934,15 @@ function renderReconciliationTable(data) {
         }
       }
     }
+
+    // OVERRIDE WITH MANUAL REPORT QTY & REPORT AMT IF EDITED BY AUDITOR
+    if (manualReportQty[itemKey] !== undefined && manualReportQty[itemKey] !== null) {
+      reportQty = manualReportQty[itemKey];
+    }
+    if (manualReportAmt[itemKey] !== undefined && manualReportAmt[itemKey] !== null) {
+      reportTotal = manualReportAmt[itemKey];
+    }
+
     let diff = reportTotal !== null ? (reportTotal - item.amount) : null;
     let statusHtml = `<span class="status-badge pending">No Sub-Sheet</span>`, varText = "—", varColor = "";
     if (isRemarks) {
@@ -2885,6 +3009,19 @@ function renderReconciliationTable(data) {
       : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
 
     let remarkVarianceTag = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
+    
+    // Build Editable/Read-only cells for Report Qty and Report Amount
+    let reportQtyDisplay = reportQty !== null ? reportQty : '—';
+    let reportAmtDisplay = reportTotal !== null ? formatMoney(reportTotal, currSym) : '—';
+
+    let reportQtyCellHtml = !isArchived ? `
+      <input type="text" class="manual-input" style="width:65px; text-align:center;" value="${manualReportQty[itemKey] !== undefined && manualReportQty[itemKey] !== null ? manualReportQty[itemKey] : (reportQty !== null ? reportQty : '')}" placeholder="${reportQtyDisplay}" onblur="handleManualReportQtyInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+    ` : reportQtyDisplay;
+
+    let reportAmtCellHtml = !isArchived ? `
+      <input type="text" class="manual-input" style="width:105px;" value="${manualReportAmt[itemKey] !== undefined && manualReportAmt[itemKey] !== null ? manualReportAmt[itemKey] : (reportTotal !== null ? reportTotal : '')}" placeholder="${reportAmtDisplay}" onblur="handleManualReportAmtInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
+    ` : reportAmtDisplay;
+
     const tr = document.createElement('tr');
     tr.className = "hoverable";
     tr.innerHTML = `
@@ -2898,8 +3035,8 @@ function renderReconciliationTable(data) {
       <td class="num-cell" style="text-align:center;">${item.qty}</td>
       <td class="num-cell light-num">${formatMoney(item.cashIn, currSym)}</td>
       <td class="num-cell light-num">${formatMoney(item.cashOut, currSym)}</td>
-      <td class="num-cell" style="text-align:center; background:#f8fafc;">${reportQty !== null ? reportQty : '—'}</td>
-      <td class="num-cell" style="background:#f8fafc;">${reportTotal !== null ? formatMoney(reportTotal, currSym) : '—'}</td>
+      <td class="num-cell" style="text-align:center; background:#f8fafc;">${reportQtyCellHtml}</td>
+      <td class="num-cell" style="background:#f8fafc;">${reportAmtCellHtml}</td>
       <td class="num-cell" style="${varColor}">
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
           <span>${varText}</span>
@@ -2912,5 +3049,3 @@ function renderReconciliationTable(data) {
   });
 }
 </script>
-</body>
-</html>
