@@ -853,11 +853,12 @@
 
   let strikeForceEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || defaultEntries;
 
+  // 🔑 ENROLLED USERS LIST WITH ADMIN ("admin123") & REGULAR USERS (APELIDO PASSWORD)
   let enrolledUsers = [
-    { username: "admin", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz" },
-    { username: "r.duero", name: "Rey John Duero", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "r.duero@sfcaliquidation.biz" },
-    { username: "auditor-516", name: "Auditor 516", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "auditor516@sfcaliquidation.biz" },
-    { username: "j.doe", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" }
+    { username: "admin", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz", password: "admin123" },
+    { username: "r.duero", name: "Rey John Duero", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "r.duero@sfcaliquidation.biz", password: "duero" },
+    { username: "auditor-516", name: "Auditor 516", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "auditor516@sfcaliquidation.biz", password: "516" },
+    { username: "j.doe", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz", password: "doe" }
   ];
 
   function slugToBranchName(slug) {
@@ -1253,6 +1254,7 @@
     document.getElementById('enroll-modal').style.display = 'flex';
     document.getElementById('enroll-fullname').value = '';
     document.getElementById('enroll-username').value = '';
+    document.getElementById('enroll-password').value = '';
   };
 
   window.closeEnrollModal = function() { document.getElementById('enroll-modal').style.display = 'none'; };
@@ -1263,18 +1265,24 @@
     let pos = document.getElementById('enroll-position').value.trim();
     let dept = document.getElementById('enroll-department').value.trim();
     let email = document.getElementById('enroll-email').value.trim();
+    let pass = document.getElementById('enroll-password').value.trim();
 
     if (!uname || !fname) {
       alert("Please enter Full Name.");
       return;
     }
 
+    // Default password rule: Apelido
+    let parts = fname.toLowerCase().split(/\s+/);
+    let defaultLastNamePass = parts[parts.length - 1] || "123456";
+
     enrolledUsers.push({
       username: uname,
       name: fname,
       position: pos || "Audit Specialist",
       department: dept || "StrikeForce/Fraud Audit-IAD",
-      email: email || `${uname}@sfcaliquidation.biz`
+      email: email || `${uname}@sfcaliquidation.biz`,
+      password: pass || defaultLastNamePass
     });
 
     saveEnrolledUsers();
@@ -1290,7 +1298,8 @@
       name: "Master Admin",
       position: "Lead Audit Head",
       department: "StrikeForce/Fraud Audit-IAD",
-      email: "admin@mlhuillier.biz"
+      email: "admin@mlhuillier.biz",
+      password: "admin123"
     };
 
     document.getElementById('profile-username').value = userObj.username;
@@ -1313,6 +1322,7 @@
     let pos = document.getElementById('profile-position').value.trim();
     let dept = document.getElementById('profile-department').value.trim();
     let email = document.getElementById('profile-email').value.trim();
+    let pass = document.getElementById('profile-password').value.trim();
 
     if (!fname) {
       alert("Full Name cannot be empty.");
@@ -1325,13 +1335,17 @@
       enrolledUsers[userIdx].position = pos;
       enrolledUsers[userIdx].department = dept;
       enrolledUsers[userIdx].email = email;
+      if (pass) {
+        enrolledUsers[userIdx].password = pass;
+      }
     } else {
       enrolledUsers.push({
         username: uname,
         name: fname,
         position: pos,
         department: dept,
-        email: email
+        email: email,
+        password: pass || "123456"
       });
     }
 
@@ -1447,7 +1461,7 @@
     }
   }
 
-  // 🔐 LOGIN WITH ROTATING SPINNER LOADER (600MS DELAY)
+  // 🔐 STRICT LOGIN WITH PASSWORD VERIFICATION & SPINNER LOADER (600MS DELAY)
   window.doLogin = function() {
     let errBox = document.getElementById('login-error-box');
     let loader = document.getElementById('global-loading-overlay');
@@ -1455,7 +1469,7 @@
     errBox.style.display = 'none';
 
     let userInput = document.getElementById('login-user').value.trim().toLowerCase();
-    let passInput = document.getElementById('login-pass').value;
+    let passInput = document.getElementById('login-pass').value.trim();
 
     if (!userInput || !passInput) {
       errBox.textContent = "Please enter both User ID and Password.";
@@ -1463,21 +1477,38 @@
       return;
     }
 
-    // Show Custom Dots Loading Overlay
+    // 1. Pangitaon ang user sa enrolled list
+    let foundUser = enrolledUsers.find(u => u.username.toLowerCase() === userInput);
+
+    // 2. Default fallback password generator (Apelido kung regular user)
+    let expectedPass = null;
+    if (foundUser) {
+      if (foundUser.password) {
+        expectedPass = foundUser.password;
+      } else {
+        let parts = foundUser.name ? foundUser.name.toLowerCase().split(/\s+/) : [];
+        expectedPass = parts.length > 0 ? parts[parts.length - 1] : "123456";
+      }
+    }
+
+    // 3. STRICT CHECK: Return error kung wala ang user O sayop ang password
+    if (!foundUser || passInput !== expectedPass) {
+      errBox.textContent = "Invalid User ID or Password.";
+      errBox.style.display = 'block';
+      return;
+    }
+
+    // Show Custom Dots Loading Overlay kung sakto na ang credentials
     if (loadText) loadText.innerText = "Authenticating, please wait...";
     if (loader) loader.style.display = 'flex';
 
     setTimeout(() => {
-      let foundUser = enrolledUsers.find(u => u.username.toLowerCase() === userInput);
       let role = 'user';
-
-      if (foundUser && foundUser.username.toLowerCase().includes('admin')) {
-        role = 'admin';
-      } else if (userInput.includes('admin')) {
+      if (foundUser.username.toLowerCase().includes('admin')) {
         role = 'admin';
       }
 
-      let activeUserFormatted = foundUser ? foundUser.username : userInput;
+      let activeUserFormatted = foundUser.username;
 
       sessionStorage.setItem('ml_logged_in', 'true');
       localStorage.setItem('ml_activeUser', activeUserFormatted);
