@@ -781,6 +781,7 @@ async function loadStateFromStorage() {
   }
 }
 
+// 🎯 AUTO SYNC PAINGON SA INDEX.HTML DASHBOARD
 function syncToLocalDashboard(parsedData) {
   try {
     let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
@@ -846,6 +847,7 @@ function saveMasterBCTSR(parsedData) {
   }
 }
 
+// 📂 MAIN FILE UPLOAD EVENT HANDLER
 async function handleFileUpload(evt) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
@@ -2142,11 +2144,44 @@ function formatMoney(val, symbol = '') {
   return symbol ? `${symbol}${formatted}` : formatted;
 }
 
+function saveStateToStorage() {
+  try {
+    localStorage.setItem('ml_activeBranch', activeBranch);
+    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
+    localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
+  } catch (e) {
+    console.warn("Could not save to LocalStorage:", e);
+  }
+}
+
+function loadStateFromStorage() {
+  try {
+    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
+    if (savedActiveBranch) activeBranch = savedActiveBranch;
+
+    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
+    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
+
+    const savedBranches = localStorage.getItem('ml_branchesStore');
+    if (savedBranches) branchesStore = JSON.parse(savedBranches);
+
+    updateBranchDropdownUI();
+    switchCurrencyTab(activeCurrencyTab);
+  } catch (e) {
+    console.error("Error loading saved state:", e);
+  }
+}
+
 function updateBranchDropdownUI() {
   const el = document.getElementById('active-branch-name');
   if (el) {
     el.innerText = activeBranch || "Select Branch";
   }
+}
+
+function onBranchDropdownChange(newBranch) {
+  activeBranch = newBranch;
+  switchCurrencyTab(activeCurrencyTab);
 }
 
 function deleteActiveBranchData() {
@@ -2166,13 +2201,8 @@ function deleteActiveBranchData() {
 
 function resetAllData() {
   if (confirm("Are you sure you want to reset and clear all uploaded data across ALL branches and currencies?")) {
-    ['ml_activeBranch','ml_activeCurrencyTab'].forEach(k => localStorage.removeItem(k));
+    ['ml_activeBranch','ml_activeCurrencyTab','ml_branchesStore'].forEach(k => localStorage.removeItem(k));
     
-    openDB().then(db => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      tx.objectStore(STORE_NAME).clear();
-    });
-
     branchesStore = {};
     activeBranch = "Select Branch";
 
@@ -2337,6 +2367,70 @@ function exportToPDF() {
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
 
+// 🛠️ GI-RESTORE NAKO ANG GI-MIND KINANGHANGAN NGA FUNCTIONS PARA MO-SAVE SA INDEX.HTML 🛠️
+
+function saveMasterBCTSR(parsedData) {
+  let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
+    ? parsedData.branch.trim().toUpperCase() 
+    : activeBranch;
+
+  if (targetBranch && targetBranch !== "SELECT BRANCH" && targetBranch !== "—") {
+    activeBranch = targetBranch;
+    updateBranchDropdownUI();
+    let targetCurrency = parsedData.currency || activeCurrencyTab;
+
+    if (!branchesStore[activeBranch]) {
+      branchesStore[activeBranch] = createEmptyBranchStore();
+    }
+    let bData = branchesStore[activeBranch];
+    bData.bctsrDataStore[targetCurrency] = parsedData;
+    bData.manualInputsStore[targetCurrency] = {};
+    bData.manualRemarksStore[targetCurrency] = {};
+    bData.openRemarksInputStore[targetCurrency] = {};
+    bData.manualAdjDataStore[targetCurrency] = null;
+    bData.manualAdjRemarksStore[targetCurrency] = {};
+    bData.openManualAdjRemarksStore[targetCurrency] = {};
+    bData.isArchivedStore[targetCurrency] = false;
+    if (!bData.parsedSheetsStore) {
+      bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
+    }
+
+    // 🎯 KINI ANG MOGAWAS DAYON SA INDEX.HTML
+    syncToLocalDashboard(parsedData);
+  }
+}
+
+async function handleFileUpload(evt) {
+  const files = Array.from(evt.target.files);
+  if (!files || files.length === 0) return;
+
+  let lastParsedBranch = activeBranch;
+  let lastParsedCurr = activeCurrencyTab;
+
+  for (let file of files) {
+    const fileName = file.name.toLowerCase();
+    let parsedData = null;
+
+    if (fileName.endsWith('.pdf')) {
+      parsedData = await parsePdfFilePromise(file);
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
+      parsedData = await parseExcelFilePromise(file);
+    }
+
+    if (parsedData && parsedData.items && parsedData.items.length > 0) {
+      saveMasterBCTSR(parsedData);
+      lastParsedBranch = activeBranch;
+      lastParsedCurr = parsedData.currency || activeCurrencyTab;
+    }
+  }
+
+  activeBranch = lastParsedBranch;
+  updateBranchDropdownUI();
+  switchCurrencyTab(lastParsedCurr);
+  saveStateToStorage();
+  evt.target.value = '';
+}
+
 function parseExcelFilePromise(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -2366,12 +2460,39 @@ function parseExcelFilePromise(file) {
 function parsePdfFilePromise(file) {
   return new Promise(async (resolve) => {
     try {
-      let pdfItems = await parsePdfItemsWithCoords(file);
-      let parsedData = parsePdfLinesWithCoords(pdfItems);
-      if (!parsedData || !parsedData.items || parsedData.items.length === 0) {
-        let pdfRows = await parsePdfRowsPromise(file);
-        parsedData = parsePdfLines(pdfRows);
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let extractedRows = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let items = textContent.items;
+        items.sort((a, b) => {
+          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
+          if (yDiff < 4) return a.transform[4] - b.transform[4];
+          return b.transform[5] - a.transform[5];
+        });
+
+        let lines = [];
+        let currentY = null;
+        let currentLine = [];
+        items.forEach(item => {
+          if (!item.str.trim()) return;
+          let y = item.transform[5];
+          if (currentY === null || Math.abs(y - currentY) > 4) {
+            if (currentLine.length > 0) lines.push(currentLine);
+            currentLine = [item];
+            currentY = y;
+          } else {
+            currentLine.push(item);
+          }
+        });
+        if (currentLine.length > 0) lines.push(currentLine);
+        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
       }
+
+      let parsedData = parsePdfLines(extractedRows);
       resolve(parsedData);
     } catch (err) {
       console.error("PDF Parsing Error:", err);
@@ -2443,26 +2564,39 @@ function parsePdfRowsPromise(file) {
   });
 }
 
+// SUB-REPORT UPLOAD LOGIC
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
-
+  
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let defaultSheetTarget = rule ? rule.sheet : itemKey;
+  
+  let bData = getActiveBranchData();
+  let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
 
   for (let file of files) {
     const fileName = file.name.toLowerCase();
-    let rows = [];
+    let newSheetData = [];
 
     if (fileName.endsWith('.pdf')) {
-      rows = await parsePdfRowsPromise(file);
+      newSheetData = await parsePdfRowsPromise(file);
     } else {
-      const arrayBuffer = await file.arrayBuffer();
-      rows = getRowsFromFileBuffer(arrayBuffer);
+      newSheetData = await parseExcelRowsPromise(file);
     }
 
-    if (rows && rows.length > 0) {
-      saveSubReportRows(rows);
+    if (newSheetData && newSheetData.length > 0) {
+      let sheetTarget = detectSheetType(newSheetData, defaultSheetTarget);
+
+      currencies.forEach(c => {
+        if (!bData.parsedSheetsStore[c]) {
+          bData.parsedSheetsStore[c] = {};
+        }
+        if (!bData.parsedSheetsStore[c][sheetTarget]) {
+          bData.parsedSheetsStore[c][sheetTarget] = [];
+        }
+        bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(newSheetData);
+      });
     }
   }
 
@@ -2471,6 +2605,7 @@ async function handleSubReportUpload(evt, itemKey) {
   evt.target.value = '';
 }
 
+// SUB-REPORT REMOVAL (CLEARS ACROSS CURRENCIES)
 function removeSubReport(itemKey) {
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let sheetTarget = rule ? rule.sheet : itemKey;
@@ -2799,29 +2934,6 @@ function parsePdfLines(pdfRows) {
   return { branch, dateRange, endBal, currency, items };
 }
 
-// 🎛️ MANUAL EDITING ENGINE FOR REPORT QUANTITY AND REPORT AMOUNT
-function handleManualReportQtyInput(evt, itemKey) {
-  let bData = getActiveBranchData();
-  let val = evt.target.value.trim();
-  if (!bData.manualReportQtyStore) {
-    bData.manualReportQtyStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-  }
-  bData.manualReportQtyStore[activeCurrencyTab][itemKey] = val !== '' ? parseNum(val) : null;
-  saveStateToStorage();
-  renderActiveCurrencyData();
-}
-
-function handleManualReportAmtInput(evt, itemKey) {
-  let bData = getActiveBranchData();
-  let val = evt.target.value.trim();
-  if (!bData.manualReportAmtStore) {
-    bData.manualReportAmtStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-  }
-  bData.manualReportAmtStore[activeCurrencyTab][itemKey] = val !== '' ? parseNum(val) : null;
-  saveStateToStorage();
-  renderActiveCurrencyData();
-}
-
 function handleManualInput(evt, itemKey) {
   const val = parseNum(evt.target.value);
   let bData = getActiveBranchData();
@@ -2871,10 +2983,6 @@ function renderReconciliationTable(data) {
   let manualInputs = bData.manualInputsStore[activeCurrencyTab] || {};
   let manualRemarks = bData.manualRemarksStore[activeCurrencyTab] || {};
   let openRemarksInput = bData.openRemarksInputStore[activeCurrencyTab] || {};
-
-  // Custom manual overrides for Report Qty and Report Amount
-  let manualReportQty = (bData.manualReportQtyStore && bData.manualReportQtyStore[activeCurrencyTab]) ? bData.manualReportQtyStore[activeCurrencyTab] : {};
-  let manualReportAmt = (bData.manualReportAmtStore && bData.manualReportAmtStore[activeCurrencyTab]) ? bData.manualReportAmtStore[activeCurrencyTab] : {};
 
   let posJewelrySeen = 0;
 
@@ -2934,15 +3042,6 @@ function renderReconciliationTable(data) {
         }
       }
     }
-
-    // OVERRIDE WITH MANUAL REPORT QTY & REPORT AMT IF EDITED BY AUDITOR
-    if (manualReportQty[itemKey] !== undefined && manualReportQty[itemKey] !== null) {
-      reportQty = manualReportQty[itemKey];
-    }
-    if (manualReportAmt[itemKey] !== undefined && manualReportAmt[itemKey] !== null) {
-      reportTotal = manualReportAmt[itemKey];
-    }
-
     let diff = reportTotal !== null ? (reportTotal - item.amount) : null;
     let statusHtml = `<span class="status-badge pending">No Sub-Sheet</span>`, varText = "—", varColor = "";
     if (isRemarks) {
@@ -3009,19 +3108,6 @@ function renderReconciliationTable(data) {
       : 'color:#991b1b; background:#fef2f2; border:1px solid #fecaca; font-weight:600;';
 
     let remarkVarianceTag = currentRemark ? `<span class="remark-tag-display" style="${noteStyle}">Note: ${currentRemark}</span>` : '';
-    
-    // Build Editable/Read-only cells for Report Qty and Report Amount
-    let reportQtyDisplay = reportQty !== null ? reportQty : '—';
-    let reportAmtDisplay = reportTotal !== null ? formatMoney(reportTotal, currSym) : '—';
-
-    let reportQtyCellHtml = !isArchived ? `
-      <input type="text" class="manual-input" style="width:65px; text-align:center;" value="${manualReportQty[itemKey] !== undefined && manualReportQty[itemKey] !== null ? manualReportQty[itemKey] : (reportQty !== null ? reportQty : '')}" placeholder="${reportQtyDisplay}" onblur="handleManualReportQtyInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
-    ` : reportQtyDisplay;
-
-    let reportAmtCellHtml = !isArchived ? `
-      <input type="text" class="manual-input" style="width:105px;" value="${manualReportAmt[itemKey] !== undefined && manualReportAmt[itemKey] !== null ? manualReportAmt[itemKey] : (reportTotal !== null ? reportTotal : '')}" placeholder="${reportAmtDisplay}" onblur="handleManualReportAmtInput(event, '${itemKey.replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter') this.blur();">
-    ` : reportAmtDisplay;
-
     const tr = document.createElement('tr');
     tr.className = "hoverable";
     tr.innerHTML = `
@@ -3035,8 +3121,8 @@ function renderReconciliationTable(data) {
       <td class="num-cell" style="text-align:center;">${item.qty}</td>
       <td class="num-cell light-num">${formatMoney(item.cashIn, currSym)}</td>
       <td class="num-cell light-num">${formatMoney(item.cashOut, currSym)}</td>
-      <td class="num-cell" style="text-align:center; background:#f8fafc;">${reportQtyCellHtml}</td>
-      <td class="num-cell" style="background:#f8fafc;">${reportAmtCellHtml}</td>
+      <td class="num-cell" style="text-align:center; background:#f8fafc;">${reportQty !== null ? reportQty : '—'}</td>
+      <td class="num-cell" style="background:#f8fafc;">${reportTotal !== null ? formatMoney(reportTotal, currSym) : '—'}</td>
       <td class="num-cell" style="${varColor}">
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
           <span>${varText}</span>
@@ -3049,3 +3135,5 @@ function renderReconciliationTable(data) {
   });
 }
 </script>
+</body>
+</html>
