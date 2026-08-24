@@ -68,17 +68,17 @@
     height: 13px;
     background: #cc0000;
     border-radius: 50%;
-    animation: spinner-fade 1.2s linear infinite;
+    animation: spinner-fade 1.2s linear infinite !important;
   }
 
-  .spinner-dots div:nth-child(1) { top: 6px; left: 26px; animation-delay: 0s; }
-  .spinner-dots div:nth-child(2) { top: 11px; left: 44px; animation-delay: -0.15s; }
-  .spinner-dots div:nth-child(3) { top: 26px; left: 50px; animation-delay: -0.3s; }
-  .spinner-dots div:nth-child(4) { top: 41px; left: 44px; animation-delay: -0.45s; }
-  .spinner-dots div:nth-child(5) { top: 46px; left: 26px; animation-delay: -0.6s; }
-  .spinner-dots div:nth-child(6) { top: 41px; left: 8px; animation-delay: -0.75s; }
-  .spinner-dots div:nth-child(7) { top: 26px; left: 2px; animation-delay: -0.9s; }
-  .spinner-dots div:nth-child(8) { top: 11px; left: 8px; animation-delay: -1.05s; }
+  .spinner-dots div:nth-child(1) { top: 6px; left: 26px; animation-delay: 0s !important; }
+  .spinner-dots div:nth-child(2) { top: 11px; left: 44px; animation-delay: -0.15s !important; }
+  .spinner-dots div:nth-child(3) { top: 26px; left: 50px; animation-delay: -0.3s !important; }
+  .spinner-dots div:nth-child(4) { top: 41px; left: 44px; animation-delay: -0.45s !important; }
+  .spinner-dots div:nth-child(5) { top: 46px; left: 26px; animation-delay: -0.6s !important; }
+  .spinner-dots div:nth-child(6) { top: 41px; left: 8px; animation-delay: -0.75s !important; }
+  .spinner-dots div:nth-child(7) { top: 26px; left: 2px; animation-delay: -0.9s !important; }
+  .spinner-dots div:nth-child(8) { top: 11px; left: 8px; animation-delay: -1.05s !important; }
 
   @keyframes spinner-fade {
     0%, 20%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
@@ -1408,7 +1408,7 @@
     }
   };
 
-  // ➕ NEW ENTRY NAVIGATION WITH LOADING SPINNER DELAY (600MS)
+  // ➕ 1. NEW ENTRY NAVIGATION WITH LOADING SPINNER DELAY (600MS)
   window.goToNewReconciler = function() {
     let loader = document.getElementById('global-loading-overlay');
     let loadText = document.getElementById('loading-text-display');
@@ -1423,16 +1423,34 @@
     }, 600);
   };
 
+  // 🏷️ 2. INVENTORY BUTTONS (Subasta/SR, Subtest, QCL) WITH LOADING SPINNER DELAY (600MS)
   window.launchBranchInventory = function(branchName, type) {
+    let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('loading-text-display');
+
     let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
     localStorage.setItem('ml_activeBranch', activeB);
+
+    let targetPage = 'subasta_sr.html';
+    let labelText = "Subasta / SR";
+
     if (type === 'subasta_sr') {
-      window.location.href = 'subasta_sr.html';
+      targetPage = 'subasta_sr.html';
+      labelText = "Showroom / Subasta";
     } else if (type === 'subtest') {
-      window.location.href = 'subtest.html';
+      targetPage = 'subtest.html';
+      labelText = "Subtest QCL";
     } else if (type === 'qcl') {
-      window.location.href = 'qcl.html';
+      targetPage = 'qcl.html';
+      labelText = "QCL Inventory";
     }
+
+    if (loadText) loadText.innerText = `Opening ${labelText} for ${activeB}...`;
+    if (loader) loader.style.display = 'flex';
+
+    setTimeout(() => {
+      window.location.href = targetPage;
+    }, 600);
   };
 
   window.deleteEntry = function(index) {
@@ -1455,7 +1473,7 @@
     }
   };
 
-  // ➔ STATUS/PROGRESS NAVIGATION WITH LOADING SPINNER DELAY (600MS)
+  // ➔ 3. STATUS/PROGRESS NAVIGATION WITH LOADING SPINNER DELAY (600MS)
   window.launchReconciler = function(branchName) {
     let loader = document.getElementById('global-loading-overlay');
     let loadText = document.getElementById('loading-text-display');
@@ -1614,7 +1632,6 @@
     if (loadText) loadText.innerText = "Authenticating, please wait...";
     if (loader) loader.style.display = 'flex';
 
-    // Delay nga 600 milliseconds
     setTimeout(() => {
       let foundUser = enrolledUsers.find(u => u.username.toLowerCase() === userInput);
       let role = 'user';
@@ -1644,7 +1661,7 @@
     }, 600);
   };
 
-  // 🚪 LOGOUT WITH SPINNER DELAY (600MS)
+  // 🚪 4. LOGOUT WITH SPINNER DELAY (600MS)
   window.doLogout = function() {
     let loader = document.getElementById('global-loading-overlay');
     let loadText = document.getElementById('loading-text-display');
