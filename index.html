@@ -858,8 +858,6 @@
     { username: "j.doe", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" }
   ];
 
-  let systemAuditLogs = [];
-
   function slugToBranchName(slug) {
     if (!slug) return "";
     return slug
@@ -1099,6 +1097,36 @@
     renderDashboardTable();
   };
 
+  // 🗑️ SOFT DELETE PARA SA REGULAR USER, HARD DELETE PARA SA ADMIN
+  window.deleteEntry = function(index) {
+    let row = strikeForceEntries[index];
+    let bName = row.branch;
+    let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
+    let currentRole = localStorage.getItem('ml_user_role') || 'user';
+    let isAdmin = currentRole === 'admin' || currentUser.includes('admin');
+
+    if (isAdmin) {
+      // 👑 ADMIN ACTION: Permanent Hard Delete gikan sa Database
+      if (confirm(`ADMIN CONFIRMATION: Permanently delete "${bName}" for ALL users and cloud database?`)) {
+        strikeForceEntries.splice(index, 1);
+        saveEntries();
+        renderDashboardTable();
+      }
+    } else {
+      // 👤 REGULAR USER ACTION: Soft Delete (I-tago lang sa iyang sariling view)
+      if (confirm(`Are you sure you want to remove "${bName}" from your dashboard view?`)) {
+        if (!row.hiddenFor) {
+          row.hiddenFor = [];
+        }
+        if (!row.hiddenFor.includes(currentUser)) {
+          row.hiddenFor.push(currentUser);
+        }
+        saveEntries();
+        renderDashboardTable();
+      }
+    }
+  };
+
   window.renderDashboardTable = function(filterQuery = '') {
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
@@ -1111,9 +1139,16 @@
 
     let currentUser = (localStorage.getItem('ml_activeUser') || '').toLowerCase().trim();
     let currentRole = localStorage.getItem('ml_user_role') || 'user';
+    let isAdmin = currentRole === 'admin' || currentUser.includes('admin');
 
     let visibleEntries = strikeForceEntries.filter((row) => {
-      if (currentRole === 'admin' || currentUser.includes('admin')) return true;
+      // Kung gitagoan sa kani nga regular user, dili ipakita sa iyang view
+      let hiddenList = Array.isArray(row.hiddenFor) ? row.hiddenFor.map(u => u.toLowerCase().trim()) : [];
+      if (!isAdmin && hiddenList.includes(currentUser)) {
+        return false;
+      }
+
+      if (isAdmin) return true;
 
       let creator = (row.createdBy || '').toLowerCase().trim();
       let companionsList = Array.isArray(row.companions)
@@ -1166,7 +1201,6 @@
           ${row.cutoffDate}
         </td>
 
-        <!-- 👤 CREATED BY COLUMN -->
         <td>
           <span class="creator-badge">👤 ${creatorDisplay}</span>
         </td>
@@ -1338,15 +1372,6 @@
     setTimeout(() => {
       window.location.href = targetPage;
     }, 600);
-  };
-
-  window.deleteEntry = function(index) {
-    let bName = strikeForceEntries[index].branch;
-    if (confirm(`Are you sure you want to delete "${bName}"?`)) {
-      strikeForceEntries.splice(index, 1);
-      saveEntries();
-      renderDashboardTable();
-    }
   };
 
   window.archiveEntry = function(index) {
