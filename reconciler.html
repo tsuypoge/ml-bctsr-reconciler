@@ -728,7 +728,53 @@ function navigateBackToDashboard() {
 
   setTimeout(() => {
     window.location.href = 'index.html';
-  }, 600); // 600ms Delay
+  }, 600);
+}
+
+// 🎯 SYNC TO LOCALSTORAGE & FIREBASE FOR INDEX.HTML DASHBOARD
+function syncToLocalDashboard(parsedData) {
+  try {
+    let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
+      ? parsedData.branch.trim().toUpperCase() 
+      : activeBranch;
+
+    if (!targetBranch || targetBranch === "SELECT BRANCH" || targetBranch === "—") return;
+
+    let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || [];
+    let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
+    let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
+
+    let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
+
+    if (existingIndex !== -1) {
+      storedEntries[existingIndex].cutoffDate = dateStr;
+      if (storedEntries[existingIndex].status === "Pending") {
+        storedEntries[existingIndex].status = "In Progress";
+      }
+    } else {
+      storedEntries.unshift({
+        branch: targetBranch,
+        cutoffDate: dateStr,
+        companions: [],
+        createdBy: currentUser,
+        status: "In Progress"
+      });
+    }
+
+    // 1. Save to LocalStorage
+    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
+
+    // 2. 🔥 SAVE DIRECTLY TO FIREBASE DB (Mo-reflect dayon sa index.html)
+    fetch("https://sftools-139a1-default-rtdb.asia-southeast1.firebasedatabase.app/strikeForceEntries.json", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(storedEntries)
+    }).then(() => console.log("Cloud Dashboard Sync Successful"))
+      .catch(err => console.warn("Firebase Sync Error:", err));
+
+  } catch (err) {
+    console.error("Dashboard sync error:", err);
+  }
 }
 
 // INDEXEDDB STORAGE WRAPPER
@@ -778,42 +824,6 @@ async function loadStateFromStorage() {
     };
   } catch (e) {
     console.error("Error loading saved state from IndexedDB:", e);
-  }
-}
-
-// 🎯 AUTO SYNC PAINGON SA INDEX.HTML DASHBOARD
-function syncToLocalDashboard(parsedData) {
-  try {
-    let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
-      ? parsedData.branch.trim().toUpperCase() 
-      : activeBranch;
-
-    if (!targetBranch || targetBranch === "SELECT BRANCH" || targetBranch === "—") return;
-
-    let storedEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || [];
-    let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
-    let dateStr = (parsedData.dateRange && parsedData.dateRange !== '—') ? parsedData.dateRange : "Pending Cut-off";
-
-    let existingIndex = storedEntries.findIndex(e => e.branch.toUpperCase() === targetBranch.toUpperCase());
-
-    if (existingIndex !== -1) {
-      storedEntries[existingIndex].cutoffDate = dateStr;
-      if (storedEntries[existingIndex].status === "Pending") {
-        storedEntries[existingIndex].status = "In Progress";
-      }
-    } else {
-      storedEntries.unshift({
-        branch: targetBranch,
-        cutoffDate: dateStr,
-        companions: [],
-        createdBy: currentUser,
-        status: "In Progress"
-      });
-    }
-
-    localStorage.setItem('ml_strikeForceEntries', JSON.stringify(storedEntries));
-  } catch (err) {
-    console.error("Dashboard local sync error:", err);
   }
 }
 
@@ -1912,7 +1922,7 @@ const REPORT_RULES = {
   "POS Telco Products": { sheet: "BRANCH-ELOAD", getSum: (data) => sumCol(data, 8), getQty: (data) => countRows(data) },
 
   "MCash Cash In": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashCashIn(data), getQty: (data) => countMCashCashIn(data) },
-  "MCash Service Charge": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashServiceCharge(data), getQty: (data) => countMCashCashIn(data) },
+  "MCash Service Charge": { sheet: "MCASH IN", altSheet: "MCASH", getSum: (data) => sumMCashServiceCharge(data), getQty: (data) => countMCashServiceCharge(data) },
   "MCash Payout": { sheet: "MCASH OUT", getSum: (data) => sumMCashPayout(data), getQty: (data) => countMCashPayout(data) },
 
   "ATM POS": { isManual: true },
@@ -2367,71 +2377,6 @@ function exportToPDF() {
 
 window.addEventListener('DOMContentLoaded', loadStateFromStorage);
 
-// 🛠️ GI-RESTORE NAKO ANG GI-MIND KINANGHANGAN NGA FUNCTIONS PARA MO-SAVE SA INDEX.HTML 🛠️
-
-function saveMasterBCTSR(parsedData) {
-  let targetBranch = (parsedData.branch && parsedData.branch !== '—' && parsedData.branch !== 'SELECT BRANCH') 
-    ? parsedData.branch.trim().toUpperCase() 
-    : activeBranch;
-
-  if (targetBranch && targetBranch !== "SELECT BRANCH" && targetBranch !== "—") {
-    activeBranch = targetBranch;
-    updateBranchDropdownUI();
-    let targetCurrency = parsedData.currency || activeCurrencyTab;
-
-    if (!branchesStore[activeBranch]) {
-      branchesStore[activeBranch] = createEmptyBranchStore();
-    }
-    let bData = branchesStore[activeBranch];
-    bData.bctsrDataStore[targetCurrency] = parsedData;
-    bData.manualInputsStore[targetCurrency] = {};
-    bData.manualRemarksStore[targetCurrency] = {};
-    bData.openRemarksInputStore[targetCurrency] = {};
-    bData.manualAdjDataStore[targetCurrency] = null;
-    bData.manualAdjRemarksStore[targetCurrency] = {};
-    bData.openManualAdjRemarksStore[targetCurrency] = {};
-    bData.isArchivedStore[targetCurrency] = false;
-    if (!bData.parsedSheetsStore) {
-      bData.parsedSheetsStore = { PHP: {}, USD: {}, EUR: {}, JPY: {}, GBP: {} };
-    }
-
-    // 🎯 KINI ANG MOGAWAS DAYON SA INDEX.HTML
-    syncToLocalDashboard(parsedData);
-  }
-}
-
-async function handleFileUpload(evt) {
-  const files = Array.from(evt.target.files);
-  if (!files || files.length === 0) return;
-
-  let lastParsedBranch = activeBranch;
-  let lastParsedCurr = activeCurrencyTab;
-
-  for (let file of files) {
-    const fileName = file.name.toLowerCase();
-    let parsedData = null;
-
-    if (fileName.endsWith('.pdf')) {
-      parsedData = await parsePdfFilePromise(file);
-    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.html')) {
-      parsedData = await parseExcelFilePromise(file);
-    }
-
-    if (parsedData && parsedData.items && parsedData.items.length > 0) {
-      // 🎯 DIRI MATAWAG ANG SYNC PAINGON SA LOCALSTORAGE
-      saveMasterBCTSR(parsedData);
-      lastParsedBranch = activeBranch;
-      lastParsedCurr = parsedData.currency || activeCurrencyTab;
-    }
-  }
-
-  activeBranch = lastParsedBranch;
-  updateBranchDropdownUI();
-  switchCurrencyTab(lastParsedCurr);
-  saveStateToStorage();
-  evt.target.value = '';
-}
-
 function parseExcelFilePromise(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -2461,39 +2406,12 @@ function parseExcelFilePromise(file) {
 function parsePdfFilePromise(file) {
   return new Promise(async (resolve) => {
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let extractedRows = [];
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        let items = textContent.items;
-        items.sort((a, b) => {
-          let yDiff = Math.abs(a.transform[5] - b.transform[5]);
-          if (yDiff < 4) return a.transform[4] - b.transform[4];
-          return b.transform[5] - a.transform[5];
-        });
-
-        let lines = [];
-        let currentY = null;
-        let currentLine = [];
-        items.forEach(item => {
-          if (!item.str.trim()) return;
-          let y = item.transform[5];
-          if (currentY === null || Math.abs(y - currentY) > 4) {
-            if (currentLine.length > 0) lines.push(currentLine);
-            currentLine = [item];
-            currentY = y;
-          } else {
-            currentLine.push(item);
-          }
-        });
-        if (currentLine.length > 0) lines.push(currentLine);
-        lines.forEach(lineItems => { extractedRows.push(lineItems.map(it => it.str.trim())); });
+      let pdfItems = await parsePdfItemsWithCoords(file);
+      let parsedData = parsePdfLinesWithCoords(pdfItems);
+      if (!parsedData || !parsedData.items || parsedData.items.length === 0) {
+        let pdfRows = await parsePdfRowsPromise(file);
+        parsedData = parsePdfLines(pdfRows);
       }
-
-      let parsedData = parsePdfLines(extractedRows);
       resolve(parsedData);
     } catch (err) {
       console.error("PDF Parsing Error:", err);
@@ -2569,35 +2487,23 @@ function parsePdfRowsPromise(file) {
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
-  
+
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let defaultSheetTarget = rule ? rule.sheet : itemKey;
-  
-  let bData = getActiveBranchData();
-  let currencies = ['PHP', 'USD', 'EUR', 'JPY', 'GBP'];
 
   for (let file of files) {
     const fileName = file.name.toLowerCase();
-    let newSheetData = [];
+    let rows = [];
 
     if (fileName.endsWith('.pdf')) {
-      newSheetData = await parsePdfRowsPromise(file);
+      rows = await parsePdfRowsPromise(file);
     } else {
-      newSheetData = await parseExcelRowsPromise(file);
+      const arrayBuffer = await file.arrayBuffer();
+      rows = getRowsFromFileBuffer(arrayBuffer);
     }
 
-    if (newSheetData && newSheetData.length > 0) {
-      let sheetTarget = detectSheetType(newSheetData, defaultSheetTarget);
-
-      currencies.forEach(c => {
-        if (!bData.parsedSheetsStore[c]) {
-          bData.parsedSheetsStore[c] = {};
-        }
-        if (!bData.parsedSheetsStore[c][sheetTarget]) {
-          bData.parsedSheetsStore[c][sheetTarget] = [];
-        }
-        bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(newSheetData);
-      });
+    if (rows && rows.length > 0) {
+      saveSubReportRows(rows);
     }
   }
 
@@ -2606,7 +2512,6 @@ async function handleSubReportUpload(evt, itemKey) {
   evt.target.value = '';
 }
 
-// SUB-REPORT REMOVAL (CLEARS ACROSS CURRENCIES)
 function removeSubReport(itemKey) {
   let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
   let sheetTarget = rule ? rule.sheet : itemKey;
