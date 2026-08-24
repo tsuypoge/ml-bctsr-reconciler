@@ -461,6 +461,17 @@
     margin: 2px 2px 0 0;
   }
 
+  .creator-badge {
+    display: inline-block;
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
+    color: #0369a1;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
   .btn-tbl-status {
     border: none;
     padding: 8px 18px;
@@ -832,6 +843,7 @@
           <tr>
             <th>Branchname</th>
             <th>Cut-off Date</th>
+            <th>Created By</th>
             <th style="text-align:center;">Inventory</th>
             <th style="text-align:center;">Status</th>
             <th style="text-align:center;">Action</th>
@@ -1329,6 +1341,7 @@
       let q = filterQuery.toLowerCase().trim();
       visibleEntries = visibleEntries.filter(row => 
         row.branch.toLowerCase().includes(q) || 
+        (row.createdBy && row.createdBy.toLowerCase().includes(q)) ||
         (row.companions && row.companions.some(c => c.toLowerCase().includes(q)))
       );
     }
@@ -1337,7 +1350,7 @@
     if(branchStatEl) branchStatEl.innerText = strikeForceEntries.length;
 
     if (visibleEntries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries assigned to account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries assigned to account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
       return;
     }
 
@@ -1354,6 +1367,8 @@
         ? companionsArr.map(c => `<span class="companion-pill">🤝 ${c}</span>`).join('')
         : `<span style="font-size:11px; color:#94a3b8;">Click branch to assign companion</span>`;
 
+      let creatorDisplay = row.createdBy || 'admin';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="clickable-assign-cell" title="Click branch name to Assign Companions" onclick="window.openAssignModal(${originalIndex})">
@@ -1363,6 +1378,11 @@
 
         <td class="clickable-assign-cell" title="Click date range to Assign Companions" onclick="window.openAssignModal(${originalIndex})" style="font-family:var(--font-mono); color:#475569; font-size:13px;">
           ${row.cutoffDate}
+        </td>
+
+        <!-- 👤 CREATED BY COLUMN -->
+        <td>
+          <span class="creator-badge">👤 ${creatorDisplay}</span>
         </td>
 
         <td style="text-align:center;">
