@@ -173,7 +173,17 @@
     padding:14px 16px;margin-bottom:20px;}
   .prenda-summary-card h4{margin:0 0 4px;font-family:'Fraunces',serif;font-size:14.5px;color:#b8801a;}
   .prenda-summary-card .ps-sub{font-size:12px;color:var(--parchment-dim);margin:0 0 12px;}
-  .ps-table-wrap{overflow-x:auto;}
+  
+  /* 🔥 EDITED: Grab cursor feature added to table wrapper */
+  .ps-table-wrap{
+    overflow-x:auto;
+    cursor: grab;
+    user-select: none;
+  }
+  .ps-table-wrap:active{
+    cursor: grabbing;
+  }
+
   table.ps-table{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.ps-table thead th{background:#fff6e6;color:#b8801a;font-family:'IBM Plex Mono',monospace;font-size:10px;
     text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:8px 9px;border-bottom:1px solid #f0dcb0;white-space:nowrap;}
@@ -699,11 +709,6 @@
 
   function numKey(n){ return Math.round(Number(n||0)*100)/100; }
 
-  // Groups a record's line items by item code + karat, summing weight &
-  // quantity per group — so a ticket with an item split into 2 pieces, or
-  // several pieces merged into one, still compares as a single total.
-  // Description is intentionally NOT part of the grouping/match key —
-  // only Item Code, Karat, and Weight are used.
   function groupByCodeKarat(items){
     const map = new Map();
     items.forEach(it=>{
@@ -720,20 +725,9 @@
     return map;
   }
 
-  const WEIGHT_TOLERANCE = 0.1; // grams — catches items nudged by ~0.1g to dodge an exact-match check
+  const WEIGHT_TOLERANCE = 0.1;
+  let prendaMatchSummary = [];
 
-  let prendaMatchSummary = []; // flat list of matched-item detail rows, for the summary panel + export
-
-  // Flags Redeem transactions that have items (same Item Code + Karat,
-  // total weight within ±0.1g) also appearing in a Prenda (new loan)
-  // record on the SAME date — matched by Item Code + Karat + Weight per
-  // group (so a split or merged item still counts as a match). Item
-  // Description is intentionally excluded from the matching, regardless
-  // of quantity or customer name. Red-flagged when the Prenda (re-pawn)
-  // loan value is HIGHER than the original Redeem loan value for that
-  // same item — a possible sign the item was redeemed then re-pawned for
-  // more, which needs a closer look. This is only a heads-up flag for the
-  // branch/auditor to review, not an automatic finding.
   function crossCheckPrenda(){
     const redeemData = categoryData['redeem'];
     if(!redeemData) return;
@@ -743,7 +737,6 @@
     prendaMatchSummary = [];
 
     if(prendaData){
-      // date -> array of per-code-karat totals for every Prenda ticket on that date
       const prendaByDate = new Map();
       prendaData.records.forEach(pr=>{
         const groups = groupByCodeKarat(pr.items);
@@ -853,13 +846,9 @@
     });
   }
 
-  const AMLA_THRESHOLD = 500000; // BSP/AMLA covered-transaction threshold (₱)
-  let amlaGroups = []; // summary rows for the AMLA panel
+  const AMLA_THRESHOLD = 500000;
+  let amlaGroups = [];
 
-  // AMLA / BSP threshold — flags when a single customer's transactions
-  // (added up across ALL uploaded categories) hit ₱500,000+ on the SAME
-  // date. Catches both a single big transaction AND several smaller ones
-  // split up to dodge the threshold (structuring).
   function computeAmlaFlags(){
     amlaGroups = [];
     Object.values(categoryData).forEach(cd=> cd.records.forEach(r=>{ r.amlaFlag = null; }));
@@ -917,13 +906,8 @@
     `;
   }
 
-  let ptnIntegrity = {}; // catKey -> {duplicates:[], gaps:[]}
+  let ptnIntegrity = {};
 
-  // Duplicate / missing Pawn Ticket Number check for the given category.
-  // Duplicates = same PTN used on more than one date (unexpected for
-  // Redeem/Prenda; worth a look for Re-appraise/Renew too). Gaps = missing
-  // numbers in an otherwise sequential PTN series (e.g. ...-01026, ...-01028
-  // with no ...-01027) — a possible sign of a voided/hidden transaction.
   function computePtnIntegrity(catKey){
     const cd = categoryData[catKey];
     if(!cd){ delete ptnIntegrity[catKey]; return; }
@@ -939,8 +923,6 @@
       if(dates.length > 1) duplicates.push({ptn, dates});
     });
 
-    // Group PTNs by their non-numeric prefix, look for gaps in the
-    // trailing numeric sequence.
     const seqGroups = new Map();
     const seen = new Set();
     cd.records.forEach(r=>{
@@ -985,10 +967,6 @@
     `;
   }
 
-  // Suspicious price-per-gram — for each karat found in this category,
-  // computes the median ₱/gram across all its transactions, then flags any
-  // transaction whose ₱/gram is far from that median (possible over- or
-  // under-valuation of the item).
   function computePriceOutliers(catKey){
     const cd = categoryData[catKey];
     if(!cd) return;
@@ -1003,7 +981,7 @@
       byKarat.get(karat).push({r, ppg});
     });
     byKarat.forEach(list=>{
-      if(list.length < 3) return; // need enough data points for a meaningful median
+      if(list.length < 3) return;
       const sorted = list.map(x=>x.ppg).slice().sort((a,b)=>a-b);
       const mid = Math.floor(sorted.length/2);
       const median = sorted.length%2 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2;
@@ -1016,7 +994,6 @@
     });
   }
 
-  // Runs every detection check. Call after any upload, restore, or cloud sync.
   function runAllFraudChecks(){
     crossCheckPrenda();
     CATEGORIES.forEach(c=>{
@@ -1462,6 +1439,33 @@
     const branchSlug = slugBranch(currentBranch || 'branch');
     a.download = `QCL-Subtesting-Backup-${branchSlug}-${dateStr}.json`;
     a.click();
+  });
+
+  /* 🔥 EDITED: Mouse Click-and-Drag Drag Scroll Engine */
+  document.addEventListener('mousedown', function(e) {
+    const slider = e.target.closest('.ps-table-wrap');
+    if (!slider) return;
+
+    let isDown = true;
+    let startX = e.pageX - slider.offsetLeft;
+    let scrollLeft = slider.scrollLeft;
+
+    function onMouseMove(e) {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startX) * 1.5; // Drag speed multiplier
+      slider.scrollLeft = scrollLeft - walk;
+    }
+
+    function onMouseUp() {
+      isDown = false;
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   });
 
 </script>
