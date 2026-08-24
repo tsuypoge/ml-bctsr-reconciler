@@ -3,284 +3,450 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QCL Subtesting Report — M Lhuillier</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23a3241c'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23fff2f1' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23fff2f1'/%3E%3Ccircle cx='32' cy='28' r='6.5' fill='%23a3241c'/%3E%3Cpath d='M27 34 Q32 46 37 34 Z' fill='%23a3241c'/%3E%3C/svg%3E">
+<title>QCL Subtesting Report — M Lhuillier Audit Portal</title>
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- Fonts: Inter for UI + IBM Plex Mono for high-density tabular precision -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-  :root{
-    --bg:#ffffff;
-    --bg-deep:#fff2f1;
-    --panel:#ffffff;
-    --panel-2:#fff0ef;
-    --line:#f0cfcd;
-    --brass:#a3241c;
-    --brass-soft:#7d1a14;
-    --parchment:#241412;
-    --parchment-dim:#8a6b69;
-    --ink:#ffffff;
-    --radius:10px;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:radial-gradient(ellipse at top left, #fff7f6 0%, var(--bg) 45%, var(--bg-deep) 100%);
-    color:var(--parchment);
-    font-family:'Inter',sans-serif;
-    min-height:100vh;
-    padding-bottom:60px;
-  }
-  ::selection{background:var(--brass);color:var(--ink);}
+  :root {
+    --primary: #cc0000;
+    --primary-dark: #990000;
+    --bg-red: #bc0000;
+    --bg-gradient: linear-gradient(135deg, #d30000 0%, #900000 100%);
+    --panel-bg: #ffffff;
+    --panel-bg-subtle: #fff5f5;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --gold: #d4af37;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
 
-  header.cover{
-    padding:38px 24px 28px;text-align:center;border-bottom:1px solid var(--line);
-    position:relative;overflow:hidden;
+    /* Legacy mapping for subtesting table badges */
+    --brass: #cc0000;
+    --brass-soft: #990000;
+    --line: #f1f5f9;
   }
-  header.cover::before{
-    content:"";position:absolute;inset:0;
-    background:repeating-linear-gradient(90deg, transparent, transparent 78px, rgba(163,36,28,0.05) 79px, transparent 80px);
-    pointer-events:none;
-  }
-  .eyebrow{
-    font-family:'IBM Plex Mono',monospace;letter-spacing:.24em;text-transform:uppercase;
-    font-size:11.5px;color:var(--brass);margin-bottom:10px;
-  }
-  h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(28px,5vw,44px);margin:0 0 8px;letter-spacing:-0.01em;}
-  header.cover p{font-family:'IBM Plex Mono',monospace;color:var(--parchment-dim);font-size:13.5px;max-width:560px;margin:0 auto;line-height:1.6;}
 
-  .wrap{max-width:1180px;margin:0 auto;padding:0 20px;}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .btn{
-    font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
-    background:var(--brass);color:var(--ink);border:none;padding:11px 22px;border-radius:6px;
-    cursor:pointer;font-weight:600;transition:transform .12s, background .15s;
-    display:inline-flex;align-items:center;gap:6px;
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    min-height: 100vh;
+    padding-bottom: 60px;
+    -webkit-font-smoothing: antialiased;
   }
-  .btn:hover{background:var(--brass-soft);transform:translateY(-1px);}
-  .btn:active{transform:translateY(0);}
-  .btn.ghost{background:transparent;color:var(--parchment);border:1px solid var(--line);}
-  .btn.ghost:hover{border-color:var(--brass);color:var(--brass);}
-  .btn.small{padding:7px 13px;font-size:11px;}
+
+  ::selection { background: var(--primary); color: #ffffff; }
+
+  /* Custom Pure CSS Rotating Dots Spinner Overlay (Matching index.html) */
+  .loading-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(4px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
+
+  .spinner-dots {
+    position: relative;
+    width: 64px;
+    height: 64px;
+  }
+
+  .spinner-dots div {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    background: #cc0000;
+    border-radius: 50%;
+    animation: spinner-fade 1.2s linear infinite;
+  }
+
+  .spinner-dots div:nth-child(1) { top: 6px; left: 26px; animation-delay: 0s; }
+  .spinner-dots div:nth-child(2) { top: 11px; left: 44px; animation-delay: -0.15s; }
+  .spinner-dots div:nth-child(3) { top: 26px; left: 50px; animation-delay: -0.3s; }
+  .spinner-dots div:nth-child(4) { top: 41px; left: 44px; animation-delay: -0.45s; }
+  .spinner-dots div:nth-child(5) { top: 46px; left: 26px; animation-delay: -0.6s; }
+  .spinner-dots div:nth-child(6) { top: 41px; left: 8px; animation-delay: -0.75s; }
+  .spinner-dots div:nth-child(7) { top: 26px; left: 2px; animation-delay: -0.9s; }
+  .spinner-dots div:nth-child(8) { top: 11px; left: 8px; animation-delay: -1.05s; }
+
+  @keyframes spinner-fade {
+    0%, 20%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .loading-text {
+    margin-top: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #cc0000;
+    letter-spacing: 0.5px;
+  }
+
+  /* Header Cover Area */
+  header.cover {
+    padding: 30px 24px 20px;
+    text-align: center;
+    color: #ffffff;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    font-size: 11.5px;
+    color: var(--gold);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  h1 {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  header.cover p {
+    font-family: var(--font-sans);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  .wrap { max-width: 1300px; margin: 0 auto; padding: 0 20px; }
+
+  /* Toolbar & Buttons */
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  .btn.ghost { background: #ffffff; color: var(--text-main); border: 1.5px solid var(--border); }
+  .btn.ghost:hover { border-color: var(--primary); color: var(--primary); background: #f8fafc; }
+  .btn.small { padding: 6px 12px; font-size: 11.5px; }
+
   .btn-dashboard { background: #1e293b; color: #ffffff; }
   .btn-dashboard:hover { background: #0f172a; color: #ffffff; }
 
-  input[type=file]{display:none;}
+  input[type=file] { display: none; }
 
-  .cat-uploads{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;}
-  .cat-upload-card{
-    flex:1;min-width:220px;border:1.5px dashed var(--line);border-radius:var(--radius);
-    background:var(--panel);padding:22px 18px;text-align:center;
-  }
-  .cat-upload-card.done{border-style:solid;border-color:var(--brass);background:var(--panel-2);}
-  .branch-box{
-    margin-top:20px;border:1.5px solid var(--brass);border-radius:var(--radius);
-    background:var(--panel-2);padding:18px 20px;
-  }
-  .branch-box h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 4px;}
-  .branch-box p{font-size:12.5px;color:var(--parchment-dim);margin:0 0 12px;}
-  .cat-uploads.locked{opacity:.4;pointer-events:none;}
-  .cat-upload-card h3{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0 0 4px;}
-  .cat-upload-card .cat-sub{font-size:12px;color:var(--parchment-dim);margin:0 0 14px;}
-  .cat-upload-card .cat-status{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--parchment-dim);}
-  .cat-upload-card.done .cat-status{color:var(--brass);font-weight:600;}
-
-  #status-line{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--parchment-dim);min-height:16px;text-align:center;}
-
-  .tabs{display:none;margin-top:24px;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:50;
-    background:rgba(255,255,255,0.96);backdrop-filter:blur(4px);padding:10px 0;border-bottom:1px solid var(--line);}
-  .tabs.show{display:flex;}
-  .tab{flex:1;min-width:150px;background:var(--panel);border:1.5px solid var(--line);border-radius:var(--radius);
-    padding:12px 16px;cursor:pointer;transition:border-color .15s, background .15s;opacity:.5;}
-  .tab.enabled{cursor:pointer;opacity:1;}
-  .tab.disabled{cursor:not-allowed;}
-  .tab:hover.enabled{border-color:var(--brass-soft);}
-  .tab.active{border-color:var(--brass);background:var(--panel-2);}
-  .tab .t-name{font-family:'Fraunces',serif;font-size:16px;font-weight:700;}
-  .tab .t-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--parchment-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
-
-  #dashboard{display:none;margin-top:26px;}
-  #dashboard.show{display:block;}
-
-  .stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
-  .stat-chip{flex:1;min-width:130px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;}
-  .stat-chip .num{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--brass);}
-  .stat-chip .lab{font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--parchment-dim);margin-top:2px;}
-
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
-    background:rgba(255,255,255,0.97);padding:10px 0;border-bottom:1px solid var(--line);}
-  #search{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);border-radius:6px;
-    color:var(--parchment);padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;}
-  #search:focus{outline:none;border-color:var(--brass);}
-  select, input[type=date]{background:var(--panel);border:1px solid var(--line);color:var(--parchment);padding:9px 10px;
-    border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;}
-  .date-range{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--parchment-dim);}
-
-  .ledger{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow-x:auto;max-height:70vh;overflow-y:auto;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  .ledger thead tr:first-child th:first-child{border-top-left-radius:var(--radius);}
-  .ledger thead tr:first-child th:last-child{border-top-right-radius:var(--radius);}
-  thead th{
-    position:sticky;top:0;background:var(--bg-deep);font-family:'IBM Plex Mono',monospace;font-size:10.5px;
-    text-transform:uppercase;letter-spacing:.05em;color:var(--brass);text-align:left;padding:11px 10px;
-    border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;z-index:2;
-  }
-  thead th:hover{color:var(--brass-soft);}
-  thead th .arrow{font-size:9px;margin-left:3px;opacity:.6;}
-  tbody td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:rgba(163,36,28,0.045);}
-  tbody tr.row-clickable{cursor:pointer;}
-  .ptn{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;white-space:nowrap;}
-  .date{font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap;}
-  .num{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
-  .pawner{font-size:12px;color:var(--parchment-dim);}
-  .desc-list{font-size:13px;line-height:1.5;}
-  .desc-item{margin-bottom:2px;}
-  .desc-item .meta{color:var(--brass);font-weight:700;font-size:12px;font-family:'IBM Plex Mono',monospace;}
-  .code-badge{display:inline-block;background:var(--panel-2);color:var(--brass);border:1px solid var(--line);
-    border-radius:4px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;margin-right:5px;}
-
-  .status-pill{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
-    letter-spacing:.05em;padding:3px 9px;border-radius:20px;border:1px solid; white-space:nowrap;}
-  .status-pill.pending{color:#b8801a;border-color:#f0dcb0;background:#fff6e6;}
-  .status-pill.match{color:#1a7d3a;border-color:#bfe3cc;background:#eafaf0;}
-  .status-pill.mismatch{color:var(--brass);border-color:#f0cfcd;background:var(--panel-2);}
-  .status-pill.found{color:#1a7d3a;border-color:#bfe3cc;background:#eafaf0;}
-  .ok-chip{display:inline-flex;align-items:center;gap:2px;font-family:'IBM Plex Mono',monospace;font-size:10px;
-    font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1px solid #bfe3cc;
-    color:#1a7d3a;background:#eafaf0;white-space:nowrap;}
-  .flag-chip{display:inline-flex;align-items:center;gap:2px;font-family:'IBM Plex Mono',monospace;font-size:10px;
-    font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1px solid #f0cfcd;
-    color:var(--brass);background:var(--panel-2);white-space:nowrap;}
-
-  .found-cell{display:flex;align-items:center;justify-content:flex-start;cursor:pointer;padding:10px;margin:-10px;min-height:22px;}
-  .found-check{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:5px;
-    border:1.5px solid var(--line);background:#fff;cursor:pointer;position:relative;flex-shrink:0;pointer-events:none;}
-  .found-check:checked{background:#1a7d3a;border-color:#1a7d3a;}
-  .found-check:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    color:#fff;font-size:14px;font-weight:700;line-height:1;}
-  .warn-chip{display:inline-flex;align-items:center;gap:2px;font-family:'IBM Plex Mono',monospace;font-size:10px;
-    font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1px solid #f0dcb0;
-    color:#b8801a;background:#fff6e6;white-space:nowrap;cursor:help;}
-  .alert-chip{display:inline-flex;align-items:center;gap:2px;font-family:'IBM Plex Mono',monospace;font-size:10px;
-    font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1.5px solid var(--brass);
-    color:#fff;background:var(--brass);white-space:nowrap;cursor:help;animation:alert-pulse 1.6s ease-in-out infinite;}
-  @keyframes alert-pulse{0%,100%{box-shadow:0 0 0 0 rgba(163,36,28,0.35);}50%{box-shadow:0 0 0 4px rgba(163,36,28,0);}}
-
-  .prenda-summary-card{background:var(--panel);border:1.5px solid #f0dcb0;border-radius:var(--radius);
-    padding:14px 16px;margin-bottom:20px;}
-  .prenda-summary-card h4{margin:0 0 4px;font-family:'Fraunces',serif;font-size:14.5px;color:#b8801a;}
-  .prenda-summary-card .ps-sub{font-size:12px;color:var(--parchment-dim);margin:0 0 12px;}
-  
-  /* 🔥 EDITED: Grab cursor feature added to table wrapper */
-  .ps-table-wrap{
-    overflow-x:auto;
-    cursor: grab;
-    user-select: none;
-  }
-  .ps-table-wrap:active{
-    cursor: grabbing;
+  /* Cards matching index.html */
+  .card-panel {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+    margin-bottom: 24px;
   }
 
-  table.ps-table{width:100%;border-collapse:collapse;font-size:12.5px;}
-  table.ps-table thead th{background:#fff6e6;color:#b8801a;font-family:'IBM Plex Mono',monospace;font-size:10px;
-    text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:8px 9px;border-bottom:1px solid #f0dcb0;white-space:nowrap;}
-  table.ps-table tbody td{padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
-  table.ps-table tbody tr:last-child td{border-bottom:none;}
-  table.ps-table .ps-ptn{font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap;}
-  table.ps-table tbody tr.ps-exact{background:var(--panel-2);}
+  .branch-box {
+    margin-top: 20px;
+    border-top: 4px solid var(--gold);
+  }
 
-  .findings-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.04em;
-    background:#fff;color:var(--brass);border:1.5px solid var(--brass);border-radius:6px;padding:7px 14px;
-    cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;}
-  .findings-btn:hover{background:var(--brass);color:#fff;}
-  .findings-btn.has-finding{background:var(--brass);color:#fff;}
-
-  .item-qty-list, .item-code-list, .item-desc-list{display:flex;flex-direction:column;gap:6px;}
-  .item-qty-list .iq-row, .item-code-list .ic-row{padding:1px 0;font-family:'IBM Plex Mono',monospace;text-align:right;}
-  .ledger-card{border:3px solid var(--brass);border-radius:18px;background:#fff;padding:4px;
-    box-shadow:0 10px 30px rgba(163,36,28,0.10);}
-  .ledger-card .ledger{border:none;border-radius:14px;}
-  .ledger-card thead th{background:#fff;color:var(--brass);font-size:11.5px;font-weight:700;border-bottom:2px solid var(--line);}
-
-  #findings-modal-overlay{position:fixed;inset:0;background:rgba(20,10,9,0.88);z-index:900;
-    display:none;align-items:center;justify-content:center;padding:20px;}
-  .findings-modal{background:#fff;border-radius:14px;padding:22px;max-width:560px;width:100%;
-    max-height:88vh;overflow-y:auto;}
-  .findings-modal h4{margin:0 0 4px;font-family:'Fraunces',serif;color:var(--brass-soft);font-size:19px;}
-  .findings-modal .fm-sub{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--parchment-dim);margin-bottom:16px;}
-  .findings-modal label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;
-    letter-spacing:.05em;color:var(--brass);margin:14px 0 6px;}
-  .findings-modal select, .findings-modal input[type=number]{width:100%;background:var(--panel-2);
-    border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-family:'IBM Plex Mono',monospace;
-    font-size:13px;color:var(--parchment);}
-  .fm-validated{display:flex;align-items:center;gap:8px;margin-top:16px;}
-  .fm-validated label{margin:0;}
-  .fm-actions{display:flex;gap:10px;justify-content:space-between;margin-top:22px;flex-wrap:wrap;}
-  .fm-actions .right{display:flex;gap:8px;}
-
-  .findings-breakdown{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px;margin-bottom:20px;}
-  .findings-breakdown h4{margin:0 0 10px;font-family:'Fraunces',serif;font-size:14.5px;color:var(--brass-soft);}
-  .fb-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:12.5px;}
-  .fb-row:last-child{border-bottom:none;}
-  .fb-row .fb-no{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--brass);background:var(--panel-2);
-    border:1px solid var(--line);border-radius:20px;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;}
-  .fb-row .fb-label{flex:1;color:var(--parchment);}
-  .fb-row .fb-count{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--brass);min-width:24px;text-align:right;}
-  .fb-empty{font-size:12px;color:var(--parchment-dim);font-family:'IBM Plex Mono',monospace;}
-  .del-btn{background:none;border:none;color:var(--parchment-dim);font-size:16px;cursor:pointer;line-height:1;}
-  .del-btn:hover{color:var(--brass);}
-
-  .cloud-tag {
-    background: #16a34a;
-    color: #ffffff;
-    font-size: 11px;
-    padding: 4px 12px;
-    border-radius: 20px;
+  .branch-box h3 {
+    font-size: 17px;
     font-weight: 800;
+    color: var(--primary);
+    margin: 0 0 4px;
   }
 
-  .footer-tools{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
-  .empty-note{text-align:center;color:var(--parchment-dim);font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:40px 20px;}
+  .branch-box p { font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px; }
 
-  @media print{
-    header.cover, .cat-uploads, .tabs, .toolbar, .footer-tools, #btn-back-dashboard{display:none !important;}
-    body{background:#fff;color:#000;}
-    .ledger{border-color:#999;max-height:none !important;overflow:visible !important;}
-    thead th{background:#eee;color:#000;position:static;}
-    tbody td{color:#000;border-color:#ccc;}
+  .cat-uploads { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+  .cat-uploads.locked { opacity: .4; pointer-events: none; }
+
+  .cat-upload-card {
+    flex: 1;
+    min-width: 220px;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-md);
+    background: #f8fafc;
+    padding: 20px 16px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .cat-upload-card.done { border-style: solid; border-color: #16a34a; background: var(--panel-bg-subtle); }
+  .cat-upload-card h3 { font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0 0 4px; }
+  .cat-upload-card .cat-sub { font-size: 12px; color: var(--text-muted); margin: 0 0 14px; }
+  .cat-upload-card .cat-status { margin-top: 10px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); }
+  .cat-upload-card.done .cat-status { color: #16a34a; font-weight: 700; }
+
+  #status-line { margin-top: 14px; font-family: var(--font-mono); font-size: 12px; color: #ffffff; text-align: center; min-height: 16px; font-weight: 600; }
+
+  /* Navigation Tabs */
+  .tabs {
+    display: none;
+    margin-top: 24px;
+    gap: 10px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+  }
+  .tabs.show { display: flex; }
+
+  .tab {
+    flex: 1;
+    min-width: 150px;
+    background: #f1f5f9;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.6;
+  }
+  .tab.enabled { opacity: 1; }
+  .tab.disabled { cursor: not-allowed; }
+  .tab:hover.enabled { border-color: var(--primary); background: #ffffff; }
+  .tab.active { border-color: var(--primary); background: var(--panel-bg-subtle); opacity: 1; }
+  .tab .t-name { font-size: 15px; font-weight: 800; color: var(--primary); }
+  .tab .t-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+  #dashboard { display: none; margin-top: 24px; }
+  #dashboard.show { display: block; }
+
+  /* KPI Stat Chips */
+  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat-chip {
+    flex: 1;
+    min-width: 130px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-chip .num { font-size: 22px; font-weight: 800; color: var(--primary); font-family: var(--font-mono); }
+  .stat-chip .lab { font-family: var(--font-sans); font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+    background: #ffffff;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  #search {
+    flex: 1;
+    min-width: 200px;
+    background: #ffffff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    padding: 9px 12px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    outline: none;
+  }
+  #search:focus { border-color: var(--primary); }
+
+  select, input[type=date], input[type=text] {
+    background: #ffffff;
+    border: 1.5px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    outline: none;
+  }
+
+  .date-range { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+  /* Table styling */
+  .ledger-card {
+    border-radius: var(--radius-lg);
+    background: #ffffff;
+    padding: 10px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .ledger { overflow-x: auto; max-height: 70vh; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    color: var(--primary);
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    text-align: left;
+    padding: 12px 12px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    z-index: 2;
+  }
+
+  tbody td { padding: 12px 12px; border-bottom: 1px solid #f8fafc; color: var(--text-main); vertical-align: top; }
+  tbody tr:hover { background: #fffdfd; }
+  tbody tr.row-clickable { cursor: pointer; }
+
+  .ptn { font-family: var(--font-mono); font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .date { font-family: var(--font-mono); font-size: 11.5px; white-space: nowrap; }
+  .num { font-family: var(--font-mono); text-align: right; white-space: nowrap; }
+  .desc-list { font-size: 13px; line-height: 1.5; }
+  .desc-item .meta { color: var(--primary); font-weight: 700; font-size: 12px; font-family: var(--font-mono); }
+  .code-badge { display: inline-block; background: var(--panel-bg-subtle); color: var(--primary); border: 1px solid #fecaca; border-radius: 4px; padding: 1px 5px; font-family: var(--font-mono); font-size: 10.5px; margin-right: 5px; }
+
+  .status-pill { display: inline-block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap; }
+  .status-pill.pending { color: #b8801a; border-color: #f0dcb0; background: #fff6e6; }
+  .status-pill.found { color: #16a34a; border-color: #bbf7d0; background: #f0fdf4; }
+
+  .ok-chip { display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; border: 1px solid #bbf7d0; color: #16a34a; background: #f0fdf4; white-space: nowrap; }
+  .flag-chip { display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; border: 1px solid #fecaca; color: var(--primary); background: var(--panel-bg-subtle); white-space: nowrap; }
+
+  .found-cell { display: flex; align-items: center; justify-content: flex-start; cursor: pointer; padding: 10px; margin: -10px; min-height: 22px; }
+  .found-check { appearance: none; -webkit-appearance: none; width: 20px; height: 22px; border-radius: 5px; border: 1.5px solid var(--border); background: #fff; cursor: pointer; position: relative; flex-shrink: 0; pointer-events: none; }
+  .found-check:checked { background: #16a34a; border-color: #16a34a; }
+  .found-check:checked::after { content: "✓"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; line-height: 1; }
+
+  .warn-chip { display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; border: 1px solid #f0dcb0; color: #b8801a; background: #fff6e6; white-space: nowrap; cursor: help; }
+  .alert-chip { display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; border: 1.5px solid var(--primary); color: #fff; background: var(--primary); white-space: nowrap; cursor: help; animation: alert-pulse 1.6s ease-in-out infinite; }
+  @keyframes alert-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(204,0,0,0.35); } 50% { box-shadow: 0 0 0 4px rgba(204,0,0,0); } }
+
+  .prenda-summary-card { background: #ffffff; border: 1.5px solid #fcd34d; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; }
+  .prenda-summary-card h4 { margin: 0 0 4px; font-size: 15px; font-weight: 800; color: #b45309; }
+  .prenda-summary-card .ps-sub { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
+
+  .ps-table-wrap { overflow-x: auto; cursor: grab; user-select: none; }
+  .ps-table-wrap:active { cursor: grabbing; }
+
+  table.ps-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.ps-table thead th { background: #fef3c7; color: #92400e; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; text-align: left; padding: 8px 9px; border-bottom: 1px solid #fcd34d; white-space: nowrap; }
+  table.ps-table tbody td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.ps-table .ps-ptn { font-family: var(--font-mono); font-weight: 700; white-space: nowrap; }
+  table.ps-table tbody tr.ps-exact { background: var(--panel-bg-subtle); }
+
+  .findings-btn { font-family: var(--font-sans); font-size: 11px; font-weight: 700; background: #fff; color: var(--primary); border: 1.5px solid var(--primary); border-radius: 6px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .findings-btn:hover { background: var(--primary); color: #fff; }
+  .findings-btn.has-finding { background: var(--primary); color: #fff; }
+
+  .item-qty-list, .item-code-list { display: flex; flex-direction: column; gap: 6px; }
+  .item-qty-list .iq-row, .item-code-list .ic-row { padding: 1px 0; font-family: var(--font-mono); text-align: right; }
+
+  #findings-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 900; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .findings-modal { background: #fff; border-radius: 18px; padding: 24px; max-width: 560px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-card); }
+  .findings-modal h4 { margin: 0 0 4px; font-size: 18px; font-weight: 800; color: var(--primary); }
+  .findings-modal .fm-sub { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); margin-bottom: 16px; }
+  .findings-modal label { display: block; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #475569; margin: 14px 0 6px; }
+  .findings-modal select, .findings-modal input[type=number] { width: 100%; background: #f8fafc; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 10px; font-size: 13px; color: var(--text-main); }
+  .fm-validated { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+  .fm-actions { display: flex; gap: 10px; justify-content: space-between; margin-top: 22px; flex-wrap: wrap; }
+
+  .findings-breakdown { background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+  .findings-breakdown h4 { margin: 0 0 10px; font-size: 15px; font-weight: 800; color: var(--primary); }
+  .fb-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+  .fb-row:last-child { border-bottom: none; }
+  .fb-row .fb-no { font-family: var(--font-mono); font-weight: 700; color: var(--primary); background: var(--panel-bg-subtle); border: 1px solid #fecaca; border-radius: 20px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .fb-row .fb-label { flex: 1; color: var(--text-main); }
+  .fb-row .fb-count { font-family: var(--font-mono); font-weight: 700; color: var(--primary); min-width: 24px; text-align: right; }
+  .fb-empty { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+  .del-btn { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; font-weight: 600; }
+  .del-btn:hover { color: var(--primary); }
+
+  .cloud-tag { background: #16a34a; color: #ffffff; font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 800; }
+  .footer-tools { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+  .empty-note { text-align: center; color: var(--text-muted); font-family: var(--font-mono); font-size: 12.5px; padding: 40px 20px; }
+
+  @media print {
+    header.cover, .cat-uploads, .tabs, .toolbar, .footer-tools, #btn-back-dashboard { display: none !important; }
+    body { background: #fff; color: #000; }
+    .ledger { border-color: #999; max-height: none !important; overflow: visible !important; }
+    thead th { background: #eee; color: #000; position: static; }
+    tbody td { color: #000; border-color: #ccc; }
   }
 </style>
 </head>
 <body>
 
+<!-- GLOBAL LOADING OVERLAY WITH ROTATING DOTS SPINNER -->
+<div class="loading-overlay" id="global-loading-overlay">
+  <div class="spinner-dots">
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+  </div>
+  <div class="loading-text" id="global-loading-text">Loading, please wait...</div>
+</div>
+
 <header class="cover">
   <div class="eyebrow">QCL Subtesting Report</div>
-  <h1>Non-Compliance Review</h1>
-  <p>Upload the monthly Re-appraise, Renew, and Redeem reports (Excel). Filter by date range, check off items physically found, and flag compliance findings per ticket before exporting. Optionally upload Prenda (new loans) to auto-flag Redeem items that match a same-day Prenda item by item code, karat, and weight.</p>
+  <h1>Non-Compliance Review Portal</h1>
+  <p>Upload the monthly Re-appraise, Renew, and Redeem reports (Excel). Filter by date range, check off items physically found, and flag compliance findings per ticket before exporting.</p>
 </header>
 
 <div class="wrap">
 
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-    <button class="btn btn-dashboard" id="btn-back-dashboard" onclick="window.location.href='index.html'" title="Return to Main Dashboard">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; margin-bottom: 20px;">
+    <button class="btn btn-dashboard" id="btn-back-dashboard" onclick="navigateBackToDashboard()" title="Return to Main Dashboard">
       <span>⬅️</span> Back to Dashboard
     </button>
     <span class="cloud-tag">🔥 Live Multi-User Cloud Sync</span>
   </div>
 
-  <div class="branch-box" id="branch-box">
+  <div class="card-panel branch-box" id="branch-box">
     <h3>🏢 Branch & Audit Date</h3>
     <p>Select or enter your branch name and audit date to keep inventory records separate.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <input type="text" id="branch-input" placeholder="e.g. ML Catarman, ML Liloan 3..." style="flex:1;min-width:200px;padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
-      <input type="date" id="audit-date-input" style="padding:10px 12px;border-radius:6px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:14px;">
+      <input type="text" id="branch-input" placeholder="e.g. ML Catarman, ML Liloan 3..." style="flex:1;min-width:200px;">
+      <input type="date" id="audit-date-input">
       <button class="btn" id="branch-confirm-btn">Start / Switch Branch</button>
     </div>
-    <div id="branch-current" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--brass);"></div>
+    <div id="branch-current" style="margin-top:12px;font-family:var(--font-mono);font-size:12.5px;color:var(--primary);font-weight:700;"></div>
   </div>
 
   <div class="cat-uploads locked" id="cat-uploads">
@@ -350,26 +516,26 @@
     </div>
 
     <div class="ledger-card">
-    <div class="ledger">
-      <table id="ledger-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th data-sort="ptn">Pawn Ticket #<span class="arrow"></span></th>
-            <th data-sort="date">Date<span class="arrow"></span></th>
-            <th data-sort="qty">Quantity<span class="arrow"></span></th>
-            <th>Item Code</th>
-            <th data-sort="desc">Items / Description<span class="arrow"></span></th>
-            <th data-sort="principal">Loan Value<span class="arrow"></span></th>
-            <th>Found?</th>
-            <th>Status</th>
-            <th>Findings &amp; Correct</th>
-          </tr>
-        </thead>
-        <tbody id="ledger-body"></tbody>
-      </table>
-      <div class="empty-note" id="empty-note" style="display:none;">No matching results.</div>
-    </div>
+      <div class="ledger">
+        <table id="ledger-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th data-sort="ptn">Pawn Ticket #<span class="arrow"></span></th>
+              <th data-sort="date">Date<span class="arrow"></span></th>
+              <th data-sort="qty">Quantity<span class="arrow"></span></th>
+              <th>Item Code</th>
+              <th data-sort="desc">Items / Description<span class="arrow"></span></th>
+              <th data-sort="principal">Loan Value<span class="arrow"></span></th>
+              <th>Found?</th>
+              <th>Status</th>
+              <th>Findings &amp; Correct</th>
+            </tr>
+          </thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
+        <div class="empty-note" id="empty-note" style="display:none;">No matching results.</div>
+      </div>
     </div>
 
     <div class="footer-tools">
@@ -402,6 +568,18 @@
 
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
+
+  // --- NAVIGATION DELAY SPINNER HANDLER ---
+  window.navigateBackToDashboard = function() {
+    let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('global-loading-text');
+    if(loadText) loadText.innerText = "Returning to Dashboard...";
+    if(loader) loader.style.display = 'flex';
+
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 600); // 600ms delay for smooth loading transition
+  };
 
   const CATEGORIES = [
     {key:'reappraise', label:'Re-appraise', dateCandidates:['date re-appraise'], ptnCandidates:['old (previous) ptn','old ptn'], principalCandidates:['old principal amount']},
@@ -544,27 +722,36 @@
     const val = $('#branch-input').value.trim();
     if(!val){ alert('Please type your branch name first.'); return; }
 
-    currentBranch = val;
-    localStorage.setItem('ml_activeBranch', currentBranch);
-    currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
-    $('#audit-date-input').value = currentAuditDate;
-    $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
-    unlockCatUploads();
+    let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('global-loading-text');
+    if(loadText) loadText.innerText = "Switching branch...";
+    if(loader) loader.style.display = 'flex';
 
-    categoryData = {};
-    activeCategory = null;
-    $$('.cat-upload-card').forEach(card=>{
-      card.classList.remove('done');
-      const key = card.dataset.cat;
-      document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
-      card.querySelector('.cat-file-input').value = '';
-    });
-    $('#category-tabs').innerHTML = '';
-    $('#category-tabs').classList.remove('show');
-    $('#dashboard').classList.remove('show');
+    setTimeout(() => {
+      currentBranch = val;
+      localStorage.setItem('ml_activeBranch', currentBranch);
+      currentAuditDate = $('#audit-date-input').value || new Date().toISOString().slice(0,10);
+      $('#audit-date-input').value = currentAuditDate;
+      $('#branch-current').textContent = `✓ Working as branch: ${currentBranch} — Audit Date: ${currentAuditDate}`;
+      unlockCatUploads();
 
-    listenFirebaseSubtestStore();
-    autoRestoreBranch();
+      categoryData = {};
+      activeCategory = null;
+      $$('.cat-upload-card').forEach(card=>{
+        card.classList.remove('done');
+        const key = card.dataset.cat;
+        document.querySelector(`[data-cat-status="${key}"]`).textContent = 'Not uploaded yet';
+        card.querySelector('.cat-file-input').value = '';
+      });
+      $('#category-tabs').innerHTML = '';
+      $('#category-tabs').classList.remove('show');
+      $('#dashboard').classList.remove('show');
+
+      listenFirebaseSubtestStore();
+      autoRestoreBranch();
+
+      if(loader) loader.style.display = 'none';
+    }, 600);
   });
 
   // AUTO RECOGNIZE BRANCH
@@ -634,18 +821,18 @@
 
     const header = rows[0];
     const cols = {
-      date:       findHeaderCol(header, catDef.dateCandidates),
-      ptn:        findHeaderCol(header, catDef.ptnCandidates),
-      desc:       findHeaderCol(header, ['item description']),
-      code:       findHeaderCol(header, ['item code']),
-      qty:        findHeaderCol(header, ['quantity']),
-      karat:      findHeaderCol(header, ['karat']),
-      weight:     findHeaderCol(header, ['weight']),
-      oldWeight:  findHeaderCol(header, ['old weight','previous weight']),
-      oldKarat:   findHeaderCol(header, ['old karat','previous karat']),
-      pawner:     findHeaderCol(header, ['pawner']),
-      principal:  findHeaderCol(header, catDef.principalCandidates),
-      appraiser:  findHeaderCol(header, ['appraiser/fla','appraiser / fla','appraiser','fla']),
+      date:        findHeaderCol(header, catDef.dateCandidates),
+      ptn:         findHeaderCol(header, catDef.ptnCandidates),
+      desc:        findHeaderCol(header, ['item description']),
+      code:        findHeaderCol(header, ['item code']),
+      qty:         findHeaderCol(header, ['quantity']),
+      karat:       findHeaderCol(header, ['karat']),
+      weight:      findHeaderCol(header, ['weight']),
+      oldWeight:   findHeaderCol(header, ['old weight','previous weight']),
+      oldKarat:    findHeaderCol(header, ['old karat','previous karat']),
+      pawner:      findHeaderCol(header, ['pawner']),
+      principal:   findHeaderCol(header, catDef.principalCandidates),
+      appraiser:   findHeaderCol(header, ['appraiser/fla','appraiser / fla','appraiser','fla']),
     };
 
     const map = new Map();
@@ -702,10 +889,6 @@
   }
 
   function setStatus(msg){ $('#status-line').textContent = msg; }
-
-  /* ============================================================
-     ADDITIONAL FRAUD / RED-FLAG DETECTION
-     ============================================================ */
 
   function numKey(n){ return Math.round(Number(n||0)*100)/100; }
 
@@ -797,7 +980,7 @@
     const redFlagCount = sorted.filter(m=>m.amountIncreased).length;
     el.innerHTML = `
       <h4>⚠ Prenda Match Summary ${redFlagCount ? `<span class="alert-chip" style="margin-left:8px;vertical-align:2px;">🚩 ${redFlagCount} Red Flag${redFlagCount>1?'s':''}</span>` : ''}</h4>
-      <p class="ps-sub">Items redeemed that match a Prenda (new loan) item by Item Code, Karat, and total weight (±${WEIGHT_TOLERANCE}g tolerance) on the SAME date — matched even if the item was split into more pieces or merged into fewer, regardless of customer name. Item Description is not used for matching. 🔀 means the piece count changed between redeem and re-pawn. Rows with a 🚩 mean the re-pawned loan value went UP compared to the original redeem — the stronger red flag to check first.</p>
+      <p class="ps-sub">Items redeemed that match a Prenda (new loan) item by Item Code, Karat, and total weight (±${WEIGHT_TOLERANCE}g tolerance) on the SAME date.</p>
       <div class="ps-table-wrap">
       <table class="ps-table">
         <thead><tr>
@@ -823,7 +1006,7 @@
               <td>${m.prendaQty}${m.splitOrMerge ? ' <span title="Piece count changed between redeem and re-pawn">🔀</span>' : ''}</td>
               <td>${m.prendaPawner || '—'}</td>
               <td>₱${Number(m.prendaPrincipal||0).toLocaleString()}</td>
-              <td>${m.amountIncreased ? `<span class="alert-chip" title="Loan value went up from ₱${Number(m.redeemPrincipal||0).toLocaleString()} (redeem) to ₱${Number(m.prendaPrincipal||0).toLocaleString()} (prenda) for the same item">🚩 Amount Increased</span>` : `<span class="warn-chip">⚠ Item Match</span>`}</td>
+              <td>${m.amountIncreased ? `<span class="alert-chip" title="Loan value went up">🚩 Amount Increased</span>` : `<span class="warn-chip">⚠ Item Match</span>`}</td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -884,7 +1067,7 @@
     el.style.display = 'block';
     el.innerHTML = `
       <h4>🏦 AMLA / BSP Threshold Alerts <span class="alert-chip" style="margin-left:8px;vertical-align:2px;">🚩 ${amlaGroups.length}</span></h4>
-      <p class="ps-sub">Customers with ₱${AMLA_THRESHOLD.toLocaleString()}+ in combined transactions on the same date (across all uploaded reports) — a BSP/AMLA covered transaction, or possible structuring if split across several smaller transactions.</p>
+      <p class="ps-sub">Customers with ₱${AMLA_THRESHOLD.toLocaleString()}+ in combined transactions on the same date.</p>
       <div class="ps-table-wrap">
       <table class="ps-table">
         <thead><tr><th>Customer</th><th>Date</th><th>Total Amount</th><th># Transactions</th><th>Report(s)</th><th>Alert</th></tr></thead>
@@ -897,8 +1080,8 @@
               <td>${g.count}</td>
               <td>${g.categories}</td>
               <td>${g.structuring
-                ? `<span class="alert-chip" title="Total hit the threshold only when several transactions on the same date are added together">🚩 Possible Structuring</span>`
-                : `<span class="alert-chip" title="A single transaction already meets the covered-transaction threshold">🚩 High-Value</span>`}</td>
+                ? `<span class="alert-chip">🚩 Possible Structuring</span>`
+                : `<span class="alert-chip">🚩 High-Value</span>`}</td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -961,9 +1144,9 @@
     const gapRows = info.gaps.map(g=>`<li>Between <span class="ps-ptn">${g.from}</span> and <span class="ps-ptn">${g.to}</span> — missing ${g.missing.length} ticket number${g.missing.length>1?'s':''}: ${g.missing.slice(0,12).join(', ')}${g.missing.length>12?` …and ${g.missing.length-12} more`:''}</li>`).join('');
     el.innerHTML = `
       <h4>🔢 PTN Integrity Check — ${CATEGORIES.find(c=>c.key===activeCategory)?.label||''}</h4>
-      <p class="ps-sub">Checks for duplicate ticket numbers and gaps in the ticket-number sequence within this report.</p>
+      <p class="ps-sub">Checks for duplicate ticket numbers and gaps in the ticket-number sequence.</p>
       ${info.duplicates.length ? `<p style="margin:10px 0 4px;font-weight:700;color:#b8801a;font-size:12.5px;">⚠ Duplicate Ticket Numbers (${info.duplicates.length})</p><ul style="margin:0 0 8px;padding-left:18px;font-size:12.5px;">${dupRows}</ul>` : ''}
-      ${info.gaps.length ? `<p style="margin:10px 0 4px;font-weight:700;color:var(--brass);font-size:12.5px;">🚩 Missing Ticket Numbers (${info.gaps.reduce((s,g)=>s+g.missing.length,0)})</p><ul style="margin:0;padding-left:18px;font-size:12.5px;">${gapRows}</ul>` : ''}
+      ${info.gaps.length ? `<p style="margin:10px 0 4px;font-weight:700;color:var(--primary);font-size:12.5px;">🚩 Missing Ticket Numbers (${info.gaps.reduce((s,g)=>s+g.missing.length,0)})</p><ul style="margin:0;padding-left:18px;font-size:12.5px;">${gapRows}</ul>` : ''}
     `;
   }
 
@@ -1213,15 +1396,15 @@
       const chip = r.found ? (r.finding ? `<span class="flag-chip">⚑ Flagged</span>` : `<span class="ok-chip">✓ OK</span>`) : '';
       const warnChip = r.prendaMatch
         ? (r.prendaAmountIncreased
-            ? `<span class="alert-chip" title="Same item found in Prenda on the same date, and the re-pawned loan value went UP — PTN: ${r.prendaMatch.join(', ')}">🚩 Amount Increased</span>`
-            : `<span class="warn-chip" title="Same item code/karat/weight found in Prenda on the same date — PTN: ${r.prendaMatch.join(', ')}">⚠ Possible Re-pawn</span>`)
+            ? `<span class="alert-chip" title="Same item found in Prenda on the same date, and the re-pawned loan value went UP">🚩 Amount Increased</span>`
+            : `<span class="warn-chip" title="Same item code/karat/weight found in Prenda on the same date">⚠ Possible Re-pawn</span>`)
         : '';
       const weightLossChip = r.weightLoss > 0
-        ? `<span class="warn-chip" title="Old weight ${r.oldWeight}g → new weight ${r.weight}g on re-appraisal">⚠ Weight Loss ${r.weightLoss}g</span>` : '';
+        ? `<span class="warn-chip" title="Old weight ${r.oldWeight}g → new weight ${r.weight}g">⚠ Weight Loss ${r.weightLoss}g</span>` : '';
       const priceOutlierChip = r.priceOutlier
-        ? `<span class="warn-chip" title="₱${r.priceOutlier.ppg}/g vs a typical ₱${r.priceOutlier.median}/g for ${r.karat}K in this report">⚠ Unusual Valuation</span>` : '';
+        ? `<span class="warn-chip" title="₱${r.priceOutlier.ppg}/g vs median ₱${r.priceOutlier.median}/g">⚠ Unusual Valuation</span>` : '';
       const amlaChip = r.amlaFlag
-        ? `<span class="alert-chip" title="${r.pawner} totaled ₱${r.amlaFlag.total.toLocaleString()} on ${r.date}${r.amlaFlag.structuring?' across '+r.amlaFlag.count+' transactions (possible structuring)':' (single transaction)'}">🏦 AMLA ${r.amlaFlag.structuring?'Structuring':'Threshold'}</span>` : '';
+        ? `<span class="alert-chip" title="${r.pawner} totaled ₱${r.amlaFlag.total.toLocaleString()}">🏦 AMLA Threshold</span>` : '';
       tr.innerHTML = `
         <td data-label="#">${i+1}</td>
         <td class="ptn" data-label="Pawn Ticket #">${r.ptn || '—'}</td>
@@ -1308,7 +1491,7 @@
         </div>
 
         <div class="fm-actions">
-          <button class="del-btn" id="fm-delete-btn" style="font-size:12px;">✕ Remove this row</button>
+          <button class="del-btn" id="fm-delete-btn">✕ Remove this row</button>
           <div class="right"><button class="btn ghost small" id="fm-close-btn">Close</button></div>
         </div>
       </div>`;
@@ -1441,7 +1624,7 @@
     a.click();
   });
 
-  /* 🔥 EDITED: Mouse Click-and-Drag Drag Scroll Engine */
+  /* Mouse Click-and-Drag Drag Scroll Engine */
   document.addEventListener('mousedown', function(e) {
     const slider = e.target.closest('.ps-table-wrap');
     if (!slider) return;
@@ -1454,7 +1637,7 @@
       if (!isDown) return;
       e.preventDefault();
       const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 1.5; // Drag speed multiplier
+      const walk = (x - startX) * 1.5;
       slider.scrollLeft = scrollLeft - walk;
     }
 
