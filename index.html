@@ -637,7 +637,7 @@
     <div></div><div></div><div></div><div></div>
     <div></div><div></div><div></div><div></div>
   </div>
-  <div class="loading-text">Authenticating, please wait...</div>
+  <div class="loading-text" id="loading-text-display">Loading, please wait...</div>
 </div>
 
 <!-- 1. LOGIN SCREEN -->
@@ -1408,10 +1408,19 @@
     }
   };
 
+  // ➕ NEW ENTRY NAVIGATION WITH LOADING SPINNER DELAY (600MS)
   window.goToNewReconciler = function() {
+    let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('loading-text-display');
+    if (loadText) loadText.innerText = "Opening New Reconciler Entry...";
+    if (loader) loader.style.display = 'flex';
+
     localStorage.setItem('ml_activeBranch', 'SELECT BRANCH');
     localStorage.setItem('ml_activeCurrencyTab', 'PHP');
-    window.location.href = 'reconciler.html';
+
+    setTimeout(() => {
+      window.location.href = 'reconciler.html';
+    }, 600);
   };
 
   window.launchBranchInventory = function(branchName, type) {
@@ -1446,10 +1455,19 @@
     }
   };
 
+  // ➔ STATUS/PROGRESS NAVIGATION WITH LOADING SPINNER DELAY (600MS)
   window.launchReconciler = function(branchName) {
+    let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('loading-text-display');
+    if (loadText) loadText.innerText = `Loading ${branchName} Reconciler...`;
+    if (loader) loader.style.display = 'flex';
+
     let activeB = branchName ? branchName.toUpperCase().trim() : "SELECT BRANCH";
     localStorage.setItem('ml_activeBranch', activeB);
-    window.location.href = 'reconciler.html';
+
+    setTimeout(() => {
+      window.location.href = 'reconciler.html';
+    }, 600);
   };
 
   window.toggleAdminPanelUI = function() {
@@ -1479,6 +1497,18 @@
     addAuditLog("Exported Master Database Backup JSON.");
   };
 
+  window.triggerPageReload = function(msg = "Reloading portal...") {
+    let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('loading-text-display');
+    
+    if (loadText) loadText.innerText = msg;
+    if (loader) loader.style.display = 'flex';
+
+    setTimeout(() => {
+      location.reload();
+    }, 600);
+  };
+
   window.importMasterDatabaseJSON = function(evt) {
     let file = evt.target.files[0];
     if (!file) return;
@@ -1500,7 +1530,7 @@
         }
         alert("Master Database restored successfully!");
         addAuditLog("Restored Master Database from JSON file.");
-        location.reload();
+        triggerPageReload("Restoring database, please wait...");
       } catch(err) {
         alert("Invalid Backup File Format.");
       }
@@ -1526,7 +1556,7 @@
       localStorage.clear();
       sessionStorage.clear();
       alert("System completely wiped. Reloading...");
-      location.reload();
+      triggerPageReload("Wiping system, please wait...");
     } else if (pin !== null) {
       alert("Incorrect Admin PIN.");
     }
@@ -1568,6 +1598,7 @@
   window.doLogin = function() {
     let errBox = document.getElementById('login-error-box');
     let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('loading-text-display');
     errBox.style.display = 'none';
 
     let userInput = document.getElementById('login-user').value.trim().toLowerCase();
@@ -1580,7 +1611,8 @@
     }
 
     // Show Custom Dots Loading Overlay
-    loader.style.display = 'flex';
+    if (loadText) loadText.innerText = "Authenticating, please wait...";
+    if (loader) loader.style.display = 'flex';
 
     // Delay nga 600 milliseconds
     setTimeout(() => {
@@ -1600,7 +1632,7 @@
       localStorage.setItem('ml_user_role', role);
 
       // Hide Loader
-      loader.style.display = 'none';
+      if (loader) loader.style.display = 'none';
 
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('dashboard-view').style.display = 'block';
@@ -1612,14 +1644,26 @@
     }, 600);
   };
 
+  // 🚪 LOGOUT WITH SPINNER DELAY (600MS)
   window.doLogout = function() {
-    sessionStorage.removeItem('ml_logged_in');
-    localStorage.removeItem('ml_activeUser');
-    localStorage.removeItem('ml_user_role');
-    document.getElementById('login-user').value = '';
-    document.getElementById('login-pass').value = '';
-    document.getElementById('dashboard-view').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
+    let loader = document.getElementById('global-loading-overlay');
+    let loadText = document.getElementById('loading-text-display');
+    
+    if (loadText) loadText.innerText = "Logging out, please wait...";
+    if (loader) loader.style.display = 'flex';
+
+    setTimeout(() => {
+      sessionStorage.removeItem('ml_logged_in');
+      localStorage.removeItem('ml_activeUser');
+      localStorage.removeItem('ml_user_role');
+      
+      document.getElementById('login-user').value = '';
+      document.getElementById('login-pass').value = '';
+      
+      if (loader) loader.style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+    }, 600);
   };
 
   window.addEventListener('pageshow', () => {
@@ -1630,6 +1674,13 @@
 
   window.addEventListener('focus', () => {
     if (sessionStorage.getItem('ml_logged_in') === 'true') {
+      renderDashboardTable();
+    }
+  });
+
+  // 🔄 REFRESH / LOCALSTORAGE LISTENER FOR AUTOMATIC DASHBOARD RE-RENDER
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'ml_strikeForceEntries') {
       renderDashboardTable();
     }
   });
