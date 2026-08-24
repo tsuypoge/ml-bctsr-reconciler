@@ -2418,6 +2418,7 @@ async function handleFileUpload(evt) {
     }
 
     if (parsedData && parsedData.items && parsedData.items.length > 0) {
+      // 🎯 DIRI MATAWAG ANG SYNC PAINGON SA LOCALSTORAGE
       saveMasterBCTSR(parsedData);
       lastParsedBranch = activeBranch;
       lastParsedCurr = parsedData.currency || activeCurrencyTab;
