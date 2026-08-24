@@ -16,9 +16,9 @@
     --primary: #cc0000;
     --primary-dark: #990000;
     --bg-red: #bc0000;
-    --bg-gradient: linear-gradient(135deg, #d30000 0%, #900000 100%);
+    --bg-gradient: linear-gradient(135deg, #d30000 0%, #800000 100%);
     --panel-bg: #ffffff;
-    --text-main: #1e293b;
+    --text-main: #0f172a;
     --text-muted: #64748b;
     --border: #e2e8f0;
     --gold: #d4af37;
@@ -164,7 +164,7 @@
 
   /* Dashboard View */
   #dashboard-view {
-    max-width: 1300px;
+    max-width: 1350px;
     margin: 40px auto;
     padding: 0 20px;
   }
@@ -179,13 +179,15 @@
     text-shadow: 0 2px 4px rgba(0,0,0,0.15);
   }
 
-  /* Admin Control Panel Section */
+  /* 👑 PROFESSIONAL EXECUTIVE ADMIN CONSOLE STYLES */
   .admin-panel-card {
-    background: #ffffff;
+    background: #0f172a;
+    color: #f8fafc;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    padding: 24px;
-    margin-bottom: 24px;
+    box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.4);
+    padding: 28px;
+    margin-bottom: 28px;
+    border: 1px solid #1e293b;
     border-top: 4px solid var(--gold);
     display: none;
   }
@@ -194,41 +196,100 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 12px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .admin-panel-title {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 800;
-    color: var(--primary);
+    color: #ffffff;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    letter-spacing: -0.01em;
   }
+
+  .admin-badge-tag {
+    font-size: 11px;
+    background: linear-gradient(135deg, #d4af37 0%, #b89628 100%);
+    color: #0f172a;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .admin-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .admin-stat-chip {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+  }
+  .admin-stat-chip .val { font-size: 22px; font-weight: 800; color: #38bdf8; font-family: var(--font-mono); }
+  .admin-stat-chip .lbl { font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.5px; }
 
   .admin-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
   }
 
   .admin-box {
-    background: #f8fafc;
-    border: 1px solid var(--border);
+    background: #1e293b;
+    border: 1px solid #334155;
     border-radius: var(--radius-md);
-    padding: 16px;
+    padding: 20px;
   }
 
   .admin-box h4 {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
-    color: var(--primary-dark);
-    margin-bottom: 10px;
+    color: #94a3b8;
+    margin-bottom: 14px;
     text-transform: uppercase;
+    letter-spacing: 0.6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
+
+  .btn-console {
+    width: 100%;
+    background: #334155;
+    color: #ffffff;
+    border: 1px solid #475569;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-console:hover { background: #475569; border-color: #64748b; }
+
+  .btn-console-danger {
+    background: #7f1d1d;
+    color: #fecaca;
+    border-color: #991b1b;
+  }
+  .btn-console-danger:hover { background: #991b1b; color: #ffffff; }
 
   /* NAVIGATION TABS CSS */
   .view-switcher-tabs {
@@ -564,15 +625,16 @@
   .btn-enroll-submit:hover { background: #b91c1c; transform: translateY(-1px); }
 
   .log-box {
-    max-height: 130px;
+    max-height: 125px;
     overflow-y: auto;
     font-family: var(--font-mono);
     font-size: 11px;
-    background: #0f172a;
+    background: #020617;
     color: #38bdf8;
-    padding: 10px;
+    padding: 10px 12px;
     border-radius: 6px;
-    line-height: 1.4;
+    line-height: 1.5;
+    border: 1px solid #1e293b;
   }
 
   .user-list-table {
@@ -651,7 +713,7 @@
 
     <div class="form-group">
       <label>User ID / Employee Code</label>
-      <input type="text" id="login-user" class="form-input" placeholder="Enter User ID (e.g. r.duero)" autocomplete="off" name="login-user-field" spellcheck="false" autocapitalize="off" onkeydown="if(event.key==='Enter') doLogin();">
+      <input type="text" id="login-user" class="form-input" placeholder="Enter User ID (e.g. admin)" autocomplete="off" name="login-user-field" spellcheck="false" autocapitalize="off" onkeydown="if(event.key==='Enter') doLogin();">
     </div>
 
     <div class="form-group">
@@ -670,43 +732,59 @@
     <span class="cloud-tag">🔥 Realtime Cloud Sync Active</span>
   </div>
 
-  <!-- 👑 MASTER ADMIN CONTROL PANEL -->
+  <!-- 👑 MODERN PROFESSIONAL EXECUTIVE ADMIN CONSOLE -->
   <div class="admin-panel-card" id="admin-control-panel">
     <div class="admin-panel-header">
       <div class="admin-panel-title">
-        <span>⚡ MASTER ADMIN CONTROL CENTER</span>
-        <span style="font-size:11px; background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:12px; border:1px solid #fcd34d;">Super Admin Mode Active</span>
+        <span>🛡️ MASTER ADMIN CONSOLE</span>
+        <span class="admin-badge-tag">Super Admin Mode</span>
       </div>
       <div style="display:flex; gap:8px;">
-        <button class="btn-action btn-archive" style="background:#e0e7ff; color:#3730a3;" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))">✏️ Update Admin Profile</button>
-        <button class="btn-action btn-archive" onclick="toggleAdminPanelUI()">Hide Panel</button>
+        <button class="btn-console" style="width:auto; padding:7px 14px;" onclick="openProfileModal(localStorage.getItem('ml_activeUser'))">✏️ Edit Profile</button>
+        <button class="btn-console" style="width:auto; padding:7px 14px; background:#475569;" onclick="toggleAdminPanelUI()">Hide Console</button>
+      </div>
+    </div>
+
+    <!-- Live Executive Metrics Row -->
+    <div class="admin-stats-row">
+      <div class="admin-stat-chip">
+        <div class="val" id="admin-stat-users">4</div>
+        <div class="lbl">Enrolled Auditors</div>
+      </div>
+      <div class="admin-stat-chip">
+        <div class="val" id="admin-stat-branches">4</div>
+        <div class="lbl">Active Audits</div>
+      </div>
+      <div class="admin-stat-chip">
+        <div class="val" style="color:#4ade80;">ONLINE</div>
+        <div class="lbl">Cloud Terminal Status</div>
       </div>
     </div>
 
     <div class="admin-grid">
-      <!-- Box 1: Backup & Disaster Recovery -->
+      <!-- Box 1: Vault Backup & Restore -->
       <div class="admin-box">
         <h4>💾 Master Vault Backup & Sync</h4>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="exportMasterDatabaseJSON()">📥 Export Full System Backup (JSON)</button>
-          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="document.getElementById('restore-db-file').click()">📂 Restore Master Database</button>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn-console" onclick="exportMasterDatabaseJSON()">📥 Export System Backup (JSON)</button>
+          <button class="btn-console" onclick="document.getElementById('restore-db-file').click()">📂 Restore Master Database</button>
           <input type="file" id="restore-db-file" accept=".json" style="display:none;" onchange="importMasterDatabaseJSON(event)">
         </div>
       </div>
 
-      <!-- Box 2: Emergency Override & Maintenance -->
+      <!-- Box 2: Emergency Overrides -->
       <div class="admin-box">
-        <h4>⚡ System Overrides & Lock Control</h4>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="massToggleArchiveState(true)">🔒 Mass Force-Lock All Branches</button>
-          <button class="btn-inv" style="justify-content:center; padding:8px;" onclick="massToggleArchiveState(false)">🔓 Mass Unlock All Branches</button>
-          <button class="btn-inv" style="justify-content:center; padding:8px; background:#fee2e2; color:#991b1b; border-color:#fca5a5;" onclick="triggerFactoryResetSystem()">🗑️ Master Factory Wipe System</button>
+        <h4>🔒 System Overrides & Lock Control</h4>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn-console" onclick="massToggleArchiveState(true)">🔒 Mass Lock All Branches</button>
+          <button class="btn-console" onclick="massToggleArchiveState(false)">🔓 Mass Unlock All Branches</button>
+          <button class="btn-console btn-console-danger" onclick="triggerFactoryResetSystem()">🗑️ Master Factory Reset Wipe</button>
         </div>
       </div>
 
-      <!-- Box 3: Audit Trail Logs -->
+      <!-- Box 3: Audit Trail Log Console -->
       <div class="admin-box">
-        <h4>📜 Live Activity & Audit Trail Log</h4>
+        <h4>📜 Live Terminal Audit Log</h4>
         <div class="log-box" id="admin-log-display">
           [System Ready] Master Admin logged in.
         </div>
@@ -719,7 +797,7 @@
     <div style="display:flex; gap:10px; align-items:center;">
       <button class="btn-toolbar" onclick="goToNewReconciler()"><span>➕</span> New Entry</button>
       <button class="btn-toolbar" style="color:#3b82f6;" onclick="window.triggerSelectAssignModal()"><span>👥</span> Assign Companion</button>
-      <button class="btn-toolbar" id="btn-admin-panel-toggle" style="display:none; background:#1e293b; color:#fff;" onclick="toggleAdminPanelUI()">⚡ Admin Controls</button>
+      <button class="btn-toolbar" id="btn-admin-panel-toggle" style="display:none; background:#0f172a; color:#fff;" onclick="toggleAdminPanelUI()">⚡ Admin Console</button>
     </div>
 
     <div class="user-badge-bar">
@@ -939,19 +1017,19 @@
   let activeAssignEntryIndex = null;
 
   let defaultEntries = [
-    { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companions: ["r.duero", "auditor-516"], createdBy: "ADMIN-MASTER", status: "In Progress" },
-    { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companions: ["j.doe"], createdBy: "ADMIN-MASTER", status: "Pending" },
+    { branch: "ML CATARMAN", cutoffDate: "06/11/2026 - 07/26/2026", companions: ["r.duero", "auditor-516"], createdBy: "admin", status: "In Progress" },
+    { branch: "ML LILOAN 3", cutoffDate: "07/21/2026 - 07/26/2026", companions: ["j.doe"], createdBy: "admin", status: "Pending" },
     { branch: "ML COMPOSTELA", cutoffDate: "06/15/2026 - 07/26/2026", companions: [], createdBy: "r.duero", status: "Pending" },
-    { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companions: ["r.duero", "j.doe"], createdBy: "ADMIN-MASTER", status: "In Progress" }
+    { branch: "ML TABACO 2", cutoffDate: "2026-07-01 - 2026-08-03", companions: ["r.duero", "j.doe"], createdBy: "admin", status: "In Progress" }
   ];
 
   let strikeForceEntries = JSON.parse(localStorage.getItem('ml_strikeForceEntries')) || defaultEntries;
 
   let enrolledUsers = [
+    { username: "admin", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz" },
     { username: "r.duero", name: "Rey John Duero", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "r.duero@sfcaliquidation.biz" },
     { username: "auditor-516", name: "Auditor 516", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "auditor516@sfcaliquidation.biz" },
-    { username: "j.doe", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" },
-    { username: "ADMIN-MASTER", name: "Master Admin", position: "Lead Audit Head", department: "StrikeForce/Fraud Audit-IAD", email: "admin@mlhuillier.biz" }
+    { username: "j.doe", name: "Jane Doe", position: "Audit Specialist", department: "StrikeForce/Fraud Audit-IAD", email: "j.doe@sfcaliquidation.biz" }
   ];
 
   let systemAuditLogs = [];
@@ -966,7 +1044,7 @@
 
   function autoDiscoverStoreBranches(storeObj) {
     if (!storeObj) return;
-    let currentUser = (localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER').trim();
+    let currentUser = (localStorage.getItem('ml_activeUser') || 'admin').trim();
     let updated = false;
 
     Object.keys(storeObj).forEach(branchSlug => {
@@ -1133,6 +1211,9 @@
       `;
       tbody.appendChild(tr);
     });
+
+    let userStatEl = document.getElementById('admin-stat-users');
+    if(userStatEl) userStatEl.innerText = enrolledUsers.length;
   };
 
   window.filterUserTable = function(val) {
@@ -1252,6 +1333,9 @@
       );
     }
 
+    let branchStatEl = document.getElementById('admin-stat-branches');
+    if(branchStatEl) branchStatEl.innerText = strikeForceEntries.length;
+
     if (visibleEntries.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted); font-weight:600;">No Branch Entries assigned to account (${currentUser}). Click 'New Entry' or ask Admin/Creator to assign you as companion.</td></tr>`;
       return;
@@ -1338,7 +1422,7 @@
   };
 
   window.openProfileModal = function(usernameToEdit) {
-    let uname = usernameToEdit || localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+    let uname = usernameToEdit || localStorage.getItem('ml_activeUser') || 'admin';
     let userObj = enrolledUsers.find(u => u.username.toUpperCase() === uname.toUpperCase()) || {
       username: uname,
       name: "Master Admin",
@@ -1581,7 +1665,7 @@
   };
 
   function updateUserInfoDisplay() {
-    let activeUsername = localStorage.getItem('ml_activeUser') || 'ADMIN-MASTER';
+    let activeUsername = localStorage.getItem('ml_activeUser') || 'admin';
     let role = localStorage.getItem('ml_user_role') || 'admin';
 
     let userObj = enrolledUsers.find(u => u.username.toLowerCase() === activeUsername.toLowerCase());
