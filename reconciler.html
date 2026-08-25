@@ -2154,34 +2154,6 @@ function formatMoney(val, symbol = '') {
   return symbol ? `${symbol}${formatted}` : formatted;
 }
 
-function saveStateToStorage() {
-  try {
-    localStorage.setItem('ml_activeBranch', activeBranch);
-    localStorage.setItem('ml_activeCurrencyTab', activeCurrencyTab);
-    localStorage.setItem('ml_branchesStore', JSON.stringify(branchesStore));
-  } catch (e) {
-    console.warn("Could not save to LocalStorage:", e);
-  }
-}
-
-function loadStateFromStorage() {
-  try {
-    const savedActiveBranch = localStorage.getItem('ml_activeBranch');
-    if (savedActiveBranch) activeBranch = savedActiveBranch;
-
-    const savedActiveTab = localStorage.getItem('ml_activeCurrencyTab');
-    if (savedActiveTab) activeCurrencyTab = savedActiveTab;
-
-    const savedBranches = localStorage.getItem('ml_branchesStore');
-    if (savedBranches) branchesStore = JSON.parse(savedBranches);
-
-    updateBranchDropdownUI();
-    switchCurrencyTab(activeCurrencyTab);
-  } catch (e) {
-    console.error("Error loading saved state:", e);
-  }
-}
-
 function updateBranchDropdownUI() {
   const el = document.getElementById('active-branch-name');
   if (el) {
@@ -2637,12 +2609,13 @@ function parsePdfRowsPromise(file) {
   });
 }
 
-// 🔧 SUB-REPORT UPLOAD LOGIC (FIXED)
+// 🔧 SUB-REPORT UPLOAD LOGIC (FIXED: Preserves all existing parsed sheets)
 async function handleSubReportUpload(evt, itemKey) {
   const files = Array.from(evt.target.files);
   if (!files || files.length === 0) return;
 
-  let rule = REPORT_RULES[itemKey] || REPORT_RULES[itemKey.split('_')[0]];
+  let baseKey = itemKey.includes('_') ? itemKey.split('_')[0] : itemKey;
+  let rule = REPORT_RULES[itemKey] || REPORT_RULES[baseKey];
   let defaultSheetTarget = rule ? rule.sheet : itemKey;
 
   let bData = getActiveBranchData();
@@ -2666,13 +2639,20 @@ async function handleSubReportUpload(evt, itemKey) {
         if (!bData.parsedSheetsStore[c]) {
           bData.parsedSheetsStore[c] = {};
         }
-        if (!bData.parsedSheetsStore[c][sheetTarget]) {
-          bData.parsedSheetsStore[c][sheetTarget] = [];
-        }
-        bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(rows);
 
-        if (rule && rule.altSheet) {
-          bData.parsedSheetsStore[c][rule.altSheet] = bData.parsedSheetsStore[c][sheetTarget];
+        // Deep copy rows to prevent accidental array reference linking across currencies or keys
+        let newRows = JSON.parse(JSON.stringify(rows));
+
+        // Safely set or append ONLY to the specific target sheet without overwriting other keys
+        if (!bData.parsedSheetsStore[c][sheetTarget]) {
+          bData.parsedSheetsStore[c][sheetTarget] = newRows;
+        } else {
+          bData.parsedSheetsStore[c][sheetTarget] = bData.parsedSheetsStore[c][sheetTarget].concat(newRows);
+        }
+
+        // If rule has an altSheet, store a separate copy only if it doesn't collide with existing distinct sheets
+        if (rule && rule.altSheet && rule.altSheet !== sheetTarget) {
+          bData.parsedSheetsStore[c][rule.altSheet] = JSON.parse(JSON.stringify(bData.parsedSheetsStore[c][sheetTarget]));
         }
       });
     }
